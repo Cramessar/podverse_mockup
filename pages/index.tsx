@@ -2,6 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import PodcastCard from "@/components/PodcastCard";
 import { useEffect, useState } from "react";
+import FloatingHamburgerMenu from "@/components/FloatingHamburgerMenu";
 
 interface Podcast {
   id: string;
@@ -73,9 +74,7 @@ export default function Home() {
 
   return (
     <>
-      <Head>
-        <title>Podverse – Discover Podcasts</title>
-      </Head>
+      <FloatingHamburgerMenu categories={genres} />
 
       <main className="bg-podverse-background text-podverse-text min-h-screen p-6">
         {/* Hero Section */}
@@ -94,65 +93,43 @@ export default function Home() {
         {/* Trending Shows */}
         <section className="section">
           <h2 className="text-2xl font-bold mb-4">Trending Shows</h2>
+          <div className="flex gap-6 overflow-x-auto pb-4">
+            {Object.entries(trendingByCategory).map(([category, podcasts]) => (
+              <div
+                key={category}
+                className="bg-podverse-surface rounded-lg p-4 shadow-md min-w-[280px] flex flex-col justify-between"
+                style={{ minHeight: "380px" }}
+              >
+                <h3 className="font-semibold mb-2">{category}</h3>
+                <div className="flex-grow overflow-y-auto">
+                  {podcasts.map((podcast) => {
+                    const title = podcast.title || podcast.title_original || "Unknown Title";
+                    const publisher = podcast.publisher || podcast.publisher_original || "Unknown Publisher";
+                    const image = podcast.image || podcast.thumbnail || "https://placehold.co/180x180?text=No+Image";
+                    const episodeCount = podcast.episodeCount ?? podcast.total_episodes ?? 0;
+                    const rating = podcast.rating ?? 0;
 
-          <div className="flex overflow-x-auto gap-6 py-2">
-            {genres.map((genre) => {
-              const podcast = trending.find((p) => p.category === genre.name);
-
-              // Show empty card or skip if no podcast found? Here, show placeholder:
-              if (!podcast) {
-                return (
-                  <div
-                    key={genre.id}
-                    className="bg-podverse-surface rounded-lg p-4 shadow-md flex-shrink-0 flex flex-col"
-                    style={{ width: 280 }}
-                  >
-                    <h3 className="text-lg font-semibold mb-2">{genre.name}</h3>
-                    <div className="h-64 flex items-center justify-center text-gray-500">
-                      No trending podcast found
-                    </div>
-                    <Link
-                      href={`/explore?category=${encodeURIComponent(genre.name)}`}
-                      className="btn mt-4 text-center"
-                      style={{ width: "100%" }}
-                    >
-                      Explore {genre.name}
-                    </Link>
-                  </div>
-                );
-              }
-
-              // Defensive extraction for podcast info
-              const title = podcast.title || podcast.title_original || "Unknown Title";
-              const publisher = podcast.publisher || podcast.publisher_original || "Unknown Publisher";
-              const image = podcast.image || podcast.thumbnail || "https://placehold.co/180x180?text=No+Image";
-              const episodeCount = podcast.episodeCount ?? podcast.total_episodes ?? 0;
-              const rating = podcast.rating ?? 0;
-
-              return (
-                <div
-                  key={genre.id}
-                  className="bg-podverse-surface rounded-lg p-4 shadow-md flex-shrink-0 flex flex-col"
-                  style={{ width: 280 }}
-                >
-                  <h3 className="text-lg font-semibold mb-2">{genre.name}</h3>
-                  <PodcastCard
-                    title={title}
-                    host={publisher}
-                    imageUrl={image}
-                    episodeCount={episodeCount}
-                    rating={rating}
-                  />
-                  <Link
-                    href={`/explore?category=${encodeURIComponent(genre.name)}`}
-                    className="btn mt-4 text-center"
-                    style={{ width: "100%" }}
-                  >
-                    Explore {genre.name}
-                  </Link>
+                    return (
+                      <PodcastCard
+                        key={podcast.id}
+                        title={title}
+                        host={publisher}
+                        imageUrl={image}
+                        episodeCount={episodeCount}
+                        rating={rating}
+                      />
+                    );
+                  })}
                 </div>
-              );
-            })}
+                <Link
+                  href={`/explore?category=${encodeURIComponent(category)}`}
+                  className="btn mt-4 text-center"
+                  style={{ width: "100%" }}
+                >
+                  Explore {category}
+                </Link>
+              </div>
+            ))}
           </div>
         </section>
 
