@@ -1,4 +1,3 @@
-// pages/index.tsx
 import Head from "next/head";
 import Link from "next/link";
 import PodcastCard from "@/components/PodcastCard";
@@ -26,7 +25,6 @@ const categories = [
   "TV and Film",
 ];
 
-// Mock podcast data
 const mockPodcasts = Array.from({ length: 6 }, (_, i) => ({
   title: `Podcast ${i + 1}`,
   host: `Host ${i + 1}`,
@@ -52,8 +50,8 @@ export default function Home() {
           <p className="text-lg md:text-xl text-white/80 mb-8">
             Browse trending shows, find hidden gems, and follow your favorite creators.
           </p>
-          <Link href="/explore">
-            <button className="btn">Browse</button>
+          <Link href="/explore" className="btn">
+            Browse
           </Link>
         </section>
 
@@ -61,8 +59,15 @@ export default function Home() {
         <section className="section">
           <h2 className="text-2xl font-bold mb-4">Trending Shows</h2>
           <div className="flex gap-4 overflow-x-auto pb-4">
-            {mockPodcasts.map((podcast, i) => (
-              <PodcastCard key={i} {...podcast} />
+            {[...Array(6)].map((_, i) => (
+              <PodcastCard
+                key={i}
+                title={`Podcast #${i + 1}`}
+                host={`Host ${i + 1}`}
+                imageUrl={`https://placehold.co/180x180?text=Pod+${i + 1}`}
+                episodeCount={Math.floor(Math.random() * 100)}
+                rating={parseFloat((Math.random() * 5).toFixed(1))}
+              />
             ))}
           </div>
         </section>
@@ -92,16 +97,14 @@ export default function Home() {
               <p className="text-podverse-muted mb-4">
                 A deep dive into conscious living, meditation, and mindful technology with host Jane Doe.
               </p>
-              <Link href="/player/mindful-mic">
-                <button className="btn bg-white text-black hover:bg-podverse-highlight">
-                  Listen Now
-                </button>
+              <Link href="/player/mindful-mic" className="btn bg-white text-black hover:bg-podverse-highlight">
+                Listen Now
               </Link>
             </div>
           </div>
         </section>
 
-        {/* Dynamic Category Sections */}
+        {/* Category Sections */}
         {categories.map((category) => (
           <CategorySection key={category} category={category} podcasts={mockPodcasts} />
         ))}

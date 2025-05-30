@@ -19,8 +19,11 @@ const CategorySection: React.FC<CategorySectionProps> = ({ category, podcasts })
     <section className="section">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">{category}</h2>
-        <Link href={`/explore?category=${encodeURIComponent(category)}`}>
-          <a className="text-sm text-podverse-primary hover:underline">Explore All</a>
+        <Link
+          href={`/explore?category=${encodeURIComponent(category)}`}
+          className="text-sm text-podverse-primary hover:underline"
+        >
+          Explore All
         </Link>
       </div>
       <div className="flex gap-4 overflow-x-auto pb-4">
