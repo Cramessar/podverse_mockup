@@ -1,8 +1,21 @@
-export default function AdminPage() {
+// pages/admin/index.tsx
+import { useAdminAuth } from "./hooks/useAdminAuth";
+
+export default function AdminIndex() {
+  const { user, loading } = useAdminAuth();
+
+  if (loading) return <p>Loading...</p>;
+
+  if (!user) {
+    // Redirect handled in hook, so show nothing here
+    return null;
+  }
+
   return (
-    <main className="p-6">
-      <h1 className="text-3xl font-bold mb-4">Admin - [PageName]</h1>
-      <p>This admin page is under construction.</p>
-    </main>
+    <div className="p-8">
+      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+      <p>Welcome, {user.email}</p>
+      {/* TODO: Add your admin dashboard content here */}
+    </div>
   );
 }
