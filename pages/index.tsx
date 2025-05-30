@@ -2,6 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import PodcastCard from "@/components/PodcastCard";
 import CategorySection from "@/components/CategorySection";
+import { useEffect, useState } from "react";
 
 const categories = [
   "Arts",
@@ -25,6 +26,7 @@ const categories = [
   "TV and Film",
 ];
 
+// Mock podcast data for category sections
 const mockPodcasts = Array.from({ length: 6 }, (_, i) => ({
   title: `Podcast ${i + 1}`,
   host: `Host ${i + 1}`,
@@ -34,6 +36,15 @@ const mockPodcasts = Array.from({ length: 6 }, (_, i) => ({
 }));
 
 export default function Home() {
+  const [livePodcasts, setLivePodcasts] = useState([]);
+
+  useEffect(() => {
+    fetch("/data/live_podcasts.json")
+      .then((res) => res.json())
+      .then((data) => setLivePodcasts(data.results || []))
+      .catch((err) => console.error("Failed to load live podcasts", err));
+  }, []);
+
   return (
     <>
       <Head>
@@ -41,7 +52,6 @@ export default function Home() {
       </Head>
 
       <main className="bg-podverse-background text-podverse-text min-h-screen">
-
         {/* Hero */}
         <section className="gradient-bg section text-center">
           <h1 className="text-4xl md:text-6xl font-extrabold mb-4">
@@ -71,6 +81,25 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        {/* Live Episodes from API */}
+        {livePodcasts.length > 0 && (
+          <section className="section">
+            <h2 className="text-2xl font-bold mb-4">Live Star Wars Episodes</h2>
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              {livePodcasts.map((podcast: any, i: number) => (
+                <PodcastCard
+                  key={podcast.id || i}
+                  title={podcast.title_original}
+                  host={podcast.podcast?.publisher_original || "Unknown Host"}
+                  imageUrl={podcast.image || `https://placehold.co/180x180?text=No+Image`}
+                  episodeCount={podcast.podcast?.total_episodes || 0}
+                  rating={parseFloat((Math.random() * 5).toFixed(1))} // placeholder rating
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Categories */}
         <section className="section">
@@ -111,7 +140,7 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="px-8 py-6 text-center text-sm text-podverse-muted border-t border-podverse-border mt-10">
-          © {new Date().getFullYear()} Podverse. All rights reserved. Chris Ramessar, Daniel Morris, Elif Erik, Garrett Cross, Mike Schappell, Noel Watters, and Tim Scherman the most awesome team ever.
+          © {new Date().getFullYear()} Podverse. All rights reserved. Chris Ramessar, Daniel Morris, Elif Erik, Garrett Cross, Mike Schappell, Noel Watters, and Tim Scherman – the most awesome team ever.
         </footer>
       </main>
     </>
