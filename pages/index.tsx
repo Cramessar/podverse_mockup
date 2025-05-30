@@ -85,6 +85,25 @@ export default function Home() {
           </Link>
         </section>
 
+
+        {/* Browse Categories */}
+        {genres.length > 0 && (
+          <section className="section">
+            <h2 className="text-2xl font-bold mb-4">Browse by Category</h2>
+            <div className="flex flex-wrap gap-4">
+              {genres.map((genre) => (
+                <button
+                  key={genre.id}
+                  className="px-4 py-2 rounded-full border border-podverse-border text-sm hover:bg-podverse-surface"
+                >
+                  {genre.name}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+
         {/* Trending Shows */}
         <section className="section">
           <h2 className="text-2xl font-bold mb-4">Trending Shows</h2>
@@ -145,23 +164,6 @@ export default function Home() {
                   episodeCount={podcast.episodeCount || 0}
                   rating={podcast.rating || 0}
                 />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Browse Categories */}
-        {genres.length > 0 && (
-          <section className="section">
-            <h2 className="text-2xl font-bold mb-4">Browse by Category</h2>
-            <div className="flex flex-wrap gap-4">
-              {genres.map((genre) => (
-                <button
-                  key={genre.id}
-                  className="px-4 py-2 rounded-full border border-podverse-border text-sm hover:bg-podverse-surface"
-                >
-                  {genre.name}
-                </button>
               ))}
             </div>
           </section>
