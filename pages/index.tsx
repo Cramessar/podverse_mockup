@@ -1,7 +1,39 @@
 // pages/index.tsx
 import Head from "next/head";
-import Image from "next/image";
 import Link from "next/link";
+import PodcastCard from "@/components/PodcastCard";
+import CategorySection from "@/components/CategorySection";
+
+const categories = [
+  "Arts",
+  "Business",
+  "Comedy",
+  "Education",
+  "Fiction",
+  "Government",
+  "Health and Fitness",
+  "History",
+  "Kids and Family",
+  "Leisure",
+  "Music",
+  "News",
+  "Religion and Spirituality",
+  "Science",
+  "Society and Culture",
+  "Sports",
+  "Technology",
+  "True Crime",
+  "TV and Film",
+];
+
+// Mock podcast data
+const mockPodcasts = Array.from({ length: 6 }, (_, i) => ({
+  title: `Podcast ${i + 1}`,
+  host: `Host ${i + 1}`,
+  imageUrl: `https://placehold.co/180x180?text=Pod+${i + 1}`,
+  episodeCount: Math.floor(Math.random() * 100),
+  rating: parseFloat((Math.random() * 5).toFixed(1)),
+}));
 
 export default function Home() {
   return (
@@ -9,47 +41,40 @@ export default function Home() {
       <Head>
         <title>Podverse – Discover Podcasts</title>
       </Head>
-      <main className="bg-gray-950 text-white min-h-screen">
+
+      <main className="bg-podverse-background text-podverse-text min-h-screen">
+
         {/* Hero */}
-        <section className="px-8 py-20 text-center">
+        <section className="gradient-bg section text-center">
           <h1 className="text-4xl md:text-6xl font-extrabold mb-4">
             Discover Your Next Favorite Podcast
           </h1>
-          <p className="text-lg md:text-xl text-gray-400 mb-8">
+          <p className="text-lg md:text-xl text-white/80 mb-8">
             Browse trending shows, find hidden gems, and follow your favorite creators.
           </p>
           <Link href="/explore">
-            <button className="bg-green-500 text-black font-semibold px-6 py-3 rounded-lg hover:bg-green-400 transition">
-              Browse Podcasts
-            </button>
+            <button className="btn">Browse</button>
           </Link>
         </section>
 
         {/* Trending Shows */}
-        <section className="px-8 py-10">
+        <section className="section">
           <h2 className="text-2xl font-bold mb-4">Trending Shows</h2>
           <div className="flex gap-4 overflow-x-auto pb-4">
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="min-w-[180px] bg-gray-800 rounded-lg p-4 flex-shrink-0 hover:bg-gray-700 transition"
-              >
-                <div className="aspect-square bg-gray-600 rounded mb-2" />
-                <h3 className="text-lg font-medium">Podcast #{i + 1}</h3>
-                <p className="text-sm text-gray-400">Host Name</p>
-              </div>
+            {mockPodcasts.map((podcast, i) => (
+              <PodcastCard key={i} {...podcast} />
             ))}
           </div>
         </section>
 
         {/* Categories */}
-        <section className="px-8 py-10">
+        <section className="section">
           <h2 className="text-2xl font-bold mb-4">Browse by Category</h2>
           <div className="flex flex-wrap gap-4">
             {["Tech", "Comedy", "True Crime", "Wellness", "News", "Education"].map((cat) => (
               <button
                 key={cat}
-                className="px-4 py-2 rounded-full border border-gray-600 text-sm hover:bg-gray-800"
+                className="px-4 py-2 rounded-full border border-podverse-border text-sm hover:bg-podverse-surface"
               >
                 {cat}
               </button>
@@ -57,18 +82,18 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Featured Show */}
-        <section className="px-8 py-10 bg-gray-900">
+        {/* Spotlight Show */}
+        <section className="section bg-podverse-surface">
           <h2 className="text-2xl font-bold mb-6">Spotlight</h2>
           <div className="flex flex-col md:flex-row gap-8 items-center">
-            <div className="w-64 h-64 bg-gray-700 rounded-lg" />
+            <div className="w-64 h-64 bg-podverse-border rounded-lg" />
             <div>
               <h3 className="text-2xl font-semibold mb-2">The Mindful Mic</h3>
-              <p className="text-gray-400 mb-4">
+              <p className="text-podverse-muted mb-4">
                 A deep dive into conscious living, meditation, and mindful technology with host Jane Doe.
               </p>
               <Link href="/player/mindful-mic">
-                <button className="bg-white text-black px-4 py-2 rounded-md font-medium hover:bg-gray-200">
+                <button className="btn bg-white text-black hover:bg-podverse-highlight">
                   Listen Now
                 </button>
               </Link>
@@ -76,8 +101,13 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Dynamic Category Sections */}
+        {categories.map((category) => (
+          <CategorySection key={category} category={category} podcasts={mockPodcasts} />
+        ))}
+
         {/* Footer */}
-        <footer className="px-8 py-6 text-center text-sm text-gray-500 border-t border-gray-800 mt-10">
+        <footer className="px-8 py-6 text-center text-sm text-podverse-muted border-t border-podverse-border mt-10">
           © {new Date().getFullYear()} Podverse. All rights reserved.
         </footer>
       </main>
