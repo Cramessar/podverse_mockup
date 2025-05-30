@@ -20,7 +20,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data = await response.json();
     return res.status(200).json(data.genres);
-  } catch (error) {
+  } catch {
+    // no error variable since it's unused
     return res.status(500).json({ error: "Failed to fetch genres" });
   }
 }

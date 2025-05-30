@@ -6,11 +6,10 @@ const BASE_URL = "https://listen-api.listennotes.com/api/v2";
 interface Category {
   id: number;
   name: string;
-  parent_id: number;
+  parent_id: number; // Optional if you want to keep for reference
 }
 
 interface PodcastResult {
-  // Adjust these based on the ListenNotes response shape
   id: string;
   title: string;
   publisher: string;
@@ -60,6 +59,12 @@ async function fetchPodcastForCategory(cat: Category): Promise<PodcastResult | n
     const response = await fetch(url, {
       headers: { "X-ListenAPI-Key": API_KEY || "" },
     });
+
+    if (!response.ok) {
+      console.warn(`API responded with status ${response.status} for category: ${cat.name}`);
+      return null;
+    }
+
     const data = await response.json();
 
     if (data.results && data.results.length > 0) {
@@ -74,16 +79,13 @@ async function fetchPodcastForCategory(cat: Category): Promise<PodcastResult | n
   }
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!API_KEY) {
     return res.status(500).json({ error: "Missing API key" });
   }
 
   try {
-    const batchSize = 2; // number of concurrent requests per batch
+    const batchSize = 2; // Number of concurrent requests per batch
     const batches = chunkArray(categories, batchSize);
 
     const results: PodcastResult[] = [];
