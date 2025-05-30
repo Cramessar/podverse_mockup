@@ -6,7 +6,7 @@ const BASE_URL = "https://listen-api.listennotes.com/api/v2";
 interface Category {
   id: number;
   name: string;
-  parent_id: number; // Optional if you want to keep for reference
+  parent_id: number; // optional if you want to keep for reference
 }
 
 interface PodcastResult {
@@ -85,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const batchSize = 2; // Number of concurrent requests per batch
+    const batchSize = 2; // number of concurrent requests per batch
     const batches = chunkArray(categories, batchSize);
 
     const results: PodcastResult[] = [];
@@ -102,8 +102,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     res.status(200).json(results);
-  } catch (error) {
-    console.error("ListenNotes API error:", error);
+  } catch {
+    // no unused error variable here
     res.status(500).json({ error: "Failed to fetch trending podcasts" });
   }
 }

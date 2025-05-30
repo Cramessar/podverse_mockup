@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  podverse:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - LISTENNOTES_API_KEY=${LISTENNOTES_API_KEY}
+    restart: unless-stopped

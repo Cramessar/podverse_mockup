@@ -9,11 +9,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { q = "star wars" } = req.query;
 
   try {
-    const response = await fetch(`https://listen-api.listennotes.com/api/v2/search?q=${encodeURIComponent(q)}&type=episode&page_size=10`, {
-      headers: {
-        "X-ListenAPI-Key": apiKey,
-      },
-    });
+    const response = await fetch(
+      `https://listen-api.listennotes.com/api/v2/search?q=${encodeURIComponent(
+        q as string
+      )}&type=episode&page_size=10`,
+      {
+        headers: {
+          "X-ListenAPI-Key": apiKey,
+        },
+      }
+    );
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -22,7 +27,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data = await response.json();
     return res.status(200).json(data);
-  } catch (error) {
+  } catch {
+    // no unused error variable here, just catch and respond
     return res.status(500).json({ error: "Failed to fetch podcasts" });
   }
 }

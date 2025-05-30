@@ -1,4 +1,3 @@
-import Head from "next/head";
 import Link from "next/link";
 import PodcastCard from "@/components/PodcastCard";
 import { useEffect, useState } from "react";
@@ -27,7 +26,6 @@ export default function Home() {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [trending, setTrending] = useState<Podcast[]>([]);
   const [livePodcasts, setLivePodcasts] = useState<Podcast[]>([]);
-  const [loadingTrending, setLoadingTrending] = useState(true);
   const [loadingLive, setLoadingLive] = useState(true);
 
   useEffect(() => {
@@ -40,16 +38,13 @@ export default function Home() {
   useEffect(() => {
     if (genres.length === 0) return;
 
-    setLoadingTrending(true);
     fetch("/api/trending")
       .then((res) => res.json())
       .then((data) => {
         setTrending(data);
-        setLoadingTrending(false);
       })
       .catch((err) => {
         console.error("Failed to load trending podcasts", err);
-        setLoadingTrending(false);
       });
   }, [genres]);
 
@@ -93,19 +88,22 @@ export default function Home() {
         {/* Trending Shows */}
         <section className="section">
           <h2 className="text-2xl font-bold mb-4">Trending Shows</h2>
-          <div className="flex gap-6 overflow-x-auto pb-4">
+
+          <div className="flex gap-4 overflow-x-auto pb-4">
             {Object.entries(trendingByCategory).map(([category, podcasts]) => (
               <div
                 key={category}
-                className="bg-podverse-surface rounded-lg p-4 shadow-md min-w-[280px] flex flex-col justify-between"
+                className="bg-podverse-surface rounded-lg p-4 shadow-md min-w-[220px] flex flex-col justify-between"
                 style={{ minHeight: "380px" }}
               >
-                <h3 className="font-semibold mb-2">{category}</h3>
-                <div className="flex-grow overflow-y-auto">
+                <h3 className="font-semibold mb-3">{category}</h3>
+                <div className="flex-grow space-y-4 overflow-y-auto max-h-[300px]">
                   {podcasts.map((podcast) => {
                     const title = podcast.title || podcast.title_original || "Unknown Title";
-                    const publisher = podcast.publisher || podcast.publisher_original || "Unknown Publisher";
-                    const image = podcast.image || podcast.thumbnail || "https://placehold.co/180x180?text=No+Image";
+                    const publisher =
+                      podcast.publisher || podcast.publisher_original || "Unknown Publisher";
+                    const image =
+                      podcast.image || podcast.thumbnail || "https://placehold.co/180x180?text=No+Image";
                     const episodeCount = podcast.episodeCount ?? podcast.total_episodes ?? 0;
                     const rating = podcast.rating ?? 0;
 
