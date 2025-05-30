@@ -111,7 +111,7 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="px-8 py-6 text-center text-sm text-podverse-muted border-t border-podverse-border mt-10">
-          © {new Date().getFullYear()} Podverse. All rights reserved.
+          © {new Date().getFullYear()} Podverse. All rights reserved. Chris Ramessar, Daniel Morris, Elif Erik, Garrett Cross, Mike Schappell, Noel Watters, and Tim Scherman the most awesome team ever.
         </footer>
       </main>
     </>
