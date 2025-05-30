@@ -1,49 +1,75 @@
 import Head from "next/head";
 import Link from "next/link";
 import PodcastCard from "@/components/PodcastCard";
-import CategorySection from "@/components/CategorySection";
 import { useEffect, useState } from "react";
 
-const categories = [
-  "Arts",
-  "Business",
-  "Comedy",
-  "Education",
-  "Fiction",
-  "Government",
-  "Health and Fitness",
-  "History",
-  "Kids and Family",
-  "Leisure",
-  "Music",
-  "News",
-  "Religion and Spirituality",
-  "Science",
-  "Society and Culture",
-  "Sports",
-  "Technology",
-  "True Crime",
-  "TV and Film",
-];
+interface Podcast {
+  id: string;
+  title: string;
+  title_original?: string;      // optional fallback
+  publisher: string;
+  publisher_original?: string;  // optional fallback
+  image: string;
+  thumbnail?: string;           // optional fallback
+  episodeCount?: number;
+  total_episodes?: number;      // optional fallback
+  rating?: number;
+  category?: string;
+}
 
-// Mock podcast data for category sections
-const mockPodcasts = Array.from({ length: 6 }, (_, i) => ({
-  title: `Podcast ${i + 1}`,
-  host: `Host ${i + 1}`,
-  imageUrl: `https://placehold.co/180x180?text=Pod+${i + 1}`,
-  episodeCount: Math.floor(Math.random() * 100),
-  rating: parseFloat((Math.random() * 5).toFixed(1)),
-}));
+interface Genre {
+  id: number;
+  name: string;
+}
 
 export default function Home() {
-  const [livePodcasts, setLivePodcasts] = useState([]);
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [trending, setTrending] = useState<Podcast[]>([]);
+  const [livePodcasts, setLivePodcasts] = useState<Podcast[]>([]);
+  const [loadingTrending, setLoadingTrending] = useState(true);
+  const [loadingLive, setLoadingLive] = useState(true);
+
+  useEffect(() => {
+    fetch("/data/genres.json")
+      .then((res) => res.json())
+      .then(setGenres)
+      .catch((err) => console.error("Failed to load genres", err));
+  }, []);
+
+  useEffect(() => {
+    if (genres.length === 0) return;
+
+    setLoadingTrending(true);
+    fetch("/api/trending")
+      .then((res) => res.json())
+      .then((data) => {
+        setTrending(data);
+        setLoadingTrending(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load trending podcasts", err);
+        setLoadingTrending(false);
+      });
+  }, [genres]);
 
   useEffect(() => {
     fetch("/data/live_podcasts.json")
       .then((res) => res.json())
       .then((data) => setLivePodcasts(data.results || []))
-      .catch((err) => console.error("Failed to load live podcasts", err));
+      .catch((err) => console.error("Failed to load live podcasts", err))
+      .finally(() => setLoadingLive(false));
   }, []);
+
+  // Group trending podcasts by category, allowing multiple podcasts per category
+  const trendingByCategory = trending.reduce<Record<string, Podcast[]>>((acc, podcast) => {
+    if (podcast.category) {
+      if (!acc[podcast.category]) {
+        acc[podcast.category] = [];
+      }
+      acc[podcast.category].push(podcast);
+    }
+    return acc;
+  }, {});
 
   return (
     <>
@@ -51,14 +77,14 @@ export default function Home() {
         <title>Podverse – Discover Podcasts</title>
       </Head>
 
-      <main className="bg-podverse-background text-podverse-text min-h-screen">
-        {/* Hero */}
+      <main className="bg-podverse-background text-podverse-text min-h-screen p-6">
+        {/* Hero Section */}
         <section className="gradient-bg section text-center">
           <h1 className="text-4xl md:text-6xl font-extrabold mb-4">
             Discover Your Next Favorite Podcast
           </h1>
           <p className="text-lg md:text-xl text-white/80 mb-8">
-            Browse trending shows, find hidden gems, and follow your favorite creators.
+            Browse trending shows by category and follow your favorite creators.
           </p>
           <Link href="/explore" className="btn">
             Browse
@@ -68,53 +94,103 @@ export default function Home() {
         {/* Trending Shows */}
         <section className="section">
           <h2 className="text-2xl font-bold mb-4">Trending Shows</h2>
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {[...Array(6)].map((_, i) => (
-              <PodcastCard
-                key={i}
-                title={`Podcast #${i + 1}`}
-                host={`Host ${i + 1}`}
-                imageUrl={`https://placehold.co/180x180?text=Pod+${i + 1}`}
-                episodeCount={Math.floor(Math.random() * 100)}
-                rating={parseFloat((Math.random() * 5).toFixed(1))}
-              />
-            ))}
+
+          <div className="flex overflow-x-auto gap-6 py-2">
+            {genres.map((genre) => {
+              const podcast = trending.find((p) => p.category === genre.name);
+
+              // Show empty card or skip if no podcast found? Here, show placeholder:
+              if (!podcast) {
+                return (
+                  <div
+                    key={genre.id}
+                    className="bg-podverse-surface rounded-lg p-4 shadow-md flex-shrink-0 flex flex-col"
+                    style={{ width: 280 }}
+                  >
+                    <h3 className="text-lg font-semibold mb-2">{genre.name}</h3>
+                    <div className="h-64 flex items-center justify-center text-gray-500">
+                      No trending podcast found
+                    </div>
+                    <Link
+                      href={`/explore?category=${encodeURIComponent(genre.name)}`}
+                      className="btn mt-4 text-center"
+                      style={{ width: "100%" }}
+                    >
+                      Explore {genre.name}
+                    </Link>
+                  </div>
+                );
+              }
+
+              // Defensive extraction for podcast info
+              const title = podcast.title || podcast.title_original || "Unknown Title";
+              const publisher = podcast.publisher || podcast.publisher_original || "Unknown Publisher";
+              const image = podcast.image || podcast.thumbnail || "https://placehold.co/180x180?text=No+Image";
+              const episodeCount = podcast.episodeCount ?? podcast.total_episodes ?? 0;
+              const rating = podcast.rating ?? 0;
+
+              return (
+                <div
+                  key={genre.id}
+                  className="bg-podverse-surface rounded-lg p-4 shadow-md flex-shrink-0 flex flex-col"
+                  style={{ width: 280 }}
+                >
+                  <h3 className="text-lg font-semibold mb-2">{genre.name}</h3>
+                  <PodcastCard
+                    title={title}
+                    host={publisher}
+                    imageUrl={image}
+                    episodeCount={episodeCount}
+                    rating={rating}
+                  />
+                  <Link
+                    href={`/explore?category=${encodeURIComponent(genre.name)}`}
+                    className="btn mt-4 text-center"
+                    style={{ width: "100%" }}
+                  >
+                    Explore {genre.name}
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         </section>
 
         {/* Live Episodes from API */}
-        {livePodcasts.length > 0 && (
+        {!loadingLive && livePodcasts.length > 0 && (
           <section className="section">
             <h2 className="text-2xl font-bold mb-4">Live Star Wars Episodes</h2>
             <div className="flex gap-4 overflow-x-auto pb-4">
-              {livePodcasts.map((podcast: any, i: number) => (
+              {livePodcasts.map((podcast: Podcast, i: number) => (
                 <PodcastCard
                   key={podcast.id || i}
-                  title={podcast.title_original}
-                  host={podcast.podcast?.publisher_original || "Unknown Host"}
+                  title={podcast.title}
+                  host={podcast.publisher || "Unknown Host"}
                   imageUrl={podcast.image || `https://placehold.co/180x180?text=No+Image`}
-                  episodeCount={podcast.podcast?.total_episodes || 0}
-                  rating={parseFloat((Math.random() * 5).toFixed(1))} // placeholder rating
+                  episodeCount={podcast.episodeCount || 0}
+                  rating={podcast.rating || 0}
                 />
               ))}
             </div>
           </section>
         )}
 
-        {/* Categories */}
-        <section className="section">
-          <h2 className="text-2xl font-bold mb-4">Browse by Category</h2>
-          <div className="flex flex-wrap gap-4">
-            {["Tech", "Comedy", "True Crime", "Wellness", "News", "Education"].map((cat) => (
-              <button
-                key={cat}
-                className="px-4 py-2 rounded-full border border-podverse-border text-sm hover:bg-podverse-surface"
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </section>
+        {/* Browse Categories */}
+        {genres.length > 0 && (
+          <section className="section">
+            <h2 className="text-2xl font-bold mb-4">Browse by Category</h2>
+            <div className="flex flex-wrap gap-4">
+              {genres.map((genre) => (
+                <button
+                  key={genre.id}
+                  className="px-4 py-2 rounded-full border border-podverse-border text-sm hover:bg-podverse-surface"
+                >
+                  {genre.name}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Spotlight Show */}
         <section className="section bg-podverse-surface">
@@ -132,11 +208,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        {/* Category Sections */}
-        {categories.map((category) => (
-          <CategorySection key={category} category={category} podcasts={mockPodcasts} />
-        ))}
 
         {/* Footer */}
         <footer className="px-8 py-6 text-center text-sm text-podverse-muted border-t border-podverse-border mt-10">

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 
-interface PostCardProps {
+interface PodcastCardProps {
   title: string;
   host: string;
   imageUrl: string;
@@ -9,7 +9,7 @@ interface PostCardProps {
   rating?: number;
 }
 
-const PostCard: React.FC<PostCardProps> = ({
+const PodcastCard: React.FC<PodcastCardProps> = ({
   title,
   host,
   imageUrl,
@@ -27,7 +27,7 @@ const PostCard: React.FC<PostCardProps> = ({
       <div className="relative w-full h-48 mb-3 rounded overflow-hidden">
         <Image
           src={imageUrl}
-          alt={title}
+          alt={title || "Podcast Image"}  // fixed alt text error
           layout="fill"
           objectFit="cover"
           className="rounded"
@@ -47,4 +47,4 @@ const PostCard: React.FC<PostCardProps> = ({
   );
 };
 
-export default PostCard;
+export default PodcastCard;
