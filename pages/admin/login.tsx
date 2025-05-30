@@ -1,94 +1,71 @@
-// pages/admin/login.tsx
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { signInWithGoogle } from "./utils/firebaseClient";
 import { useRouter } from "next/router";
-import {
-  signInWithGoogle,
-  signOutUser,
-  onAuthStateChangedListener,
-  getCurrentUser,
-} from "./utils/firebaseClient";
-
-const ADMIN_EMAILS = [
-  "admin1@example.com",
-  "admin2@example.com",
-  // Add your admin emails here
-];
 
 export default function AdminLogin() {
-  const router = useRouter();
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChangedListener(async (user) => {
-      if (user && user.email) {
-        if (ADMIN_EMAILS.includes(user.email)) {
-          setUserEmail(user.email);
-          setError(null);
-          router.push("/admin/dashboard"); // or wherever your admin dashboard is
-        } else {
-          setError("Access denied: You are not an admin.");
-          await signOutUser();
-          setUserEmail(null);
-        }
-      } else {
-        setUserEmail(null);
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [router]);
-
-  const handleSignIn = async () => {
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      const user = await signInWithGoogle();
-      if (user.email && ADMIN_EMAILS.includes(user.email)) {
-        setUserEmail(user.email);
-        setError(null);
-        router.push("/admin/dashboard");
-      } else {
-        setError("Access denied: You are not an admin.");
-        await signOutUser();
-        setUserEmail(null);
-      }
+      await signInWithGoogle();
+      router.push("/admin"); // redirect to admin dashboard on success
     } catch (err) {
-      setError("Failed to sign in.");
+      setError("Failed to login. Please try again.");
       setLoading(false);
     }
   };
 
-  if (loading) return <p>Loading...</p>;
-
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-6 bg-gray-50">
-      <h1 className="text-3xl mb-6">Admin Login</h1>
-      {error && <p className="text-red-600 mb-4">{error}</p>}
-      {!userEmail && (
+    <main className="min-h-screen bg-podverse-background flex flex-col justify-center items-center px-4">
+      <div className="max-w-md w-full bg-podverse-surface rounded-lg shadow-lg p-8">
+        <h1 className="text-4xl font-extrabold mb-6 text-podverse-text text-center">
+          Admin Login
+        </h1>
         <button
-          onClick={handleSignIn}
-          className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700"
+          onClick={handleGoogleLogin}
+          disabled={loading}
+          className="w-full py-3 bg-purple-700 hover:bg-purple-800 text-white rounded-md flex items-center justify-center gap-3 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Sign in with Google
+          {loading ? (
+            <svg
+              className="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8z"
+              ></path>
+            </svg>
+          ) : (
+            <>
+              <img
+                src="/google-logo.svg"
+                alt="Google"
+                className="h-6 w-6"
+              />
+              <span>Sign in with Google</span>
+            </>
+          )}
         </button>
-      )}
-      {userEmail && (
-        <div>
-          <p>Welcome, {userEmail}</p>
-          <button
-            onClick={async () => {
-              await signOutUser();
-              setUserEmail(null);
-              setError(null);
-            }}
-            className="mt-4 px-6 py-3 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            Sign out
-          </button>
-        </div>
-      )}
-    </div>
+        {error && (
+          <p className="mt-4 text-center text-red-500 font-semibold">{error}</p>
+        )}
+      </div>
+    </main>
   );
 }
