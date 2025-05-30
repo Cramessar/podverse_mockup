@@ -1,7 +1,7 @@
 // hooks/useAdminAuth.tsx
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import { auth } from "../utils/firebaseClient"; // Adjust the path as needed to your firebase config
+import { auth } from "../utils/firebaseClient"; // Adjust if needed
 import { useRouter } from "next/router";
 
 const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "").split(",");
@@ -18,7 +18,7 @@ export function useAdminAuth() {
       } else {
         if (currentUser) signOut(auth);
         setUser(null);
-        if (router.pathname.startsWith("/admin")) {
+        if (router.pathname.startsWith("/admin") && router.pathname !== "/admin/login") {
           router.replace("/admin/login");
         }
       }
