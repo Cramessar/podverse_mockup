@@ -91,63 +91,49 @@ Visit http://localhost:8000/docs for Swagger UI with interactive API docs.
 ```
 ---
 
-### Features (update this as we go)
+## Features (to be updated as development progresses)
 
-```
-Frontend
-Admin login using Firebase Google OAuth
+### Frontend
 
-Protected routes using React context and custom hooks
+- Admin login using Firebase Google OAuth
+- Protected routes using React context and custom hooks
+- Dashboard displaying real-time API data
+- Styled with Tailwind CSS to match Podverse brand aesthetics
 
-Dashboard displaying real-time API data
+### Backend
 
-Styled with Tailwind CSS matching Podverse brand
-```
+- FastAPI with asynchronous endpoints
+- OpenAPI docs fully integrated and customized
+- SQLite database seeded with realistic dummy data (users, podcasts, episodes, stats)
+- Pagination and filtering supported on list endpoints
+- JWT token verification with Firebase (optional security layer)
 
-```
-Backend
-FastAPI with asynchronous endpoints
+---
 
-OpenAPI docs fully integrated and customized
+## Environment Variables
 
-SQLite database with realistic dummy data for users, podcasts, episodes, stats
+Copy `.env.example` to `.env.local` (frontend) and `.env` (backend) and fill in:
 
-Pagination and filtering on list endpoints
+- Firebase API keys and OAuth configuration
+- Database URL (defaults to SQLite file)
+- Admin emails for access control (frontend)
 
-JWT token verification via Firebase for secured routes (optional)
-```
+---
 
-```
-Environment Variables
-Copy .env.example to .env.local (frontend) and .env (backend) and fill in:
+## Testing
 
-Firebase API keys and OAuth info
+- Use **pytest** for backend API unit and integration tests
+- Use **React Testing Library** for frontend component testing (optional)
+- Use **Postman** or **Swagger UI** for manual API testing
 
-Database URL (defaults to SQLite file)
+---
 
-Admin emails for access control (frontend)
-```
+## Next Steps
 
-```
-Testing
-Use pytest for backend API unit and integration tests
+- Integrate PostgreSQL or another production-grade database
+- Add more detailed analytics and reporting features
+- Implement admin role management in Firebase
+- Enhance security, error handling, and logging
+- Containerize the app with Docker and update the Dockerfile accordingly
 
-Use React Testing Library for frontend components (optional)
-
-Postman or Swagger UI for manual API testing
-```
-
-```
-Next Steps
-Integrate PostgreSQL or production-grade DB
-
-Add more detailed analytics and reporting
-
-Implement admin role management in Firebase
-
-Enhance security and error handling
-
-Containerize app using Docker for deployment update the dockerfile
-```
-
-
+---
