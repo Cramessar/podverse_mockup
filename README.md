@@ -18,7 +18,7 @@ This is all subject to change. This is just to help us get started.
 
 ## Project Structure
 
-/
+
 ├── backend/ # Backend API and data seeding scripts currently #this is where the python files live
 │ ├── main.py # FastAPI app entry point
 │ ├── routes.py # API endpoint definitions
@@ -59,12 +59,12 @@ This is all subject to change. This is just to help us get started.
 
 ### Setup Frontend
 
-```bash
+
 run these commands in the project root #this is an example PS C:\Users\chris\OneDrive\Documents\GitHub\podverse_mockup> 
 npm install #this will install the package.json. think of this as your requirements.txt for react.
 npm run dev
 Open http://localhost:3000/ to access the main page. #the admin page is here http://localhost:3000/admin
-```
+
 
 ---
 
