@@ -48,34 +48,47 @@ This is all subject to change. This is just to help us get started.
 
 ### Prerequisites
 
+```
 - Node.js (v18+)
 - Python 3.10+
 - SQLite (optional: included as a file-based DB)
 - Firebase project for authentication (Google OAuth setup)
 - Environment variables configured (see `.env.example`) 
 #you will need to create a .env.local file. you can copy and paste the contents from .env.example
-
+```
 ---
 
 ### Setup Frontend
 
+```
+run these commands in the project root 
+This is an example PS C:\Users\chris\OneDrive\Documents\GitHub\podverse_mockup> 
 
-run these commands in the project root #this is an example PS C:\Users\chris\OneDrive\Documents\GitHub\podverse_mockup> 
-npm install #this will install the package.json. think of this as your requirements.txt for react.
+npm install
+This will install the package.json. think of this as your requirements.txt for react.
+
 npm run dev
-Open http://localhost:3000/ to access the main page. #the admin page is here http://localhost:3000/admin
-
+Open http://localhost:3000/ to access the main page. 
+Admin page is here http://localhost:3000/admin
+```
 
 ---
 
 ### Setup Backend
-cd backend # this is another example of what you should see PS C:\Users\chris\OneDrive\Documents\GitHub\podverse_mockup\backend>
+
+```
+cd backend 
+This is another example of what you should see PS C:\Users\chris\OneDrive\Documents\GitHub\podverse_mockup\backend>
+
 pip install -r requirements.txt
+
 python seed_data.py       # Seed SQLite DB with dummy data
+
 uvicorn main:app --reload
+
 Backend API runs on http://localhost:8000.
 Visit http://localhost:8000/docs for Swagger UI with interactive API docs.
-
+```
 ---
 
 ### Features (update this as we go)
