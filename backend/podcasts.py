@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from .. import models, schemas, database
+from . import models, schemas, database
 
 router = APIRouter(prefix="/podcasts", tags=["podcasts"])
 
