@@ -18,7 +18,7 @@ This is all subject to change. This is just to help us get started.
 
 ## Project Structure
 
-
+```
 ├── backend/ # Backend API and data seeding scripts currently #this is where the python files live
 │ ├── main.py # FastAPI app entry point
 │ ├── routes.py # API endpoint definitions
@@ -40,7 +40,7 @@ This is all subject to change. This is just to help us get started.
 ├── requirements.txt # Backend Python dependencies
 ├── .env.example # Environment variable template
 └── README.md # This file
-
+```
 
 ---
 
