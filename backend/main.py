@@ -13,6 +13,7 @@ app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)  # Disable defaul
 app.include_router(api_router, prefix="/admin")
 
 # Fix the openapi.yaml path for flat structure
+# Change this if we change to a modular folder structure
 OPENAPI_PATH = Path(__file__).parent / "openapi.yaml"
 
 @app.get("/openapi.yaml", include_in_schema=False)
