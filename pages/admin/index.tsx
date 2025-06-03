@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import { useAdminAuth } from "./hooks/useAdminAuth";
+import { useAdminAuth } from '@/hooks/useAdminAuth';
+
 
 
 export default function AdminIndex() {

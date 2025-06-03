@@ -14,6 +14,12 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.example.com',  // added hostname for external images
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

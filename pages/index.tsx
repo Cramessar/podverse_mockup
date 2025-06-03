@@ -44,7 +44,23 @@ export default function Home() {
         setTrending(data);
       })
       .catch((err) => {
-        console.error("Failed to load trending podcasts", err);
+        console.error("Failed to load trending podcasts from API", err);
+
+        // Fallback: Load from local JSON file
+        fetch("/data/trending_podcasts.json")
+          .then((res) => res.json())
+          .then((fallbackData) => {
+            if (fallbackData && fallbackData.trending_podcasts) {
+              const fallbackPodcasts = Object.values(fallbackData.trending_podcasts).flat() as Podcast[];
+              setTrending(fallbackPodcasts);
+            } else {
+              setTrending([]);
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to load fallback trending podcasts", err);
+            setTrending([]);
+          });
       });
   }, [genres]);
 
@@ -85,7 +101,6 @@ export default function Home() {
           </Link>
         </section>
 
-
         {/* Browse Categories */}
         {genres.length > 0 && (
           <section className="section">
@@ -102,7 +117,6 @@ export default function Home() {
             </div>
           </section>
         )}
-
 
         {/* Trending Shows */}
         <section className="section">

@@ -1,39 +1,62 @@
-from fastapi import FastAPI
-from fastapi.openapi.docs import (
-    get_swagger_ui_html,
-    get_swagger_ui_oauth2_redirect_html,
-)
-from fastapi.responses import FileResponse, HTMLResponse
-from pathlib import Path
+import os
+from flask import Flask, Response, render_template_string
 
-from .routes import router as api_router
+app = Flask(__name__)
 
-app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)  # Disable default docs
+# Path to the OpenAPI YAML file
+OPENAPI_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "openapi.yaml")
 
-app.include_router(api_router, prefix="/admin")
+@app.route("/openapi.yaml")
+def openapi_yaml():
+    with open(OPENAPI_PATH, "r") as f:
+        yaml_content = f.read()
+    return Response(yaml_content, mimetype="text/plain")
 
-# Fix the openapi.yaml path for flat structure
-# Change this if we change to a modular folder structure
-OPENAPI_PATH = Path(__file__).parent / "openapi.yaml"
+# Serve a simple Swagger UI page
+@app.route("/docs")
+def swagger_ui():
+    swagger_html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Podverse API Docs</title>
+      <link href="https://unpkg.com/swagger-ui-dist@4/swagger-ui.css" rel="stylesheet" />
+    </head>
+    <body>
+      <div id="swagger-ui"></div>
+      <script src="https://unpkg.com/swagger-ui-dist@4/swagger-ui-bundle.js"></script>
+      <script>
+        SwaggerUIBundle({
+          url: "/openapi.yaml",
+          dom_id: '#swagger-ui',
+          presets: [
+            SwaggerUIBundle.presets.apis,
+            SwaggerUIBundle.SwaggerUIStandalonePreset
+          ],
+          layout: "BaseLayout"
+        })
+      </script>
+    </body>
+    </html>
+    """
+    return render_template_string(swagger_html)
 
-@app.get("/openapi.yaml", include_in_schema=False)
-async def get_openapi_yaml():
-    return FileResponse(OPENAPI_PATH)
+# Simple homepage with links
+@app.route("/")
+def index():
+    return """
+    <h1>Podverse Admin API</h1>
+    <ul>
+      <li><a href="/docs">API Documentation (Swagger UI)</a></li>
+      <li><a href="/openapi.yaml">OpenAPI Spec (YAML)</a></li>
+      <li><a href="/admin">Admin API root (placeholder)</a></li>
+    </ul>
+    """
 
-@app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html():
-    return get_swagger_ui_html(
-        openapi_url="/openapi.yaml",
-        title="Podverse Admin API Docs",
-        oauth2_redirect_url=None,
-        swagger_favicon_url="https://fastapi.tiangolo.com/img/favicon.png",
-    )
+# Placeholder admin endpoint
+@app.route("/admin")
+def admin_root():
+    return {"message": "Admin API is up and running"}
 
-@app.get("/docs/oauth2-redirect", include_in_schema=False)
-async def swagger_ui_redirect():
-    return HTMLResponse(get_swagger_ui_oauth2_redirect_html())
-
-
-@app.get("/")
-async def root():
-    return {"message": "Podverse Admin API is running"}
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000)
