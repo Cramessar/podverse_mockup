@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: podverse-backend:latest
+    container_name: podverse_backend
+    ports:
+      - "8000:8000"       # Match the port your Flask app exposes
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ./backend:/app/backend
+    networks:
+      - podverse-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: podverse-frontend:latest
+    container_name: podverse_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - podverse-network
+
+networks:
+  podverse-network:
+    driver: bridge

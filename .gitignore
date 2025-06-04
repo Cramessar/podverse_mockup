@@ -38,10 +38,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Docker
-docker-compose.override.yml
-**/Dockerfile
-**/docker-compose*.yml
 
 # Python
 /backend/__pycache__/
