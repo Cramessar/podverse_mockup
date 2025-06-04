@@ -20,6 +20,8 @@ This document explains the new simplified database schema designed to consolidat
 
 ---
 
+
+
 ## Table Details
 
 ### 1. `account`
@@ -118,3 +120,130 @@ This consolidated schema reduces complexity while maintaining flexibility and sc
 - Centralized stats tracking per entity
 - Playlist and notification management simplified
 
+
+## Add fields to db as columns or tables.
+# Possible needed Database info
+
+This is a proposed list based on research. Unsure what we will access
+
+## 🧾 **Podcast Channel Info (Metadata)**
+
+These are fields stored per podcast:
+
+- `podcast_id` (internal DB ID)
+- `rss_url`
+- `channel_id` (from RSS or external system)
+- `title`
+- `description`
+- `author_name`
+- `contact_email`
+- `cover_image_url` - Optional
+- `category`
+- `creation_date`
+- `last_updated`
+- `status` (live, error, warning, etc.)
+- `status_since`
+- `flagged`
+- `notes` (admin-added)
+
+---
+
+## 🎙️ **Episode-Level Data**
+
+If you are listing or parsing episodes, track per episode:
+
+- `episode_id`
+- `podcast_id` (FK)
+- `title`
+- `description`
+- `audio_url`
+- `publish_date`
+- `episode_number`
+- `season_number`
+- `guid` (globally unique ID from RSS)
+- `play_count`
+- `download_count`
+- `status` (published, pending, flagged, deleted)
+- `last_updated`
+- `error_flags` (missing metadata, broken URL, etc.)
+
+---
+
+## 🩺 **RSS Feed Health System Fields**
+
+Useful to build a diagnostics system:
+
+- `is_valid_rss` (boolean)
+- `last_parsed_at`
+- `next_scheduled_parse`
+- `last_successful_parse`
+- `parse_error_count`
+- `common_errors` (array or JSON)
+    - e.g., missing title, invalid enclosure, bad date format
+- `last_episode_date`
+- `broken_links_detected` (int)
+
+---
+
+## 📊 **Analytics & Popularity Metrics**
+
+If Podverse tracks usage internally:
+
+### Per Podcast:
+
+- `total_plays`
+- `unique_listeners`
+- `subscriber_count`
+- `average_listen_duration`
+- `total_downloads`
+- `device_breakdown` (JSON or array: web, iOS, Android)
+
+### Per Episode:
+
+- `plays`
+- `downloads`
+- `completion_rate` - If tracked
+- `listeners_by_day`
+
+---
+
+## 📂 **Audit Log / Event Tracking Fields**
+
+Each action or change should log:
+
+- `event_id`
+- `target_type` (podcast, episode, feed)
+- `target_id`
+- `user` (admin name or system)
+- `timestamp`
+- `event_type` (e.g., "manual reparse", "edit", "flag", "note added")
+- `note` (optional text)
+
+---
+
+## 📈 **Site-Wide Stats (Global Dashboard)**
+
+Track over time to power line graphs or global metrics:
+
+- `total_podcasts`
+- `total_episodes`
+- `active_feeds_last_24h`
+- `total_plays_sitewide`
+- `daily_active_users`
+- `feeds_flagged_today`
+- `total_feed_errors_last_7_days`
+- `avg_feed_update_time`
+- `daily_reparses_triggered`
+- `most_common_error_type_this_week`
+- `top_podcasts_by_plays`
+- `top_categories_by_podcast_count`
+- `user_device_split` (chartable data)
+
+---
+
+## 🔄 **Optional / Advanced (If Feasible)**
+
+- `reparse_count_total` per podcast
+- `average_parse_duration` (time it takes)
+- `flag_history` (timestamps of when it was flagged or resolved)
+- `rss_size_kb` (for feed load analysis)

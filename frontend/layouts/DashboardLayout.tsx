@@ -1,6 +1,6 @@
 // TODO: Admin Layout
 // layouts/DashboardLayout.tsx
-import Sidebar from "@/components/admin/Sidebar";
+import Sidebar from "@/frontend/components/admin/Sidebar";
 import { ReactNode } from "react";
 
 type Props = {

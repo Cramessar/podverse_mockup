@@ -1,7 +1,7 @@
 import Link from "next/link";
-import PodcastCard from "@/components/PodcastCard";
+import PodcastCard from "@/frontend/components/PodcastCard";
 import { useEffect, useState } from "react";
-import FloatingHamburgerMenu from "@/components/FloatingHamburgerMenu";
+import FloatingHamburgerMenu from "@/frontend/components/FloatingHamburgerMenu";
 
 interface Podcast {
   id: string;
