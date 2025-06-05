@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    image: podverse-backend:latest
+    container_name: podverse_backend
+    ports:
+      - "8000:5000"
+    environment:
+      - FLASK_APP=main.py
+      - FLASK_ENV=development
+    volumes:
+      - ./backend:/app
+    networks:
+      - podverse-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: podverse-frontend:latest
+    container_name: podverse_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - podverse-network
+
+  db:
+    image: postgres:15
+    container_name: podverse_db
+    dockerfile: Dockerfile.db
+    environment:
+      POSTGRES_USER: podverse
+      POSTGRES_PASSWORD: podverse
+      POSTGRES_DB: podverse_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - podverse-network
+
+volumes:
+  postgres-data: 
+  
+networks:
+  podverse-network:
+    driver: bridge
