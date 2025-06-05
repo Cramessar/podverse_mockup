@@ -10,13 +10,13 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'placehold.co',
+        hostname: 'images.example.com',
         port: '',
-        pathname: '/**',
+        pathname: '/**',  // allow all paths under this domain
       },
       {
         protocol: 'https',
-        hostname: 'images.example.com',  // added hostname for external images
+        hostname: 'placehold.co',
         port: '',
         pathname: '/**',
       },
