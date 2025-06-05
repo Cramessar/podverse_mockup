@@ -3,6 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import PodcastCard from './PodcastCard';
 
+
 interface CategorySectionProps {
   category: string;
   podcasts: {

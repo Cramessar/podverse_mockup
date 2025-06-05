@@ -29,10 +29,10 @@
     }
   },
   "include": [
-    "next-env.d.ts",
+    "frontend/next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    "frontend/.next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

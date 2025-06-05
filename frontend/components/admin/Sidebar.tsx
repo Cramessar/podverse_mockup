@@ -1,7 +1,10 @@
 // components/admin/Sidebar.tsx
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { cn } from "@/utils/cn"; // optional class merging helper
+// Simple class name joiner utility
+function cn(...classes: (string | false | undefined)[]) {
+  return classes.filter(Boolean).join(" ");
+}
 
 const navLinks = [
   { href: "/admin/dashboard", label: "Dashboard" },

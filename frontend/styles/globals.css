@@ -7,7 +7,9 @@
    ===================== */
 
 body {
-  @apply bg-podverse-background text-podverse-text font-sans;
+  background-color: var(--podverse-background);
+  color: var(--podverse-text);
+  font-family: var(--font-sans), sans-serif;
   font-size: 16px;
   line-height: 1.5;
 }
