@@ -2,7 +2,7 @@ import Link from "next/link";
 import PodcastCard from "@/components/PodcastCard";
 import { useEffect, useState } from "react";
 import FloatingHamburgerMenu from "@/components/FloatingHamburgerMenu";
-import { Podcast, Genre } from "../"; // Assuming you have a types file for these interfaces
+
 
 interface Podcast {
   id: string;
