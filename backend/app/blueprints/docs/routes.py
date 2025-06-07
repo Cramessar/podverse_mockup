@@ -1,19 +1,17 @@
+from flask import Blueprint, render_template_string, jsonify, Response
 import os
-from flask import Flask, Response, render_template_string
 
-app = Flask(__name__)
+docs_bp = Blueprint("docs", __name__)
 
-# Path to the OpenAPI YAML file
-OPENAPI_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "openapi.yaml")
+OPENAPI_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../openapi.yaml")
 
-@app.route("/openapi.yaml")
+@docs_bp.route("/openapi.yaml")
 def openapi_yaml():
     with open(OPENAPI_PATH, "r") as f:
         yaml_content = f.read()
     return Response(yaml_content, mimetype="text/plain")
 
-# Serve a simple Swagger UI page
-@app.route("/docs")
+@docs_bp.route("/docs")
 def swagger_ui():
     swagger_html = """
     <!DOCTYPE html>
@@ -41,22 +39,10 @@ def swagger_ui():
     """
     return render_template_string(swagger_html)
 
-# Simple homepage with links
-@app.route("/")
+@docs_bp.route("/")
 def index():
-    return """
-    <h1>Podverse Admin API</h1>
-    <ul>
-      <li><a href="/docs">API Documentation (Swagger UI)</a></li>
-      <li><a href="/openapi.yaml">OpenAPI Spec (YAML)</a></li>
-      <li><a href="/admin">Admin API root (placeholder)</a></li>
-    </ul>
-    """
+    return jsonify({"status": "API running"})
 
-# Placeholder admin endpoint
-@app.route("/admin")
+@docs_bp.route("/admin")
 def admin_root():
     return {"message": "Admin API is up and running"}
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)

@@ -1,0 +1,15 @@
+type: object
+properties:
+  access_token:
+    type: string
+    description: JWT access token
+  expires_in:
+    type: integer
+    description: Token expiration (seconds)
+  user:
+    type: object
+    properties:
+      email:
+        type: string
+      admin:
+        type: boolean

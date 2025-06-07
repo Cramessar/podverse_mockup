@@ -1,0 +1,12 @@
+description: Unauthorized – invalid or missing JWT
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Unauthorized
+        message:
+          type: string
+          example: Authentication token is invalid or expired.
