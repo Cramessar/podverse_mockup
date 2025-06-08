@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 
 interface FloatingHamburgerMenuProps {
   categories?: { id: number; name: string }[];
@@ -87,40 +88,37 @@ export default function FloatingHamburgerMenu({ categories = [] }: FloatingHambu
             <div className="pl-4 text-sm max-h-64 overflow-y-auto">
               {categories.length === 0 && <p className="italic text-podverse-muted">No categories found</p>}
               {categories.map((cat) => (
-                <a
-                  key={cat.id}
-                  href={`/explore?category=${encodeURIComponent(cat.name)}`}
-                  className="block py-1 hover:underline"
-                  onClick={() => setIsOpen(false)} // close menu on click
-                >
-                  {cat.name}
-                </a>
+                <Link key={cat.id} href={`/explore?category=${encodeURIComponent(cat.name)}`}>
+                  <a className="block py-1 hover:underline" onClick={() => setIsOpen(false)}>
+                    {cat.name}
+                  </a>
+                </Link>
               ))}
             </div>
           )}
 
           {/* Other menu options */}
-          <a
-            href="/explore"
-            className="py-2 px-3 rounded hover:bg-podverse-highlight mt-4 block"
-            onClick={() => setIsOpen(false)}
-          >
-            Trending Shows
-          </a>
-          <a
-            href="/live"
-            className="py-2 px-3 rounded hover:bg-podverse-highlight block"
-            onClick={() => setIsOpen(false)}
-          >
-            Live Episodes
-          </a>
-          <a
-            href="/spotlight"
-            className="py-2 px-3 rounded hover:bg-podverse-highlight block"
-            onClick={() => setIsOpen(false)}
-          >
-            Spotlight
-          </a>
+          <Link href="/explore">
+            <a
+              className="py-2 px-3 rounded hover:bg-podverse-highlight mt-4 block"
+              onClick={() => setIsOpen(false)}
+            >
+              Trending Shows
+            </a>
+          </Link>
+          <Link href="/live">
+            <a className="py-2 px-3 rounded hover:bg-podverse-highlight block" onClick={() => setIsOpen(false)}>
+              Live Episodes
+            </a>
+          </Link>
+          <Link href="/spotlight">
+            <a
+              className="py-2 px-3 rounded hover:bg-podverse-highlight block"
+              onClick={() => setIsOpen(false)}
+            >
+              Spotlight
+            </a>
+          </Link>
         </nav>
       </div>
     </>
