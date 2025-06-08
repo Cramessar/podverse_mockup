@@ -137,3 +137,6 @@ Copy `.env.example` to `.env.local` (frontend) and `.env` (backend) and fill in:
 - Containerize the app with Docker and update the Dockerfile accordingly
 
 ---
+
+#I need to fix this readme. 
+- ChrisR
