@@ -1,0 +1,23 @@
+openapi: 3.0.0
+info:
+  title: Podverse Admin API
+  version: 1.0.0
+  description: Admin API for Podverse podcast platform dashboard
+servers:
+  - url: http://localhost:8000/admin
+security:
+  - FirebaseAuth: []
+
+paths:
+  /admin/auth/login:
+    $ref: "./paths/auth/login.yaml"
+
+components:
+  schemas:
+    LoginRequest:
+      $ref: "./components/schemas/auth/LoginRequest.yaml"
+    LoginResponse:
+      $ref: "./components/schemas/auth/LoginResponse.yaml"
+  responses:
+    Unauthorized:
+      $ref: "./components/responses/Unauthorized.yaml"

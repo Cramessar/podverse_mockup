@@ -1,0 +1,13 @@
+type: object
+properties:
+  id_token:
+    type: string
+    description: Firebase-issued ID token from frontend
+required:
+  - id_token
+
+
+
+
+
+

@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   backend:
     build:
@@ -6,11 +8,12 @@ services:
     image: podverse-backend:latest
     container_name: podverse_backend
     ports:
-      - "8000:8000"       # Match the port your Flask app exposes
+      - "8000:5000"
     environment:
-      - FLASK_ENV=production
+      - FLASK_APP=main.py
+      - FLASK_ENV=development
     volumes:
-      - ./backend:/app/backend
+      - ./backend:/app
     networks:
       - podverse-network
 
