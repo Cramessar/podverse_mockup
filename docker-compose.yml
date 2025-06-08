@@ -12,8 +12,11 @@ services:
     environment:
       - FLASK_APP=main.py
       - FLASK_ENV=development
+      - DATABASE_URL=postgres://podverse:secretpassword@postgres:5432/podverse_db
     volumes:
       - ./backend:/app
+    depends_on:
+      - postgres
     networks:
       - podverse-network
 
@@ -29,6 +32,22 @@ services:
       - backend
     networks:
       - podverse-network
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: podverse
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: podverse_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - podverse-network
+
+volumes:
+  pgdata:
 
 networks:
   podverse-network:
