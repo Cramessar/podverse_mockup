@@ -13,8 +13,6 @@ def create_app(config_name):
     db.init_app(app)
     
     # register all blueprints
-    with app.app_context():
-        from .blueprints import register_blueprints
-        register_blueprints(app)
+    register_blueprints(app)
     
     return app

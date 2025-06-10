@@ -4,8 +4,9 @@ FROM python:3.10-bullseye
 WORKDIR /app
 
 # Copy backend code and requirements
-COPY backend/requirements.txt ./backend/requirements.txt
-COPY backend/ ./backend/
+# COPY backend/requirements.txt ./backend/requirements.txt
+# COPY backend/ ./backend/
+COPY backend/requirements.txt ./requirements.txt
 
 # Install OS dependencies and Python packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -13,7 +14,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip
-RUN pip install -r backend/requirements.txt
+#RUN pip install -r backend/requirements.txt
+RUN pip install -r requirements.txt
 
 # Expose port 8000 for Flask
 EXPOSE 8000
@@ -23,4 +25,5 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Run the Flask app (ensure FLASK_APP is set or run via python)
-CMD ["python", "backend/main.py"]
+#CMD ["python", "backend/main.py"]
+CMD ["python", "main.py"]
