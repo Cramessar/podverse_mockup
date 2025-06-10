@@ -3,7 +3,7 @@ import os
 
 docs_bp = Blueprint("docs", __name__)
 
-OPENAPI_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../openapi.yaml")
+OPENAPI_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../openapi/openapi.yaml")
 
 @docs_bp.route("/openapi.yaml")
 def openapi_yaml():

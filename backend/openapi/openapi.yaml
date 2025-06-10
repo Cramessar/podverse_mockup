@@ -9,8 +9,27 @@ security:
   - FirebaseAuth: []
 
 paths:
-  /admin/auth/login:
-    $ref: "./paths/auth/login.yaml"
+  /auth/login:
+    post:
+      summary: Admin login (JWT exchange via Firebase)
+      tags:
+        - Auth
+      requestBody:
+        description: Admin login request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Authenticated session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
 components:
   schemas:
