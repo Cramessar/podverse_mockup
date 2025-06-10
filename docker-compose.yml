@@ -1,6 +1,23 @@
 version: "3.9"
 
 services:
+  database:
+    build:
+      context: .
+      dockerfile: Dockerfile.database
+    image: podverse-database:latest
+    container_name: podverse_database
+    environment:
+      POSTGRES_USER: podverse_admin
+      POSTGRES_PASSWORD: testest
+      POSTGRES_DB: podverse_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - podverse-network
+
   backend:
     build:
       context: .
@@ -8,15 +25,20 @@ services:
     image: podverse-backend:latest
     container_name: podverse_backend
     ports:
-      - "8000:5000"
+      - "8000:8000"
     environment:
       - FLASK_APP=main.py
       - FLASK_ENV=development
-      - DATABASE_URL=postgres://podverse:secretpassword@postgres:5432/podverse_db
+      - DATABASE_URL=postgresql://podverse_admin:testest@database:5432/podverse_db
+      - DATABASE_HOST=database
+      - DATABASE_PORT=5432
+      - DATABASE_USER=podverse_admin
+      - DATABASE_PASSWORD=testest
+      - DATABASE_NAME=podverse_db
     volumes:
       - ./backend:/app
     depends_on:
-      - postgres
+      - database
     networks:
       - podverse-network
 
@@ -30,19 +52,6 @@ services:
       - "3000:3000"
     depends_on:
       - backend
-    networks:
-      - podverse-network
-
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: podverse
-      POSTGRES_PASSWORD: secretpassword
-      POSTGRES_DB: podverse_db
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     networks:
       - podverse-network
 

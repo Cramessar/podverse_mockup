@@ -3,7 +3,15 @@ import random
 import uuid
 
 from faker import Faker
-from sqlalchemy import (Column, Integer, String, Boolean, DateTime, BigInteger, create_engine)
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    DateTime,
+    BigInteger,
+    create_engine,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -26,11 +34,15 @@ class User(Base):
     location = Column(String(100))
 
 def random_past_date(within_days=365):
-    return datetime.utcnow() - timedelta(days=random.randint(0, within_days), hours=random.randint(0, 23), minutes=random.randint(0,59))
+    return datetime.utcnow() - timedelta(
+        days=random.randint(0, within_days),
+        hours=random.randint(0, 23),
+        minutes=random.randint(0, 59),
+    )
 
 def random_device_info():
     devices = [
-        "iPhone 14, iOS 16.4", 
+        "iPhone 14, iOS 16.4",
         "Samsung Galaxy S22, Android 13",
         "Chrome on Windows 10",
         "Firefox on macOS",
@@ -42,18 +54,31 @@ def random_device_info():
     return random.choice(devices)
 
 def random_location():
-    countries = ["USA", "Canada", "UK", "Australia", "Germany", "France", "India", "Brazil"]
+    countries = [
+        "USA",
+        "Canada",
+        "UK",
+        "Australia",
+        "Germany",
+        "France",
+        "India",
+        "Brazil",
+    ]
     return random.choice(countries)
 
 def main():
-    engine = create_engine("sqlite:///podverse_dummy.db")
+    # Connect to your actual database here:
+    engine = create_engine("postgresql://podverse_admin:testest@database:5432/podverse_db")
+
+    # Drop and recreate tables (WARNING: drops all data)
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
+
     Session = sessionmaker(bind=engine)
     session = Session()
 
     users = []
-    for i in range(200):
+    for _ in range(200):
         email = fake.unique.email()
         username = fake.user_name()
         role = "admin" if random.random() < 0.05 else "user"  # 5% admins
