@@ -1,73 +1,61 @@
 How to Connect to Your Docker PostgreSQL Database and Verify Data
 1. Connect to Your Backend Docker Container
-Open your terminal and run:
 
-bash
+```bash
 Copy
 docker exec -it podverse_backend sh
-This opens an interactive shell inside the backend container.
-
-Make sure your backend container is running. If not, start it with:
-
-bash
-Copy
-docker-compose up -d
-2. Login to the PostgreSQL Database Inside the Container
-Once inside the container shell, use the psql command-line tool to connect to the database:
-
-bash
-Copy
+apt-get update
+apt-get install -y postgresql-client
 psql -h database -U podverse_admin -d podverse_db
--h database points to the hostname of your PostgreSQL service in Docker Compose.
+enter your postgres paswword
 
--U podverse_admin specifies the PostgreSQL username.
+```
 
--d podverse_db specifies the database name.
+You will be prompted for the password. Enter the password you configured in your .env or Docker Compose file (e.g., testest). I should fix the hardcoded password soon.
 
-You will be prompted for the password. Enter the password you configured in your .env or Docker Compose file (e.g., testest).
 
 If you see this prompt:
 
-makefile
-Copy
+```
 podverse_db=#
-You’re connected successfully!
+```
+You’re connected successfully to the db inside the docker container.
+
+2.  If you are having errors or issues building the containers try these steps to break down your current containers, clear your cache and build everything from a fresh state.
+
+```bash
+docker compose down
+
+docker builder prune --all
+
+docker compose up --build
+
+```
+
 
 3. Run SQL Queries to Check Your Data
-Check how many rows are in a table (e.g., account):
-sql
-Copy
-SELECT COUNT(*) FROM account;
-Example output:
+You can test these now:
+``` bash
+Users:
+SELECT COUNT(*) FROM users; → Should return ~200
+Check details like roles, emails, last login, etc.
 
-markdown
-Copy
- count
--------
-   200
-(1 row)
-View sample data from the table:
-sql
-Copy
-SELECT * FROM account LIMIT 5;
-This shows the first 5 rows of the account table.
+Feeds:
+SELECT * FROM feed LIMIT 5; → Should show ~5 fake feed URLs.
 
-4. Exit the PostgreSQL Console and Docker Container
-To exit the PostgreSQL prompt, type:
+Channels:
+SELECT * FROM channel LIMIT 5; → Should be linked to feeds by feed_id.
 
-sql
-Copy
-\q
-To exit the Docker container shell, type:
+Items:
+SELECT * FROM item LIMIT 5; → Each tied to a channel.
 
-bash
-Copy
-exit
-Summary
-Connect to Docker backend container with docker exec.
+Stats tables:
+Query event and aggregate tables to see relationships and counts.
+```
 
-Login to PostgreSQL inside container with psql.
+You can also try this script to see if your db has working data, then try those sql commands again to see if anything changed.
 
-Run SQL queries to verify tables and data.
-
-Exit cleanly when done.
+``` bash
+docker exec -it podverse_backend python /app/test_feed_insert.py
+docker exec -it podverse_backend python /app/scripts/generate_dummy_users.py
+```

@@ -1,26 +1,23 @@
 FROM python:3.10-bullseye
 
-# Set working directory inside container
 WORKDIR /app
 
-# Copy requirements and all backend source files directly under /app
 COPY backend/requirements.txt ./requirements.txt
-COPY backend/ ./ 
+COPY backend/ ./
 
-# Install system dependencies and Python packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential gcc libc6-dev libpq-dev curl \
+    build-essential gcc libc6-dev libpq-dev curl postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Expose Flask port
 EXPOSE 8000
 
-# Python environment settings
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Run dummy data generation script once, then start the Flask app
-CMD ["sh", "-c", "python scripts/generate_dummy_users.py && python main.py"]
+COPY backend/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+ENTRYPOINT ["/app/entrypoint.sh"]

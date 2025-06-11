@@ -27,16 +27,16 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - FLASK_APP=main.py
-      - FLASK_ENV=development
-      - DATABASE_URL=postgresql://podverse_admin:testest@database:5432/podverse_db
-      - DATABASE_HOST=database
-      - DATABASE_PORT=5432
-      - DATABASE_USER=podverse_admin
-      - DATABASE_PASSWORD=testest
-      - DATABASE_NAME=podverse_db
+      FLASK_APP: main.py
+      FLASK_ENV: development
+      DATABASE_URL: postgresql://podverse_admin:testest@database:5432/podverse_db
+      DATABASE_HOST: database
+      DATABASE_PORT: 5432
+      DATABASE_USER: podverse_admin
+      DATABASE_PASSWORD: testest
+      DATABASE_NAME: podverse_db
     volumes:
-      - ./backend:/app
+      - ./backend:/app  # Make sure this matches WORKDIR in Dockerfile (which is /app)
     depends_on:
       - database
     networks:
