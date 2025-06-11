@@ -58,6 +58,8 @@ ENV/
 # Python environment variables
 *.env
 *.env.*
+Scripts
+Lib
 
 # Python logs
 *.log
