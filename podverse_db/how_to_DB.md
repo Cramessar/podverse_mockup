@@ -11,6 +11,9 @@ enter your postgres paswword
 
 ```
 
+psql -h database -U podverse_admin -d podverse_db
+Password for user podverse_admin: 
+
 You will be prompted for the password. Enter the password you configured in your .env or Docker Compose file (e.g., testest). I should fix the hardcoded password soon.
 
 
