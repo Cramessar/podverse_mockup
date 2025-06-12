@@ -9,6 +9,10 @@ class ChannelService:
     def get_all_channels() -> List[Channel]:
         return Channel.query.all()
     
+    @staticmethod
+    def get_channel_by_id(channel_id: int) -> Optional[Channel]:
+        return Channel.query.get(channel_id)
+    
 
 # Factory function for service creation
 def create_channel_service() -> ChannelService:
