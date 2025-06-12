@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text, DateTime
+from sqlalchemy import String, Text, DateTime, Integer, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from typing import Optional
 from app.extensions import db
@@ -7,13 +7,12 @@ from app.models.base import Base
 class Channel(Base):
     __tablename__ = "channel"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    id_text: Mapped[Optional[str]] = mapped_column(String(15), unique=True)
-    title: Mapped[str] = mapped_column(String(255))
-    slug: Mapped[Optional[str]] = mapped_column(String(100), unique=True)
-    description: Mapped[Optional[str]] = mapped_column(String(2500))
-    publisher: Mapped[Optional[str]] = mapped_column(Text)
-    created_at: Mapped[Optional[DateTime]] = mapped_column(DateTime)
-    updated_at: Mapped[Optional[DateTime]] = mapped_column(DateTime)
-    status: Mapped[Optional[str]] = mapped_column(String(50))
-    status_since: Mapped[Optional[DateTime]] = mapped_column(DateTime)
+id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+id_text: Mapped[Optional[str]] = mapped_column(String(15), unique=True)
+slug: Mapped[Optional[str]] = mapped_column(String(100), unique=True)
+feed_id: Mapped[Optional[int]] = mapped_column(Integer, unique=True)
+podcast_index_id: Mapped[Optional[int]] = mapped_column(Integer)
+podcast_guid: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), unique=True)
+title: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+sortable_title: Mapped[Optional[str]] = mapped_column(String(255), unique=True)
+medium_id: Mapped[Optional[int]] = mapped_column(Integer)
