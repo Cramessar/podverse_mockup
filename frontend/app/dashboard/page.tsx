@@ -38,7 +38,7 @@ export default function DashboardPage() {
               aria-label="Profile"
               className="p-2 rounded hover:bg-[#2a2a35] transition"
             >
-              👤
+              Logout
             </button>
           </div>
         </header>
