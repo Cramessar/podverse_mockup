@@ -1,10 +1,11 @@
-import { useRouter } from "next/router";
+"use client";
+import { useRouter } from "next/navigation";
 
 export default function AdminLogin() {
   const router = useRouter();
 
   const handleContinue = () => {
-    router.push("/admin/dashboard");
+    router.push("/auth/login?returnTo=/dashboard");
   };
 
   return (

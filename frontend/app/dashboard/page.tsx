@@ -1,10 +1,19 @@
+"use client";
 import React, { useState } from "react";
-import Sidebar from "@/components/Sidebar";
+import Sidebar from "../../components/Sidebar";
+import { useRouter } from "next/navigation";
 
-export default function AdminDashboard() {
+
+export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"feeds" | "metrics">("metrics");
+    const router = useRouter();
 
-    return (
+    const handleContinue = () => {
+    router.push("/auth/logout");
+  };
+
+  return (
+
     <div className="flex min-h-screen bg-[#121214] text-white">
       <Sidebar />
 
@@ -25,6 +34,7 @@ export default function AdminDashboard() {
               🔔
             </button>
             <button
+              onClick={handleContinue}
               aria-label="Profile"
               className="p-2 rounded hover:bg-[#2a2a35] transition"
             >
