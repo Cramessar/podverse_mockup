@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>SQL Runner</title>
+</head>
+<body>
+    <h1>Run SQL Scripts</h1>
+
+    <form method="POST" action="{{ url_for('sql_runner.sql_runner') }}">
+        <textarea name="sql_script" rows="10" cols="80" placeholder="Enter your SQL script here...">{{ request.form.sql_script or '' }}</textarea><br />
+        <button type="submit">Run SQL</button>
+    </form>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, message in messages %}
+            <li><strong>{{ category|capitalize }}:</strong> {{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    {% if error %}
+        <h3 style="color: red;">Error:</h3>
+        <pre>{{ error }}</pre>
+    {% endif %}
+
+    {% if result %}
+        <h2>Results:</h2>
+        {% for res in result %}
+            <h3>Statement:</h3>
+            <pre>{{ res.statement }}</pre>
+            {% if res.columns %}
+                <table border="1" cellpadding="5" cellspacing="0">
+                    <thead>
+                        <tr>
+                            {% for col in res.columns %}
+                                <th>{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in res.rows %}
+                            <tr>
+                                {% for cell in row %}
+                                    <td>{{ cell }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Rows affected: {{ res.rowcount }}</p>
+            {% endif %}
+            <hr />
+        {% endfor %}
+    {% endif %}
+</body>
+</html>

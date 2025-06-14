@@ -48,6 +48,7 @@ Server runs on http://localhost:8000
 - **Admin Documentation**: http://localhost:8000/admin/docs - Alternative admin docs route  
 - **OpenAPI Specification**: http://localhost:8000/openapi.yaml - Raw OpenAPI spec file 
 - **API Status**: http://localhost:8000/ - Basic API health check
+- **SQL Scripting Page**: http://localhost:8000/sql-runner
 
 ## API Endpoints
 
