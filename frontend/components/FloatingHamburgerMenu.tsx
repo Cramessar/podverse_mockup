@@ -98,26 +98,26 @@ export default function FloatingHamburgerMenu({ categories = [] }: FloatingHambu
           )}
 
           {/* Other menu options */}
-          <Link href="/explore">
-            <a
+          <Link href="/explore"
+            
               className="py-2 px-3 rounded hover:bg-podverse-highlight mt-4 block"
-              onClick={() => setIsOpen(false)}
-            >
+              onClick={() => setIsOpen(false)}>
+            
               Trending Shows
-            </a>
+            
           </Link>
-          <Link href="/live">
-            <a className="py-2 px-3 rounded hover:bg-podverse-highlight block" onClick={() => setIsOpen(false)}>
+          <Link href="/live"
+            className="py-2 px-3 rounded hover:bg-podverse-highlight block" onClick={() => setIsOpen(false)}>
               Live Episodes
-            </a>
+            
           </Link>
-          <Link href="/spotlight">
-            <a
+          <Link href="/spotlight"
+            
               className="py-2 px-3 rounded hover:bg-podverse-highlight block"
               onClick={() => setIsOpen(false)}
             >
               Spotlight
-            </a>
+            
           </Link>
         </nav>
       </div>
