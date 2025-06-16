@@ -54,14 +54,13 @@ next-env.d.ts
 venv/
 env/
 ENV/
-Lib/
-Scripts/
+
 
 # Python environment variables
 *.env
 *.env.*
-Scripts
-Lib
+
+
 
 # Python logs
 *.log
