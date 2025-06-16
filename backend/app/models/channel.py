@@ -39,3 +39,11 @@ class StatsAggreatedChannel(Base):
     month_current_count: Mapped[int] = mapped_column(Integer, default=0)
     month_1_count: Mapped[int] = mapped_column(Integer, default=0)
     all_time_count: Mapped[int] = mapped_column(Integer, default=0)
+    
+class StatsTrackEventChannel(Base):
+    __tablename__ = "stats_track_event_channel"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    #account_guid: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), nullable=True)
+    channel_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("channel.id"), nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
