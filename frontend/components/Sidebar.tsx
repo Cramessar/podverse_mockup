@@ -7,9 +7,9 @@ function cn(...classes: (string | false | undefined)[]) {
 }
 
 const navLinks = [
-  { href: "/admin/dashboard", label: "Dashboard" },
-  { href: "/admin/feeds", label: "Feeds" },
-  { href: "/admin/channel/123", label: "Channel Detail" },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/rssfeed", label: "Feeds" },
+  { href: "/statistics", label: "Podverse Statistics" },
 ];
 
 export default function Sidebar() {
@@ -36,3 +36,5 @@ export default function Sidebar() {
     </aside>
   );
 }
+
+
