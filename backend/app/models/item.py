@@ -48,3 +48,11 @@ class StatsAggregatedItem(Base):
     month_1_count: Mapped[int] = mapped_column(Integer, default=0)
     all_time_count: Mapped[int] = mapped_column(Integer, default=0)
     
+class StatsTrackEventItem(Base):
+    __tablename__ = "stats_track_event_item"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    #account_guid: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), nullable=True)
+    item_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("item.id"), nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
+    
