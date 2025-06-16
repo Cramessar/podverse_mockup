@@ -7,7 +7,6 @@ class DevelopmentConfig:
         "postgresql://podverse_admin:testest@database:5432/podverse_db"
     )
     DEBUG = True
-    
 
 class ProductionConfig:
     pass
