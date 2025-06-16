@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import random
 import uuid
+import os
 
 from faker import Faker
 from sqlalchemy import (
@@ -17,6 +18,10 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
+# testing use of db connection to the podverse database.
+db_url = os.getenv("DATABASE_URL", "postgresql://podverse_admin:testest@database:5432/podverse_db")
+print(f"Connecting to database at: {db_url}")
+engine = create_engine(db_url)
 
 fake = Faker()
 Base = declarative_base()
@@ -234,15 +239,21 @@ def generate_aggregated_items(session, items, n=10):
 # ----------------- Main runner -----------------
 
 def main():
-    engine = create_engine("postgresql://podverse_admin:testest@database:5432/podverse_db")
+    global engine  # use the engine created from env var
 
     with engine.connect() as conn:
-        print("Dropping schema public and recreating it...")
-        # Drop schema with CASCADE and recreate it outside transaction
-        conn.execution_options(isolation_level="AUTOCOMMIT").execute(text("DROP SCHEMA public CASCADE;"))
-        conn.execution_options(isolation_level="AUTOCOMMIT").execute(text("CREATE SCHEMA public;"))
+        print("Dropping schema public and recreating it safely...")
+        conn.execution_options(isolation_level="AUTOCOMMIT").execute(text("""
+            DO $$
+            BEGIN
+                IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'public') THEN
+                    EXECUTE 'DROP SCHEMA public CASCADE';
+                END IF;
+                EXECUTE 'CREATE SCHEMA public';
+            END
+            $$;
+        """))
 
-    # Now recreate tables based on models
     Base.metadata.create_all(engine)
 
     Session = sessionmaker(bind=engine)
@@ -258,6 +269,7 @@ def main():
 
     session.close()
     print("Finished seeding Podverse mock data!")
+
 
 if __name__ == "__main__":
     main()
