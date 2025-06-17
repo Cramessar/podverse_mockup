@@ -8,6 +8,8 @@ class Category(Base):
     __tablename__ = "category"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    slug: Mapped[Optional[str]] = mapped_column(String(100), unique=True)
     parent_id: Mapped[Optional[int]] = mapped_column(Integer, db.ForeignKey("category.id"))
+    slug: Mapped[Optional[str]] = mapped_column(String(100), unique=True)
+    display_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    mapping_key: Mapped[str] = mapped_column(String(255), nullable=False)
     
