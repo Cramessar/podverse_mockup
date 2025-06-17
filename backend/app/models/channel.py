@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text, DateTime, Integer, UUID
+from sqlalchemy import String, Text, DateTime, Integer, Boolean, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from typing import Optional
 from app.extensions import db
@@ -10,12 +10,14 @@ class Channel(Base):
 id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 id_text: Mapped[Optional[str]] = mapped_column(String(15), unique=True)
 slug: Mapped[Optional[str]] = mapped_column(String(100), unique=True)
-feed_id: Mapped[Optional[int]] = mapped_column(Integer, unique=True)
+feed_id: Mapped[Optional[int]] = mapped_column(Integer, unique=True) # needs to be changed to rss_url
 podcast_index_id: Mapped[Optional[int]] = mapped_column(Integer)
 podcast_guid: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), unique=True)
 title: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
 sortable_title: Mapped[Optional[str]] = mapped_column(String(255), unique=True)
 medium_id: Mapped[Optional[int]] = mapped_column(Integer)
+has_podcast_index_value: Mapped[bool] = mapped_column(Boolean, default=False)
+has_value_time_splits: Mapped[bool] = mapped_column(Boolean, default=False)
 
 class StatsAggreatedChannel(Base):
     __tablename__ = "stats_aggregated_channel"
@@ -47,3 +49,10 @@ class StatsTrackEventChannel(Base):
     #account_guid: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), nullable=True)
     channel_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("channel.id"), nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
+    
+class ChannelCategory(Base):
+    __tablename__ = "channel_category"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    channel_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("channel.id", ondelete="CASCADE"), nullable=False)
+    category_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("category.id", ondelete="CASCADE"), nullable=False)
