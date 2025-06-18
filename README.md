@@ -53,7 +53,7 @@ Frontend: http://localhost:3000
 
 Backend API: http://localhost:5000
 
-Postgres DB: localhost:5432
+Postgres DB (not an actual link, just looks uniform): http://localhost:5432
 
 Stopping & Cleaning Up
 To stop running containers:
