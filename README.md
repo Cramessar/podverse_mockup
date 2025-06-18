@@ -63,7 +63,12 @@ docker-compose down
 ```
 
 Tips:
+Use this to view logs:
 ```
-Use: docker logs <container-name> ,  to view logs
-Use: docker ps -a , to list all containers
+docker logs <container-name>
+```
+
+Use this list all containers:
+```
+docker ps -a
 ```
