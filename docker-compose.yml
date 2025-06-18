@@ -36,7 +36,7 @@ services:
       DATABASE_PASSWORD: testest
       DATABASE_NAME: podverse_db
     volumes:
-      - ./backend:/app  # Make sure this matches WORKDIR in Dockerfile (which is /app)
+      - ./backend:/app
     depends_on:
       - database
     networks:
@@ -46,14 +46,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-    image: podverse-frontend:latest
     container_name: podverse_frontend
     ports:
       - "3000:3000"
-    depends_on:
-      - backend
+    env_file:
+      - ./frontend/.env.local
     networks:
       - podverse-network
+
 
 volumes:
   pgdata:

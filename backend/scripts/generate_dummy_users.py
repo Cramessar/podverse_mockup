@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 import random
 import uuid
 import os
+import time
+import traceback
 
 from faker import Faker
 from sqlalchemy import (
@@ -20,7 +22,7 @@ from sqlalchemy.orm import sessionmaker, relationship
 
 # Database connection from docker-compose or environment variable
 db_url = os.getenv("DATABASE_URL", "postgresql://podverse_admin:testest@database:5432/podverse_db")
-print(f"Connecting to database at: {db_url}")
+print(f"[DB] Connecting to: {db_url}")
 engine = create_engine(db_url)
 
 fake = Faker()
@@ -344,39 +346,63 @@ def generate_stats_aggregated_channels(session, channels, n=20):
 def main():
     global engine
 
-    with engine.connect() as conn:
-        print("Dropping schema public and recreating it safely...")
-        conn.execution_options(isolation_level="AUTOCOMMIT").execute(text("""
-            DO $$
-            BEGIN
-                IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'public') THEN
-                    EXECUTE 'DROP SCHEMA public CASCADE';
-                END IF;
-                EXECUTE 'CREATE SCHEMA public';
-            END
-            $$;
-        """))
+    try:
+        with engine.connect() as conn:
+            print("[DB] Dropping and recreating public schema...")
+            conn.execution_options(isolation_level="AUTOCOMMIT").execute(text(""" 
+                DO $$
+                BEGIN
+                    IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'public') THEN
+                        EXECUTE 'DROP SCHEMA public CASCADE';
+                    END IF;
+                    EXECUTE 'CREATE SCHEMA public';
+                END
+                $$;
+            """))
+    except Exception as e:
+        print("[ERROR] Could not reset schema:")
+        traceback.print_exc()
+        raise
 
     Base.metadata.create_all(engine)
 
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    generate_users(session)
-    feeds = generate_feeds(session)
-    channels = generate_channels(session, feeds)
-    items = generate_items(session, channels)
-    user_guids = generate_account_guids(session)
-    generate_event_items(session, user_guids, items)
-    generate_aggregated_items(session, items)
-    accounts = generate_accounts(session)
-    account_guids = generate_stats_account_guids(session, accounts)
-    generate_stats_track_event_channels(session, account_guids, channels)
-    generate_stats_aggregated_channels(session, channels)
+    try:
+        generate_users(session)
+        feeds = generate_feeds(session)
+        channels = generate_channels(session, feeds)
+        items = generate_items(session, channels)
+        user_guids = generate_account_guids(session)
+        generate_event_items(session, user_guids, items)
+        generate_aggregated_items(session, items)
+        accounts = generate_accounts(session)
+        account_guids = generate_stats_account_guids(session, accounts)
+        generate_stats_track_event_channels(session, account_guids, channels)
+        generate_stats_aggregated_channels(session, channels)
+        print("✅ Finished seeding Podverse mock data!")
+    except Exception as e:
+        print("[ERROR] Seeding process failed:")
+        traceback.print_exc()
+    finally:
+        session.close()
 
-    session.close()
-    print("Finished seeding Podverse mock data!")
+# ----------------- Retry Wrapper -----------------
 
+def safe_main():
+    max_retries = 5
+    for i in range(max_retries):
+        try:
+            print(f"[SEED] Attempt {i + 1} of {max_retries}")
+            main()
+            return
+        except Exception as e:
+            print(f"[ERROR] Seeding attempt {i+1} failed: {e}")
+            traceback.print_exc()
+            time.sleep(5)
+
+    print("❌ Dummy data generation failed after 5 attempts.")
 
 if __name__ == "__main__":
-    main()
+    safe_main()

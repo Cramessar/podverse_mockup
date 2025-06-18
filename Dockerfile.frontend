@@ -1,35 +1,24 @@
-# Use official Node.js LTS image as base
 FROM node:18-alpine AS builder
 
-# Set working directory
-WORKDIR /app/frontend
+WORKDIR /app
 
-# Copy package files and install dependencies
 COPY frontend/package*.json ./
-RUN npm ci
+RUN npm install
 
-# Copy all frontend source files
-COPY frontend/. .
-
-# Build the Next.js app for production
+COPY frontend/ ./
 RUN npm run build
 
-# --- Production image ---
 FROM node:18-alpine AS runner
 
-WORKDIR /app/frontend
+WORKDIR /app
 
-# Copy package files and install only production dependencies
 COPY frontend/package*.json ./
-RUN npm ci --production
+RUN npm install --production
 
-# Copy built files from builder stage
-COPY --from=builder /app/frontend/.next ./.next
-COPY --from=builder /app/frontend/public ./public
-COPY --from=builder /app/frontend/next.config.js ./next.config.js
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/next.config.js ./next.config.js
 
-# Expose the port the app runs on
 EXPOSE 3000
 
-# Start the Next.js app in production mode
-CMD ["npm", "start"]
+CMD ["npx", "next", "start"]
