@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, DateTime
+from sqlalchemy import String, Integer, DateTime, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from typing import Optional
 from app.extensions import db
@@ -52,7 +52,7 @@ class StatsTrackEventItem(Base):
     __tablename__ = "stats_track_event_item"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    #account_guid: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), nullable=True)
+    account_guid: Mapped[str] = mapped_column(UUID(as_uuid=False), db.ForeignKey("stats_track_account_guid.account_guid"), nullable=False)
     item_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("item.id"), nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
     
