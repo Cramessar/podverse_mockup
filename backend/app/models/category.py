@@ -1,5 +1,5 @@
 from sqlalchemy import String, Integer
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import Optional
 from app.extensions import db
 from app.models.base import Base
@@ -13,3 +13,13 @@ class Category(Base):
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
     mapping_key: Mapped[str] = mapped_column(String(255), nullable=False)
     
+    parent = relationship(
+        "Category", 
+        remote_side=[id], 
+        backref="children"
+    )
+    channels = relationship(
+        "ChannelCategory", 
+        back_populates="category", 
+        cascade="all, delete-orphan"
+    )
