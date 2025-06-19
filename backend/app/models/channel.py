@@ -10,7 +10,7 @@ class Channel(Base):
 id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 id_text: Mapped[Optional[str]] = mapped_column(String(15), unique=True)
 slug: Mapped[Optional[str]] = mapped_column(String(100), unique=True)
-feed_id: Mapped[Optional[int]] = mapped_column(Integer, unique=True) # needs to be changed to rss_url
+feed_id: Mapped[Optional[int]] = mapped_column(Integer, unique=True)
 podcast_index_id: Mapped[Optional[int]] = mapped_column(Integer)
 podcast_guid: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), unique=True)
 title: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
@@ -46,7 +46,7 @@ class StatsTrackEventChannel(Base):
     __tablename__ = "stats_track_event_channel"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    #account_guid: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), nullable=True)
+    account_guid: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), db.ForeignKey("stats_track_account_guid.account_guid"), nullable=True)
     channel_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("channel.id"), nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
     
