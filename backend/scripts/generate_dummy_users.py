@@ -4,6 +4,7 @@ import uuid
 import os
 import time
 import traceback
+import sys
 
 from faker import Faker
 from sqlalchemy import (
@@ -21,115 +22,131 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.exc import IntegrityError
 
+# Add the parent directory to path to import from app
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import actual app models instead of defining our own
+from app.models.base import Base
+from app.models.feed import Feed, FeedFlagStatus, FeedLog
+from app.models.channel import Channel, StatsAggregatedChannel, StatsTrackEventChannel, ChannelCategory
+from app.models.item import Item, ItemFlagStatus, StatsAggregatedItem, StatsTrackEventItem
+from app.models.account import Account, SharableStatus, StatsTrackAccountGuid
+from app.models.category import Category
+from app.models.medium import Medium
+
 # Database connection from docker-compose or environment variable
 db_url = os.getenv("DATABASE_URL", "postgresql://podverse_admin:testest@database:5432/podverse_db")
 print(f"[DB] Connecting to: {db_url}")
 engine = create_engine(db_url)
 
 fake = Faker()
-Base = declarative_base()
+
+# I removed the Base definition since we're importing it
+# Base = declarative_base()
 
 # ----------------- Models -----------------
 
-class User(Base):
-    __tablename__ = "users"
+# Removed old model definitions - now using proper models from app.models
 
-    id = Column(Integer, primary_key=True)
-    email = Column(String(255), unique=True, nullable=False)
-    username = Column(String(50), nullable=False)
-    role = Column(String(20), default="user")  # user/admin
-    created_at = Column(DateTime, default=datetime.utcnow)
-    last_login = Column(DateTime)
-    is_active = Column(Boolean, default=True)
-    total_listen_time_seconds = Column(BigInteger, default=0)
-    referral_token = Column(String(36), unique=True, nullable=False)  # UUID string
-    device_info = Column(String(255))
-    location = Column(String(100))
+# class User(Base):
+#     __tablename__ = "users"
 
-
-class Account(Base):
-    __tablename__ = "account"
-    id = Column(Integer, primary_key=True)
-    email = Column(String(255), unique=True, nullable=False)
-    username = Column(String(50), nullable=False)
-    created_at = Column(DateTime)
-    is_active = Column(Boolean, default=True)
-
-    stats_account_guid = relationship("StatsTrackAccountGuid", back_populates="account", uselist=False)
+#     id = Column(Integer, primary_key=True)
+#     email = Column(String(255), unique=True, nullable=False)
+#     username = Column(String(50), nullable=False)
+#     role = Column(String(20), default="user")  # user/admin
+#     created_at = Column(DateTime, default=datetime.utcnow)
+#     last_login = Column(DateTime)
+#     is_active = Column(Boolean, default=True)
+#     total_listen_time_seconds = Column(BigInteger, default=0)
+#     referral_token = Column(String(36), unique=True, nullable=False)  # UUID string
+#     device_info = Column(String(255))
+#     location = Column(String(100))
 
 
-class StatsTrackAccountGuid(Base):
-    __tablename__ = "stats_track_account_guid"
-    id = Column(Integer, primary_key=True)
-    account_guid = Column(String(255), unique=True, nullable=False)
-    account_id = Column(Integer, ForeignKey("account.id"), nullable=False)
+# class Account(Base):
+#     __tablename__ = "account"
+#     id = Column(Integer, primary_key=True)
+#     email = Column(String(255), unique=True, nullable=False)
+#     username = Column(String(50), nullable=False)
+#     created_at = Column(DateTime)
+#     is_active = Column(Boolean, default=True)
 
-    account = relationship("Account", back_populates="stats_account_guid")
-
-
-class StatsTrackEventChannel(Base):
-    __tablename__ = "stats_track_event_channel"
-    id = Column(Integer, primary_key=True)
-    stats_track_account_guid_id = Column(Integer, ForeignKey("stats_track_account_guid.id"), nullable=False)
-    channel_id = Column(Integer, ForeignKey("channel.id"), nullable=False)
-    event_timestamp = Column(DateTime, nullable=False)
+#     stats_account_guid = relationship("StatsTrackAccountGuid", back_populates="account", uselist=False)
 
 
-class StatsAggregatedChannel(Base):
-    __tablename__ = "stats_aggregated_channel"
-    channel_id = Column(Integer, ForeignKey("channel.id"), primary_key=True)
-    day = Column(DateTime, primary_key=True)
-    listen_count = Column(Integer)
+# class StatsTrackAccountGuid(Base):
+#     __tablename__ = "stats_track_account_guid"
+#     id = Column(Integer, primary_key=True)
+#     account_guid = Column(String(255), unique=True, nullable=False)
+#     account_id = Column(Integer, ForeignKey("account.id"), nullable=False)
+
+#     account = relationship("Account", back_populates="stats_account_guid")
 
 
-class Feed(Base):
-    __tablename__ = "feed"
-    id = Column(Integer, primary_key=True)
-    url = Column(String(255), unique=True, nullable=False)
-    feed_flag_status_id = Column(Integer, nullable=False)  # Assume seeded with ID=1
-    is_parsing = Column(Boolean, nullable=True)
-    parsing_priority = Column(Integer, nullable=True)
-    last_parsed_file_hash = Column(String(255), nullable=True)
-    container_id = Column(String(255), nullable=True)
-    created_at = Column(DateTime, nullable=True)
-    updated_at = Column(DateTime, nullable=True)
-
-    channels = relationship("Channel", back_populates="feed")
+# class StatsTrackEventChannel(Base):
+#     __tablename__ = "stats_track_event_channel"
+#     id = Column(Integer, primary_key=True)
+#     stats_track_account_guid_id = Column(Integer, ForeignKey("stats_track_account_guid.id"), nullable=False)
+#     channel_id = Column(Integer, ForeignKey("channel.id"), nullable=False)
+#     event_timestamp = Column(DateTime, nullable=False)
 
 
-class Channel(Base):
-    __tablename__ = "channel"
-    id = Column(Integer, primary_key=True)
-    feed_id = Column(Integer, ForeignKey("feed.id"), nullable=False)
-    id_text = Column(String(255), nullable=False)
-    podcast_index_id = Column(Integer, nullable=False)
-
-    feed = relationship("Feed", back_populates="channels")
-    items = relationship("Item", back_populates="channel")
+# class StatsAggregatedChannel(Base):
+#     __tablename__ = "stats_aggregated_channel"
+#     channel_id = Column(Integer, ForeignKey("channel.id"), primary_key=True)
+#     day = Column(DateTime, primary_key=True)
+#     listen_count = Column(Integer)
 
 
-class Item(Base):
-    __tablename__ = "item"
-    id = Column(Integer, primary_key=True)
-    channel_id = Column(Integer, ForeignKey("channel.id"), nullable=False)
-    id_text = Column(String(255), nullable=False)
+# class Feed(Base):
+#     __tablename__ = "feed"
+#     id = Column(Integer, primary_key=True)
+#     url = Column(String(255), unique=True, nullable=False)
+#     feed_flag_status_id = Column(Integer, nullable=False)  # Assume seeded with ID=1
+#     is_parsing = Column(Boolean, nullable=True)
+#     parsing_priority = Column(Integer, nullable=True)
+#     last_parsed_file_hash = Column(String(255), nullable=True)
+#     container_id = Column(String(255), nullable=True)
+#     created_at = Column(DateTime, nullable=True)
+#     updated_at = Column(DateTime, nullable=True)
 
-    channel = relationship("Channel", back_populates="items")
-
-
-class StatsTrackEventItem(Base):
-    __tablename__ = "stats_track_event_item"
-    id = Column(Integer, primary_key=True)
-    stats_track_account_guid_id = Column(Integer, ForeignKey("stats_track_account_guid.id"), nullable=False)
-    item_id = Column(Integer, ForeignKey("item.id"), nullable=False)
-    event_timestamp = Column(DateTime, nullable=False)
+#     channels = relationship("Channel", back_populates="feed")
 
 
-class StatsAggregatedItem(Base):
-    __tablename__ = "stats_aggregated_item"
-    item_id = Column(Integer, ForeignKey("item.id"), primary_key=True)
-    day = Column(DateTime, primary_key=True)
-    listen_count = Column(Integer)
+# class Channel(Base):
+#     __tablename__ = "channel"
+#     id = Column(Integer, primary_key=True)
+#     feed_id = Column(Integer, ForeignKey("feed.id"), nullable=False)
+#     id_text = Column(String(255), nullable=False)
+#     podcast_index_id = Column(Integer, nullable=False)
+
+#     feed = relationship("Feed", back_populates="channels")
+#     items = relationship("Item", back_populates="channel")
+
+
+# class Item(Base):
+#     __tablename__ = "item"
+#     id = Column(Integer, primary_key=True)
+#     channel_id = Column(Integer, ForeignKey("channel.id"), nullable=False)
+#     id_text = Column(String(255), nullable=False)
+
+#     channel = relationship("Channel", back_populates="items")
+
+
+# class StatsTrackEventItem(Base):
+#     __tablename__ = "stats_track_event_item"
+#     id = Column(Integer, primary_key=True)
+#     stats_track_account_guid_id = Column(Integer, ForeignKey("stats_track_account_guid.id"), nullable=False)
+#     item_id = Column(Integer, ForeignKey("item.id"), nullable=False)
+#     event_timestamp = Column(DateTime, nullable=False)
+
+
+# class StatsAggregatedItem(Base):
+#     __tablename__ = "stats_aggregated_item"
+#     item_id = Column(Integer, ForeignKey("item.id"), primary_key=True)
+#     day = Column(DateTime, primary_key=True)
+#     listen_count = Column(Integer)
 
 
 # ----------------- Helper Functions -----------------
@@ -210,7 +227,7 @@ def generate_feeds(session, n=5):
         feed = Feed(
             url=fake.unique.url() + "/rss",
             feed_flag_status_id=1, # Assuming feed_flag_status_id=1 is a valid seeded ID
-            is_parsing=None,  # Simulating I am not parsing now
+            is_parsing=fake.boolean(chance_of_getting_true=10),  # 10% chance of being parsed
             parsing_priority=random.randint(0, 5),
             last_parsed_file_hash=fake.md5(),
             container_id=fake.bothify(text="##########"),
@@ -281,9 +298,9 @@ def generate_event_items(session, guids, items, n=50):
     events = []
     for _ in range(n):
         event = StatsTrackEventItem(
-            stats_track_account_guid_id=random.choice(guids).id,
+            account_guid=random.choice(guids).account_guid,
             item_id=random.choice(items).id,
-            event_timestamp=fake.date_time_between(start_date='-30d', end_date='now'),
+            created_at=fake.date_time_between(start_date='-30d', end_date='now'),
         )
         events.append(event)
     session.add_all(events)
@@ -295,12 +312,14 @@ def generate_aggregated_items(session, items, n=10):
     aggregated = []
     for _ in range(n):
         item = random.choice(items)
-        day = fake.date_time_between(start_date='-10d', end_date='now').date()
         aggregated.append(
             StatsAggregatedItem(
                 item_id=item.id,
-                day=day,
-                listen_count=random.randint(1, 500),
+                day_current_count=random.randint(1, 50),
+                day_1_count=random.randint(1, 50),
+                week_current_count=random.randint(1, 300),
+                month_current_count=random.randint(1, 1000),
+                all_time_count=random.randint(1, 5000),
             )
         )
     session.add_all(aggregated)
@@ -317,11 +336,10 @@ def generate_aggregated_items(session, items, n=10):
 def generate_accounts(session, n=100):
     accounts = []
     for _ in range(n):
-        email = fake.unique.email()
-        username = fake.user_name()
-        created_at = random_past_date()
-        is_active = random.random() > 0.1
-        account = Account(email=email, username=username, created_at=created_at, is_active=is_active)
+        id_text = fake.unique.user_name()
+        verified = fake.boolean(chance_of_getting_true=10)  # 10% chance of being verified
+        sharable_status_id = random.randint(1, 3)  # Assuming 1=public, 2=unlisted, 3=private
+        account = Account(id_text=id_text, verified=verified, sharable_status_id=sharable_status_id)
         accounts.append(account)
     session.add_all(accounts)
     session.commit()
@@ -344,9 +362,9 @@ def generate_stats_track_event_channels(session, guids, channels, n=100):
     events = []
     for _ in range(n):
         event = StatsTrackEventChannel(
-            stats_track_account_guid_id=random.choice(guids).id,
+            account_guid=random.choice(guids).account_guid,
             channel_id=random.choice(channels).id,
-            event_timestamp=fake.date_time_between(start_date='-30d', end_date='now')
+            created_at=fake.date_time_between(start_date='-30d', end_date='now')
         )
         events.append(event)
     session.add_all(events)
@@ -358,12 +376,14 @@ def generate_stats_aggregated_channels(session, channels, n=20):
     aggregated = []
     for _ in range(n):
         channel = random.choice(channels)
-        day = fake.date_time_between(start_date='-10d', end_date='now').date()
         aggregated.append(
             StatsAggregatedChannel(
                 channel_id=channel.id,
-                day=day,
-                listen_count=random.randint(1, 500),
+                day_current_count=random.randint(1, 50),
+                day_1_count=random.randint(1, 50),
+                week_current_count=random.randint(1, 300),
+                month_current_count=random.randint(1, 1000),
+                all_time_count=random.randint(1, 5000),
             )
         )
     session.add_all(aggregated)
@@ -382,31 +402,33 @@ def generate_stats_aggregated_channels(session, channels, n=20):
 def main():
     global engine
 
-    try:
-        with engine.connect() as conn:
-            print("[DB] Dropping and recreating public schema...")
-            conn.execution_options(isolation_level="AUTOCOMMIT").execute(text(""" 
-                DO $$
-                BEGIN
-                    IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'public') THEN
-                        EXECUTE 'DROP SCHEMA public CASCADE';
-                    END IF;
-                    EXECUTE 'CREATE SCHEMA public';
-                END
-                $$;
-            """))
-    except Exception as e:
-        print("[ERROR] Could not reset schema:")
-        traceback.print_exc()
-        raise
+    # Comment out schema dropping to preserve the proper database structure from init_db.sql
+    # try:
+    #     with engine.connect() as conn:
+    #         print("[DB] Dropping and recreating public schema...")
+    #         conn.execution_options(isolation_level="AUTOCOMMIT").execute(text(""" 
+    #             DO $$
+    #             BEGIN
+    #                 IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'public') THEN
+    #                     EXECUTE 'DROP SCHEMA public CASCADE';
+    #                 END IF;
+    #                 EXECUTE 'CREATE SCHEMA public';
+    #             END
+    #             $$;
+    #         """))
+    # except Exception as e:
+    #     print("[ERROR] Could not reset schema:")
+    #     traceback.print_exc()
+    #     raise
 
-    Base.metadata.create_all(engine)
-
+    # Don't create tables since they should already exist from init_db.sql
+    # Base.metadata.create_all(engine)
+    print("Using existing database schema...")
+    
     Session = sessionmaker(bind=engine)
     session = Session()
 
     try:
-        generate_users(session)
         feeds = generate_feeds(session)
         channels = generate_channels(session, feeds)
         items = generate_items(session, channels)

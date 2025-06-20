@@ -30,7 +30,6 @@ class Item(Base):
         cascade="all, delete-orphan"
     )
 
-    
 class ItemFlagStatus(Base):
     __tablename__ = "item_flag_status"
     

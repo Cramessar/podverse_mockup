@@ -68,14 +68,70 @@ def get_feed_by_id(feed_id):
 
 @feed_bp.route('/<int:feed_id>/reparse', methods=['POST'])
 def reparse_feed(feed_id):
-    return jsonify({"message": f"Reparse triggered for feed {feed_id}"}), 200
+    """
+    Trigger RSS feed re-parse
+    POST /feeds/{feed_id}/reparse
+    """
+    try:
+        # TODO: Implement feed reparse logic
+        # Set is_parsing field to current timestamp
+        # Background job will handle actual parsing
+        
+        return jsonify({
+            'message': 'Feed reparse has been scheduled.'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@feed_bp.route('/<int:feed_id>', methods=['PATCH'])
+def update_feed(feed_id):
+    """
+    Update feed status or priority
+    PATCH /feeds/{feed_id}
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No input data provided'}), 400
+        
+        # TODO: Implement feed update logic
+        # Update feed_flag_status_id or parsing_priority
+        # Validate values: parsing_priority 0-5, valid feed_flag_status_id
+        
+        return jsonify({
+            'message': 'Feed update endpoint - implementation needed',
+            'feed_id': feed_id,
+            'data': data
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @feed_bp.route('', methods=['POST'])
 def create_feed():
-    body = request.json or {}
-    # Normally you'd validate & write to DB. Just echo back with a fake ID.
-    body["id"] = fake.random_int(min=10000, max=99999)
-    return jsonify(body), 201
+    """
+    Create a new feed
+    POST /feeds
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No input data provided'}), 400
+        
+        # TODO: Implement proper feed creation with validation
+        # Required fields: url, feed_flag_status_id
+        # Validate URL is unique
+        
+        # For now, return placeholder response
+        return jsonify({
+            'message': 'Create feed endpoint - implementation needed',
+            'data': data
+        }), 201
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 @feed_bp.route('/parse-feed', methods=['GET'])
 def parse_feed():

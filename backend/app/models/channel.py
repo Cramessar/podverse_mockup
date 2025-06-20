@@ -8,7 +8,7 @@ class Channel(Base):
     __tablename__ = "channel"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    id_text: Mapped[Optional[str]] = mapped_column(String(15), unique=True)
+    id_text: Mapped[str] = mapped_column(String(15), unique=True, nullable=False)
     slug: Mapped[Optional[str]] = mapped_column(String(100), unique=True)
     feed_id: Mapped[Optional[int]] = mapped_column(Integer, db.ForeignKey("feed.id"), nullable=True)
     podcast_index_id: Mapped[Optional[int]] = mapped_column(Integer)
@@ -31,7 +31,7 @@ class Channel(Base):
         back_populates="channel"
     )
     stats = relationship(
-        "StatsAggreatedChannel", 
+        "StatsAggregatedChannel", 
         back_populates="channel", 
         cascade="all, delete-orphan"
     )
@@ -41,7 +41,7 @@ class Channel(Base):
         cascade="all, delete-orphan"
     )
 
-class StatsAggreatedChannel(Base):
+class StatsAggregatedChannel(Base):
     __tablename__ = "stats_aggregated_channel"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -83,6 +83,5 @@ class ChannelCategory(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     channel_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("channel.id", ondelete="CASCADE"), nullable=False)
     category_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("category.id", ondelete="CASCADE"), nullable=False)
-
     channel = relationship("Channel", back_populates="categories")
     category = relationship("Category", back_populates="channels")

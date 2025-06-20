@@ -7,21 +7,37 @@ item_service = create_item_service()
 
 @item_bp.route('', methods=['GET'])
 def get_items():
-    """Get all items - Controller layer"""
+    """
+    List all items
+    GET /items
+    """
     try:
+        # Get query parameters for pagination and filtering - mesela pub_date, title, channel_id, etc. ekle onlari da 
+        limit = request.args.get('limit', 20, type=int)
+        offset = request.args.get('offset', 0, type=int)
+        
+        # TODO: Implement with proper pagination, filtering, and sorting
         items = item_service.get_all_items()
-        return jsonify(items_schema.dump(items)), 200
+        
+        return jsonify({
+            'data': items_schema.dump(items),
+            'meta': {
+                'total': len(items),
+                'limit': limit,
+                'offset': offset
+            }
+        }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
-@item_bp.route('/items/<int:item_id>', methods=['GET'])
-def get_item():
-    item_id = request.args.get('id', type=int)
-    if not item_id:
-        return jsonify({'error': 'Item ID is required'}), 400
-
+@item_bp.route('/<int:id>', methods=['GET'])
+def get_item_by_id(id):
+    """
+    Get item by ID
+    GET /items/{id}
+    """
     try:
-        item = item_service.get_item_by_id(item_id)
+        item = item_service.get_item_by_id(id)
         if not item:
             return jsonify({'error': 'Item not found'}), 404
         return jsonify(item_schema.dump(item)), 200

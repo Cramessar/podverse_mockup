@@ -1,4 +1,4 @@
-from sqlalchemy import String, DateTime
+from sqlalchemy import String, DateTime, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import Optional
 from app.extensions import db
@@ -10,12 +10,14 @@ class Feed(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     feed_flag_status_id: Mapped[int] = mapped_column(db.ForeignKey("feed_flag_status.id"))
-    url: Mapped[str] = mapped_column(String(300), unique=True)
-    last_parsed: Mapped[Optional[DateTime]] = mapped_column(DateTime)
+    url: Mapped[str] = mapped_column(String(2083), unique=True)
+    last_parsed_file_hash: Mapped[Optional[str]] = mapped_column(String(32))
+    parsing_priority: Mapped[int] = mapped_column(Integer, default=0)
+    container_id: Mapped[Optional[str]] = mapped_column(String(12))
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now(), onupdate=db.func.now())
-    # set to time when parsing starts and NULL when parsing ends
-    is_parsing: Mapped[Optional[DateTime]] = mapped_column(DateTime)
+    # set to true when parsing starts and false when parsing ends
+    is_parsing: Mapped[Optional[bool]] = mapped_column(db.Boolean)
     
     flag_status = relationship("FeedFlagStatus", back_populates="feeds")
     channels = relationship("Channel", back_populates="feed")
