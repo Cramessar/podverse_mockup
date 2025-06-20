@@ -5,6 +5,8 @@ from app.extensions import db
 from app.models.base import Base
 
 class Account(Base):
+    __tablename__ = "account"
+    
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     sharable_status_id: Mapped[Optional[int]] = mapped_column(db.ForeignKey("sharable_status.id"), nullable=True)
     verified: Mapped[bool] = mapped_column(db.Boolean, default=False)

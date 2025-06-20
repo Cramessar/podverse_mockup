@@ -1,21 +1,22 @@
 from app.models.item import Item
 from app.extensions import db
 from typing import List, Optional
+from sqlalchemy import select
 
 class ItemService:
     """Service layer for Item operations - minimal factory pattern implementation"""
 
     @staticmethod
     def get_all_items() -> List[Item]:
-        return Item.query.all()
+        return db.session.execute(select(Item)).scalars().all()
 
     @staticmethod
     def get_item_by_id(item_id: int) -> Optional[Item]:
-        return Item.query.get(item_id)
+        return db.session.get(Item, item_id)
 
     @staticmethod
     def get_items_by_channel_id(channel_id: int) -> List[Item]:
-        return Item.query.filter_by(channel_id=channel_id).all()
+        return db.session.execute(select(Item).where(Item.channel_id == channel_id)).scalars().all()
     
     @staticmethod
     def create_item(data: dict) -> Item:
@@ -26,7 +27,7 @@ class ItemService:
     
     @staticmethod
     def update_item(item_id: int, data: dict) -> Optional[Item]:
-        item = Item.query.get(item_id)
+        item = db.session.get(Item, item_id)
         if not item:
             return None
         for key, value in data.items():
@@ -36,7 +37,7 @@ class ItemService:
     
     @staticmethod
     def delete_item(item_id: int) -> bool:
-        item = Item.query.get(item_id)
+        item = db.session.get(Item, item_id)
         if not item:
             return False
         db.session.delete(item)

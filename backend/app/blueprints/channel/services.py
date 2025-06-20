@@ -1,17 +1,18 @@
 from app.models.channel import Channel
 from app.extensions import db
 from typing import List, Optional
+from sqlalchemy import select
 
 class ChannelService:
     """Service layer for Channel operations - minimal factory pattern implementation"""
     
     @staticmethod
     def get_all_channels() -> List[Channel]:
-        return Channel.query.all()
+        return db.session.execute(select(Channel)).scalars().all()
     
     @staticmethod
     def get_channel_by_id(channel_id: int) -> Optional[Channel]:
-        return Channel.query.get(channel_id)
+        return db.session.get(Channel, channel_id)
     
     @staticmethod
     def create_channel(data: dict) -> Channel:
@@ -28,7 +29,7 @@ class ChannelService:
     
     @staticmethod
     def update_channel(channel_id: int, data: dict) -> Channel:
-        channel = Channel.query.get(channel_id)
+        channel = db.session.get(Channel, channel_id)
         if not channel:
             raise ValueError("Channel not found")
         
@@ -40,7 +41,7 @@ class ChannelService:
     
     @staticmethod
     def delete_channel(channel_id: int) -> None:
-        channel = Channel.query.get(channel_id)
+        channel = db.session.get(Channel, channel_id)
         if not channel:
             raise ValueError("Channel not found")
 
