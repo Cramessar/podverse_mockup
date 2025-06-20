@@ -11,7 +11,7 @@ module.exports = {
         podverse: {
           // Original base colors
           background: "#FFFFFF",
-          surface: "#F3F6FB",
+          surface: "#E5EAF2",
           text: "#FFFFFF",
           muted: "#A0A0A0",
           border: "#2a2a2a",
@@ -19,8 +19,8 @@ module.exports = {
           // Updated palette for podverse.fm vibe
           primary: "#000000",      // Black
           secondary: "#741b47",    // Burgundy
-          accent: "#f56fa1",       // Vibrant Pink
-          highlight: "#B1CAE3",    // Podverse Blue
+          accent: "#0D7AB3",       // Podverse Blue
+          highlight: "#B1CAE3",    // 
           cream: "#fae7b5",        // Soft Cream
         },
       },
