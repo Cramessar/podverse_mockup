@@ -10,6 +10,7 @@ from .category import category_bp
 from .medium import medium_bp
 from .stats import stats_bp
 
+
 from app.db_test import db_test_bp
 from app.sql_runner import sql_runner_bp
 
@@ -25,6 +26,7 @@ def register_blueprints(app):
     admin_bp.register_blueprint(category_bp, url_prefix='/categories')
     admin_bp.register_blueprint(medium_bp, url_prefix='/mediums')
     admin_bp.register_blueprint(stats_bp, url_prefix='/stats')
+
 
     # Register main admin blueprint
     app.register_blueprint(admin_bp)

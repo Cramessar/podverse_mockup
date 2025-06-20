@@ -1,35 +1,31 @@
 # Podverse Backend
 
-Quick Flask app for managing channels and feeds. Uses a simple MVC pattern with some service layer stuff thrown in.
+Flask-based REST API for the Podverse podcast platform with PostgreSQL database and OpenAPI documentation.
 
-## Structure
+## Tech Stack
 
+- **Python 3.10+** with Flask
+- **SQLAlchemy** ORM with PostgreSQL 
+- **OpenAPI/Swagger** documentation
+- **Docker** containerization
+- **pytest** for testing
+
+## Quick Start
+
+### Using Docker (Recommended)
+
+```bash
+# From project root
+docker-compose up --build
 ```
-backend/
-├── app/
-│   ├── models/channel.py          # Database models (M)
-│   ├── blueprints/channel/
-│   │   ├── routes.py              # API endpoints (Controller)
-│   │   ├── services.py            # Business logic - Factory Pattern Service Layer
-│   │   └── schemas.py             # JSON serialization (View)
-│   ├── utils/                     # Utilities
-│   └── __init__.py                # Flask app setup
-├── main.py                        # Start the server - Entry point (port 8000)
-└── config.py                      # App configuration
-```
 
+This will:
+- Start PostgreSQL database
+- Build and run the backend on port 8000
+- Auto-seed database with dummy data
+- API available at: http://localhost:8000
 
-## What's in each folder
-
-- **models/** - All the database stuff (channel.py, channel_category.py, category.py, feed.py, etc.)
-- **blueprints/** - API routes organized by feature (channel, docs, item) 
-- **utils/** - Helper functions and utilities
-- **openapi/** - Swagger docs and API specifications
-- **tests/** - Unit tests and test fixtures
-- **scripts/** - Helper scripts for database setup and maintenance
-- **instance/** - Local config files (not in git)
-
-## Running it
+### Local Development
 
 ```bash
 cd backend
@@ -39,24 +35,70 @@ pip install -r requirements.txt
 python3 main.py
 ```
 
-Server runs on http://localhost:8000
+**Note:** Requires PostgreSQL running locally or update `DATABASE_URL` in config.
 
-## Access Points
+## API Documentation
 
-- **Admin Documentation**: http://localhost:8000/admin/docs - Interactive Swagger UI  
-- **OpenAPI Specification**: http://localhost:8000/admin/docs/openapi.yaml - Raw OpenAPI spec file 
-- **API Status**: http://localhost:8000/health - Basic API health check
+- **Swagger UI**: http://localhost:8000/admin/docs
+- **Health Check**: http://localhost:8000/health
+- **SQL Runner**: http://localhost:8000/sql-runner
 - **Admin Status**: http://localhost:8000/admin - Admin API status check
+- **OpenAPI Specification**: http://localhost:8000/admin/docs/openapi.yaml - Raw OpenAPI spec file
 
-## API Endpoints
+## Project Structure
 
-- `GET /admin/channel` - List all channels
-- More endpoints coming as we build them out
+```
+backend/
+├── app/
+│   ├── blueprints/          # API route modules
+│   │   ├── feed/            # RSS feed management
+│   │   │   ├── routes.py    # API endpoints (Controller)
+│   │   │   ├── services.py  # Business logic - Factory Pattern Service Layer
+│   │   │   └── schemas.py   # JSON serialization (View)
+│   │   ├── docs/            # Swagger UI routes
+│   │   ├──health/          # Health check routes
+        └── ..
+│   ├── models/              # SQLAlchemy models (account, channel, feed, etc.)
+│   ├── services/            # feed_parser.py - RSS parsing logic
+│   ├── tasks/               # feed_task.py - Background tasks
+│   ├── templates/           # sql_runner.html - SQL interface
+│   ├── utils/               # logger.py, utils.py - Logging & utilities
+│   └── __init__.py          # Flask app factory with CORS & logging
+├── scripts/                 # generate_dummy_users.py - Data seeding
+├── tests/                   # pytest test files
+├── openapi/                 # OpenAPI/Swagger specification files
+├── instance/                # podverse.db - SQLite for local dev
+├── config.py                # Environment configurations
+├── main.py                  # Application entry point
+└── requirements.txt         # Python dependencies
+```
 
-## Database
+## Environment Configuration
 
-Uses SQLite for now (`podverse_dummy.db`). Models are pretty straightforward - channel, episodes, categories, etc. Check the models folder for the actual schema.
+Set `FLASK_ENV` environment variable:
+- `development` (default)
+- `testing` 
+- `production`
 
-## Notes
+Database URL: `postgresql://podverse_admin:testest@database:5432/podverse_db`
 
-This is just the basic structure. We'll probably add authentication, proper error handling, and more endpoints as we go.
+## Available Endpoints
+
+| Prefix | Description |
+|--------|-------------|
+| `/admin/channels` | Channel management |
+| `/admin/feeds` | RSS feed operations |
+| `/admin/items` | Episode/item management |
+| `/admin/categories` | Category operations |
+| `/admin/mediums` | Media type management |
+| `/admin/stats` | Analytics and statistics |
+
+## Testing
+
+```bash
+pytest tests/
+```
+
+## Logging
+
+Centralized logging system with request/response tracking and security event logging.
