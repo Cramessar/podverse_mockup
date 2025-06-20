@@ -5,8 +5,7 @@ class ChannelSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Channel
         load_instance = True
-        include_relationships = False  # Keep it simple for now
-        
+        include_relationships = False  
 channel_schema = ChannelSchema()
 channels_schema = ChannelSchema(many=True)
 

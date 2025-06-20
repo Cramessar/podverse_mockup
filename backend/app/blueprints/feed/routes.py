@@ -23,17 +23,13 @@ def get_feeds():
         
         log_database_operation(logger, 'READ', 'feed')
         
-        feeds_query = db.session.execute(
-            select(Feed).offset(offset).limit(limit)
-        ).scalars().all()
+        feeds_query = db.session.execute(select(Feed).offset(offset).limit(limit)).scalars().all()
         
-        total_count = db.session.execute(
-            select(func.count(Feed.id))
-        ).scalar()
+        total_count = db.session.execute(select(func.count(Feed.id))).scalar()
         
         logger.info(f"Retrieved {len(feeds_query)} feeds (total: {total_count})")
         
-        # Convert to dict format for JSON response
+        # Convert to dict format for JSON response - this is a good example of how to use marshmallow to serialize the data
         feeds = []
         for feed in feeds_query:
             feeds.append({

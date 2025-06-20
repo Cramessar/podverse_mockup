@@ -76,3 +76,6 @@ ENV/
 *.njsproj
 *.sln
 *.sw?
+
+# personal notes
+notes.md
