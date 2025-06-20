@@ -61,7 +61,7 @@ Scripts/
 *.env
 *.env.*
 Scripts
-
+Lib
 
 # Python logs
 *.log

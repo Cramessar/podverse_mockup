@@ -14,16 +14,13 @@ export async function middleware(request) {
         return authRes;
     }
 
-    const { origin } = new URL(request.url)
-    const session = await auth0.getSession()
-
-    // user does not have a session — redirect to login
+    const session = await auth0.getSession();
     if (!session) {
-        return NextResponse.redirect(`${origin}/auth/login`)
+        const { origin } = new URL(request.url);
+        return NextResponse.redirect(`${origin}/auth/login?returnTo=/dashboard`);
     }
-
-    return authRes
-}
+    // <-- MISSING CLOSING BRACE HERE
+} // <-- Add this closing brace
 
 export const config = {
     matcher: [

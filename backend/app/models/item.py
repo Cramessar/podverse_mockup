@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, DateTime
+from sqlalchemy import String, Integer, DateTime, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from typing import Optional
 from app.extensions import db
@@ -10,12 +10,12 @@ class Item(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     id_text: Mapped[Optional[str]] = mapped_column(String(15), unique=True)
     channel_id: Mapped[int] = mapped_column(db.ForeignKey("channel.id"), nullable=False)
-    #item_flag_status_id: Mapped[Optional[int]] = mapped_column(db.ForeignKey("item_flag_status.id"), nullable=True)
+    item_flag_status_id: Mapped[Optional[int]] = mapped_column(db.ForeignKey("item_flag_status.id"), nullable=True)
     title: Mapped[str] = mapped_column(String(300))
     slug: Mapped[str] = mapped_column(String(300), unique=True)
     guid:  Mapped[str] = mapped_column(String(300), unique=True)
     guid_enclosure_url:  Mapped[Optional[str]] = mapped_column(String(500), unique=True)
-    published_at: Mapped[Optional[DateTime]] = mapped_column(DateTime)
+    pub_date: Mapped[Optional[DateTime]] = mapped_column(DateTime)
     
 class ItemFlagStatus(Base):
     __tablename__ = "item_flag_status"
@@ -52,7 +52,7 @@ class StatsTrackEventItem(Base):
     __tablename__ = "stats_track_event_item"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    #account_guid: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), nullable=True)
+    account_guid: Mapped[str] = mapped_column(UUID(as_uuid=False), db.ForeignKey("stats_track_account_guid.account_guid"), nullable=False)
     item_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("item.id"), nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
     
