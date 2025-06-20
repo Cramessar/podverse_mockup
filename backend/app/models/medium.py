@@ -18,5 +18,4 @@ class Medium(Base):
         ),
     )
     
-    # channels = relationship("Channel", back_populates="medium")
-    
+    channels = relationship("Channel", back_populates="medium")

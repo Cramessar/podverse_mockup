@@ -17,18 +17,18 @@ class Item(Base):
     guid_enclosure_url:  Mapped[Optional[str]] = mapped_column(String(500), unique=True)
     pub_date: Mapped[Optional[DateTime]] = mapped_column(DateTime)
     
-    # channel = relationship("Channel", back_populates="items")
-    # flag_status = relationship("ItemFlagStatus", back_populates="items")
-    # stats = relationship(
-    #     "StatsAggregatedItem", 
-    #     back_populates="item", 
-    #     cascade="all, delete-orphan"
-    # )
-    # events = relationship(
-    #     "StatsTrackEventItem", 
-    #     back_populates="item",
-    #     cascade="all, delete-orphan"
-    # )
+    channel = relationship("Channel", back_populates="items")
+    flag_status = relationship("ItemFlagStatus", back_populates="items")
+    stats = relationship(
+        "StatsAggregatedItem", 
+        back_populates="item", 
+        cascade="all, delete-orphan"
+    )
+    events = relationship(
+        "StatsTrackEventItem", 
+        back_populates="item",
+        cascade="all, delete-orphan"
+    )
 
     
 class ItemFlagStatus(Base):
@@ -39,7 +39,7 @@ class ItemFlagStatus(Base):
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now(), onupdate=db.func.now())
     
-    # items = relationship("Item", back_populates="flag_status")
+    items = relationship("Item", back_populates="flag_status")
     
 class StatsAggregatedItem(Base):
     __tablename__ = "stats_aggregated_item"
@@ -65,7 +65,7 @@ class StatsAggregatedItem(Base):
     all_time_count: Mapped[int] = mapped_column(Integer, default=0)
     
 
-    # item = relationship("Item", back_populates="stats")
+    item = relationship("Item", back_populates="stats")
 
     
 class StatsTrackEventItem(Base):
@@ -77,6 +77,6 @@ class StatsTrackEventItem(Base):
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
     
     
-    # item = relationship("Item", back_populates="events")
-    # account_guid_ref = relationship("StatsTrackAccountGuid", back_populates="item_events")
+    item = relationship("Item", back_populates="events")
+    account_guid_ref = relationship("StatsTrackAccountGuid", back_populates="item_events")
     
