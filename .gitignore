@@ -1,2 +1,77 @@
-node_modules
-.venv
+# Node.js dependencies
+/node_modules/
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Next.js build outputs
+/.next/
+/out/
+/build/
+
+# Testing
+/coverage/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Misc
+.DS_Store
+*.pem
+
+# Vercel
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Python
+/backend/__pycache__/
+/backend/app/__pycache__/
+/backend/routes/__pycache__/
+/backend/tests/__pycache__/
+
+# Python cache files
+*.py[cod]
+*$py.class
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python environment variables
+*.env
+*.env.*
+
+# Python logs
+*.log
+
+# Python SQLite DB (if used locally)
+*.sqlite3
+
+# IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Project specific
+NOTES.md
