@@ -1,7 +1,12 @@
 from app import create_app
 from app.extensions import db
+from dotenv import load_dotenv
+import os
 
-app = create_app('DevelopmentConfig')
+load_dotenv() # loads .env from root
+
+config_name = os.getenv("FLASK_ENV", "development")
+app = create_app(config_name)
 
 if __name__ == '__main__':
     try:

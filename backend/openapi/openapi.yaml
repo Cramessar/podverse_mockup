@@ -3,40 +3,60 @@ info:
   title: Podverse Admin API
   version: 1.0.0
   description: Admin API for Podverse podcast platform dashboard
+
 servers:
-  - url: http://localhost:8000/admin
+  - description: Local development
+    url: http://localhost:8000/admin
+
 security:
-  - FirebaseAuth: []
+  - Auth0Bearer: []
 
 paths:
-  /auth/login:
-    post:
-      summary: Admin login (JWT exchange via Firebase)
-      tags:
-        - Auth
-      requestBody:
-        description: Admin login request
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LoginRequest"
-      responses:
-        "200":
-          description: Authenticated session
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/LoginResponse"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+  /feeds:
+    $ref: "./paths/feeds.yaml#/~1feeds"
+
+  /feeds/{feed_id}:
+    $ref: "./paths/feeds.yaml#/~1feeds~1{feed_id}"
+
+  /feeds/{feed_id}/reparse:
+    $ref: "./paths/feeds.yaml#/~1feeds~1{feed_id}~1reparse"
+
+  /channels:
+    $ref: "./paths/channels.yaml#/~1channels"
+
+  /channels/{id}:
+    $ref: "./paths/channels.yaml#/~1channels~1{id}"
+
+  /categories:
+    $ref: "./paths/categories.yaml#/~1categories"
+
+  /mediums:
+    $ref: "./paths/mediums.yaml#/~1mediums"
+
+
+
+  /stats/channels:
+    $ref: "./paths/stats.yaml#/~1stats~1channels"
+
+  /stats/items:
+    $ref: "./paths/stats.yaml#/~1stats~1items"
+
+  /items:
+    $ref: "./paths/items.yaml#/~1items"
+
+  /items/{id}:
+    $ref: "./paths/items.yaml#/~1items~1{id}"
 
 components:
+  securitySchemes:
+    Auth0Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Auth0
+  parameters:
+    $ref: "./components/parameters/_index.yaml"
   schemas:
-    LoginRequest:
-      $ref: "./components/schemas/auth/LoginRequest.yaml"
-    LoginResponse:
-      $ref: "./components/schemas/auth/LoginResponse.yaml"
+    $ref: "./components/schemas/_index.yaml"
   responses:
-    Unauthorized:
-      $ref: "./components/responses/Unauthorized.yaml"
+    $ref: "./components/responses/_index.yaml"

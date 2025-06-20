@@ -38,15 +38,16 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Python
-/backend/__pycache__/
-/backend/app/__pycache__/
-/backend/routes/__pycache__/
-/backend/tests/__pycache__/
 
-# Python cache files
+# Python cache files and directories
+__pycache__/
 *.py[cod]
 *$py.class
+*.so
+
+# Python specific cache directories
+/backend/__pycache__/
+/backend/**/__pycache__/
 
 # Python virtual environments
 .venv/
@@ -54,9 +55,12 @@ venv/
 env/
 ENV/
 
+
 # Python environment variables
 *.env
 *.env.*
+
+
 
 # Python logs
 *.log
@@ -72,6 +76,3 @@ ENV/
 *.njsproj
 *.sln
 *.sw?
-
-# Project specific
-NOTES.md

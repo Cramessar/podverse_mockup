@@ -1,0 +1,32 @@
+Feed:
+  $ref: "./Feed.yaml"
+FeedCreate:
+  $ref: "./FeedCreate.yaml"
+FeedFlagStatus:
+  $ref: "./FeedFlagStatus.yaml"
+FeedLog:
+  $ref: "./FeedLog.yaml"
+Channel:
+  $ref: "./Channel.yaml"
+ChannelDetails:
+  $ref: "./ChannelDetails.yaml"
+Category:
+  $ref: "./Category.yaml"
+Item:
+  $ref: "./Item.yaml"
+ItemFlagStatus:
+  $ref: "./ItemFlagStatus.yaml"
+Medium:
+  $ref: "./Medium.yaml"
+StatsChannel:
+  $ref: "./StatsChannel.yaml"
+StatsItem:
+  $ref: "./StatsItem.yaml"
+StatsAggregatedChannel:
+  $ref: "./StatsAggregatedChannel.yaml"
+StatsAggregatedItem:
+  $ref: "./StatsAggregatedItem.yaml"
+StatsTrackEventChannel:
+  $ref: "./StatsTrackEventChannel.yaml"
+Error:
+  $ref: "./Error.yaml"

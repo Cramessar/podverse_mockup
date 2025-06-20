@@ -1,0 +1,27 @@
+
+type: object
+properties:
+  id:
+    type: integer
+    description: Unique ID for the medium type
+    example: 3
+
+  value:
+    type: string
+    description: |
+      Content medium type. 
+      Valid values include:
+      - podcast
+      - music
+      - video
+      - blog
+      - audiobook
+      - newsletter
+      - publisher
+      - course
+      - mixed
+      (and their 'L' variants, e.g., podcastL, musicL, etc.)
+    example: "podcast"
+required:
+  - id
+  - value

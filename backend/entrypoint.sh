@@ -4,14 +4,33 @@ set -e
 echo "Waiting for PostgreSQL..."
 
 until pg_isready -h database -p 5432 -U podverse_admin > /dev/null 2>&1; do
-  echo "Postgres is unavailable - sleeping for 2 seconds"
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - Postgres is unavailable - sleeping for 2 seconds"
   sleep 2
 done
 
-echo "PostgreSQL is up - continuing..."
+echo "$(date '+%Y-%m-%d %H:%M:%S') - PostgreSQL is up - continuing..."
 
-echo "Running dummy data generation script..."
-python ./scripts/generate_dummy_users.py || echo "Dummy data script failed or already run, continuing..."
+MAX_RETRIES=5
+RETRY_DELAY=5
+COUNT=0
 
-echo "Starting Flask app..."
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Running dummy data generation script with retries..."
+
+while [ $COUNT -lt $MAX_RETRIES ]; do
+  if python /app/scripts/generate_dummy_users.py; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Dummy data generation completed successfully."
+    break
+  else
+    COUNT=$((COUNT + 1))
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Dummy data script failed (attempt $COUNT/$MAX_RETRIES). Retrying in $RETRY_DELAY seconds..."
+    sleep $RETRY_DELAY
+  fi
+done
+
+if [ $COUNT -eq $MAX_RETRIES ]; then
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - Dummy data generation failed after $MAX_RETRIES attempts. Continuing without seeding."
+fi
+
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting Flask app..."
+
 exec python main.py

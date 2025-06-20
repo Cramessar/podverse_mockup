@@ -19,6 +19,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.exc import IntegrityError
 
 # Database connection from docker-compose or environment variable
 db_url = os.getenv("DATABASE_URL", "postgresql://podverse_admin:testest@database:5432/podverse_db")
@@ -86,6 +87,12 @@ class Feed(Base):
     id = Column(Integer, primary_key=True)
     url = Column(String(255), unique=True, nullable=False)
     feed_flag_status_id = Column(Integer, nullable=False)  # Assume seeded with ID=1
+    is_parsing = Column(Boolean, nullable=True)
+    parsing_priority = Column(Integer, nullable=True)
+    last_parsed_file_hash = Column(String(255), nullable=True)
+    container_id = Column(String(255), nullable=True)
+    created_at = Column(DateTime, nullable=True)
+    updated_at = Column(DateTime, nullable=True)
 
     channels = relationship("Channel", back_populates="feed")
 
@@ -163,7 +170,7 @@ def random_location():
     return random.choice(countries)
 
 
-# ----------------- Data Generators Logic -----------------
+# MARK:----------------- Data Generators Logic -----------------
 
 def generate_users(session, n=200):
     users = []
@@ -203,12 +210,29 @@ def generate_feeds(session, n=5):
         feed = Feed(
             url=fake.unique.url() + "/rss",
             feed_flag_status_id=1, # Assuming feed_flag_status_id=1 is a valid seeded ID
+            is_parsing=None,  # Simulating I am not parsing now
+            parsing_priority=random.randint(0, 5),
+            last_parsed_file_hash=fake.md5(),
+            container_id=fake.bothify(text="##########"),
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
         )
         feeds.append(feed)
     session.add_all(feeds)
     session.commit()
     print(f"Inserted {n} feeds.")
     return feeds
+
+def generate_feed(session):
+    feed = Feed(
+        url=fake.unique.url() + "/rss",
+        feed_flag_status_id=1, 
+        is_parsing=None,  
+        parsing_priority=random.randint(0, 5),
+    )
+    session.add(feed)
+    session.commit()
+    return feed
 
 
 def generate_channels(session, feeds, n=10):
@@ -280,8 +304,14 @@ def generate_aggregated_items(session, items, n=10):
             )
         )
     session.add_all(aggregated)
-    session.commit()
-    print(f"Inserted {n} stats_aggregated_item rows.")
+    
+    try:
+        session.commit()
+        print(f"Inserted {n} stats_aggregated_item rows.")
+    except IntegrityError as e:
+        session.rollback()
+        print("[SKIP] Duplicate key error in stats_aggregated_item.")
+        print(f"[DETAIL-> ] {str(e.orig)}")
 
 
 def generate_accounts(session, n=100):
@@ -337,8 +367,14 @@ def generate_stats_aggregated_channels(session, channels, n=20):
             )
         )
     session.add_all(aggregated)
-    session.commit()
-    print(f"Inserted {n} stats_aggregated_channel rows.")
+    
+    try:
+        session.commit()
+        print(f"Inserted {n} stats_aggregated_channel rows.")
+    except IntegrityError as e:
+        session.rollback()
+        print("[SKIP] Duplicate key error in stats_aggregated_channel.")
+        print(f"[DETAIL] {str(e.orig)}")
 
 
 # ----------------- Main runner -----------------
@@ -374,11 +410,10 @@ def main():
         feeds = generate_feeds(session)
         channels = generate_channels(session, feeds)
         items = generate_items(session, channels)
-        user_guids = generate_account_guids(session)
-        generate_event_items(session, user_guids, items)
-        generate_aggregated_items(session, items)
         accounts = generate_accounts(session)
         account_guids = generate_stats_account_guids(session, accounts)
+        generate_event_items(session, account_guids, items)
+        generate_aggregated_items(session, items)
         generate_stats_track_event_channels(session, account_guids, channels)
         generate_stats_aggregated_channels(session, channels)
         print("✅ Finished seeding Podverse mock data!")

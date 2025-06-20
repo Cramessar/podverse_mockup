@@ -1,0 +1,33 @@
+
+type: object
+properties:
+  id:
+    type: integer
+    description: Unique identifier for the item flag status
+    example: 2
+
+  status:
+    type: string
+    enum: [active, pending-archive, archived, pending-delete]
+    description: |
+      Status assigned to an item to control lifecycle behavior.
+      - `active`: Item is live and visible
+      - `pending-archive`: Scheduled for archival
+      - `archived`: No longer active but kept in the system
+      - `pending-delete`: Marked for removal
+    example: "archived"
+
+  created_at:
+    type: string
+    format: date-time
+    description: Timestamp of creation
+    example: "2024-01-01T12:00:00Z"
+
+  updated_at:
+    type: string
+    format: date-time
+    description: Timestamp of last update
+    example: "2024-01-05T09:30:00Z"
+required:
+  - id
+  - status

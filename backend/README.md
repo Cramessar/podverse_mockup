@@ -1,4 +1,3 @@
-
 # Podverse Backend
 
 Quick Flask app for managing channels and feeds. Uses a simple MVC pattern with some service layer stuff thrown in.
@@ -44,11 +43,10 @@ Server runs on http://localhost:8000
 
 ## Access Points
 
-- **API Documentation**: http://localhost:8000/docs - Interactive Swagger UI
-- **Admin Documentation**: http://localhost:8000/admin/docs - Alternative admin docs route  
-- **OpenAPI Specification**: http://localhost:8000/openapi.yaml - Raw OpenAPI spec file 
-- **API Status**: http://localhost:8000/ - Basic API health check
-- **SQL Scripting Page**: http://localhost:8000/sql-runner
+- **Admin Documentation**: http://localhost:8000/admin/docs - Interactive Swagger UI  
+- **OpenAPI Specification**: http://localhost:8000/admin/docs/openapi.yaml - Raw OpenAPI spec file 
+- **API Status**: http://localhost:8000/health - Basic API health check
+- **Admin Status**: http://localhost:8000/admin - Admin API status check
 
 ## API Endpoints
 

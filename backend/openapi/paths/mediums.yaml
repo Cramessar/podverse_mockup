@@ -1,0 +1,24 @@
+/mediums:
+  get:
+    summary: List all media types
+    description: |
+      Returns the list of valid podcast medium values, such as podcast, video, blog, etc.
+
+      **Primary table:** `medium`
+
+      **Use case:** Channels reference this table to define their content type.
+    tags:
+      - Medium
+    security:
+      - Auth0Bearer: []
+    responses:
+      '200':
+        description: List of mediums
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "../components/schemas/Medium.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"

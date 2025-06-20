@@ -1,0 +1,66 @@
+type: object
+properties:
+  id:
+    type: integer
+    description: Unique identifier for aggregated item stats
+    example: 1
+  
+  item_id:
+    type: integer
+    description: Foreign key reference to item table
+    example: 456
+  
+  day_current_count:
+    type: integer
+    description: Current day's aggregated count
+    example: 25
+  
+  day_last_count:
+    type: integer
+    description: Previous day's aggregated count
+    example: 20
+  
+  week_current_count:
+    type: integer
+    description: Current week's aggregated count
+    example: 150
+  
+  week_last_count:
+    type: integer
+    description: Previous week's aggregated count
+    example: 140
+  
+  month_current_count:
+    type: integer
+    description: Current month's aggregated count
+    example: 600
+  
+  month_last_count:
+    type: integer
+    description: Previous month's aggregated count
+    example: 580
+  
+  year_current_count:
+    type: integer
+    description: Current year's aggregated count
+    example: 5200
+  
+  year_last_count:
+    type: integer
+    description: Previous year's aggregated count
+    example: 4800
+  
+  all_time_count:
+    type: integer
+    description: All-time aggregated count
+    example: 15000
+  
+  updated_at:
+    type: string
+    format: date-time
+    description: Timestamp of last update
+    example: "2024-01-01T10:00:00Z"
+
+required:
+  - id
+  - item_id 

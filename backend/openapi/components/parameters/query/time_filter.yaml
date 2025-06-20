@@ -1,0 +1,7 @@
+name: time_filter
+in: query
+description: Filter results by time window (e.g., daily, weekly, monthly)
+required: false
+schema:
+  type: string
+  enum: [daily, weekly, monthly]

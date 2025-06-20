@@ -1,0 +1,71 @@
+type: object
+properties:
+  id:
+    type: integer
+    description: Unique numeric ID for the channel
+    example: 201
+
+  id_text:
+    type: string
+    maxLength: 15
+    nullable: true
+    description: Public-facing short ID for URLs
+    example: "ch_8a3f91"
+
+  slug:
+    type: string
+    maxLength: 100
+    nullable: true
+    description: URL-friendly slug
+    example: "the-daily-news"
+
+  feed_id:
+    type: integer
+    nullable: true
+    description: ID of the associated feed
+    example: 104
+
+  podcast_index_id:
+    type: integer
+    nullable: true
+    description: External Podcast Index identifier
+    example: 872361
+
+  podcast_guid:
+    type: string
+    format: uuid
+    nullable: true
+    description: "`<podcast:guid>` from the RSS feed"
+    example: "1e8f3d7c-7fc0-4b70-90e1-991ed05bc4c4"
+
+  title:
+    type: string
+    maxLength: 255
+    description: Title of the podcast or media channel
+    example: "The Daily News Podcast"
+
+  sortable_title:
+    type: string
+    maxLength: 255
+    nullable: true
+    description: Lowercased, normalized version of title for sorting
+    example: "daily news podcast"
+
+  medium_id:
+    type: integer
+    nullable: true
+    description: Foreign key to the `medium` table
+    example: 2
+
+  has_podcast_index_value:
+    type: boolean
+    description: Indicates if channel uses Podcast Index's value tag data
+    example: false
+
+  has_value_time_splits:
+    type: boolean
+    description: Indicates whether channel items use value time split logic
+    example: true
+required:
+  - id
+  - title

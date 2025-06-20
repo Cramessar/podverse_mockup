@@ -1,5 +1,5 @@
 from sqlalchemy import Integer, Text, CheckConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 
 class Medium(Base):
@@ -17,3 +17,6 @@ class Medium(Base):
             name="ck_medium_value",
         ),
     )
+    
+    # channels = relationship("Channel", back_populates="medium")
+    
