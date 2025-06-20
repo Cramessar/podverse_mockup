@@ -18,7 +18,7 @@ export default function AdminLogin() {
           onClick={handleContinue}
           className="w-full py-3 bg-purple-700 hover:bg-purple-800 text-white rounded-md transition"
         >
-          Continue to Dashboard
+          Log In
         </button>
       </div>
     </main>
