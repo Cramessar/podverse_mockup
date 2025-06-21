@@ -1,11 +1,19 @@
 from app.extensions import ma
-from app.models.channel import Channel
+from marshmallow import fields, validate
+from app.models.channel import Channel, StatsTrackEventChannel, ChannelCategory, StatsAggregatedChannel
 
 class ChannelSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Channel
         load_instance = True
-        include_relationships = False  
+        include_relationships = False
+        include_fk = True
+        
+    title = fields.Str(
+    required=True, 
+    validate=validate.Length(min=1, max=255)
+    )
+        
 channel_schema = ChannelSchema()
 channels_schema = ChannelSchema(many=True)
 
@@ -15,14 +23,8 @@ channels_schema = ChannelSchema(many=True)
 
 
 # from app.extensions import ma
-# from app.models.account import Account, SharableStatus, StatsTrackAccountGuid
-# from app.models.category import Category
 # from app.models.channel import Channel, StatsAggreatedChannel, StatsTrackEventChannel, ChannelCategory
-# from app.models.feed import Feed, FeedFlagStatus, FeedLog
-# from app.models.item import Item, ItemFlagStatus, StatsAggregatedItem, StatsTrackEventItem
-# from app.models.medium import Medium
 
-# # Channel Related Schemas
 # class StatsAggregatedChannelSchema(ma.SQLAlchemyAutoSchema):
 #     class Meta:
 #         model = StatsAggreatedChannel
