@@ -21,6 +21,18 @@ class StatsTrackEventChannelSchema(ma.SQLAlchemyAutoSchema):
         model = StatsTrackEventChannel
         load_instance = True
         include_fk = True
+        
+stats_track_event_channel_schema = StatsTrackEventChannelSchema()
+stats_track_event_channels_schema = StatsTrackEventChannelSchema(many=True)
+        
+class StatsAggregatedChannelSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = StatsAggregatedChannel
+        load_instance = True
+        include_fk = True
+        
+stats_aggregated_channel_schema = StatsAggregatedChannelSchema()
+stats_aggregated_channels_schema = StatsAggregatedChannelSchema(many=True)
 
 
 
