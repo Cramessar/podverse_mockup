@@ -1,5 +1,5 @@
 import pytest
-from marshmallow import ValidationError
+from app.extensions import ValidationError
 from app.models.channel import Channel,  StatsTrackEventChannel
 from app.blueprints.channel.schemas import ChannelSchema, StatsTrackEventChannelSchema
 from uuid import uuid4
