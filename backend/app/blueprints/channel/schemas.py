@@ -1,5 +1,4 @@
-from app.extensions import ma
-from marshmallow import fields, validate
+from app.extensions import ma, fields, validate
 from app.models.channel import Channel, StatsTrackEventChannel, ChannelCategory, StatsAggregatedChannel
 
 class ChannelSchema(ma.SQLAlchemyAutoSchema):
@@ -16,6 +15,12 @@ class ChannelSchema(ma.SQLAlchemyAutoSchema):
         
 channel_schema = ChannelSchema()
 channels_schema = ChannelSchema(many=True)
+
+class StatsTrackEventChannelSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = StatsTrackEventChannel
+        load_instance = True
+        include_fk = True
 
 
 
