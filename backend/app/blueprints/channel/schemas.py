@@ -34,6 +34,15 @@ class StatsAggregatedChannelSchema(ma.SQLAlchemyAutoSchema):
 stats_aggregated_channel_schema = StatsAggregatedChannelSchema()
 stats_aggregated_channels_schema = StatsAggregatedChannelSchema(many=True)
 
+class ChannelCategorySchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = ChannelCategory
+        load_instance = True
+        include_fk = True
+
+channel_category_schema = ChannelCategorySchema()
+channel_categories_schema = ChannelCategorySchema(many=True)
+
 
 
 
