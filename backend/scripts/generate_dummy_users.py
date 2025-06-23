@@ -33,6 +33,8 @@ from app.models.item import Item, ItemFlagStatus, StatsAggregatedItem, StatsTrac
 from app.models.account import Account, SharableStatus, StatsTrackAccountGuid
 from app.models.category import Category
 from app.models.medium import Medium
+from app.models.user import User
+
 
 # Database connection from docker-compose or environment variable
 db_url = os.getenv("DATABASE_URL", "postgresql://podverse_admin:testest@database:5432/podverse_db")
@@ -254,18 +256,21 @@ def generate_feed(session):
 
 def generate_channels(session, feeds, n=10):
     channels = []
-    for _ in range(n):
-        feed = random.choice(feeds)
+    random.shuffle(feeds)
+
+    for i, feed in enumerate(feeds[:n]):
         channel = Channel(
             feed_id=feed.id,
             id_text=fake.unique.user_name(),
             podcast_index_id=fake.random_int(1000, 9999),
         )
         channels.append(channel)
+
     session.add_all(channels)
     session.commit()
-    print(f"Inserted {n} channels.")
+    print(f"Inserted {len(channels)} channels.")
     return channels
+
 
 
 def generate_items(session, channels, n=20):
