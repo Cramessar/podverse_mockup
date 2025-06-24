@@ -21,16 +21,6 @@ class ItemFlagStatusSchema(ma.SQLAlchemyAutoSchema):
 item_flag_status_schema = ItemFlagStatusSchema()
 item_flag_statuses_schema = ItemFlagStatusSchema(many=True)
 
-class StatsAggregatedItemSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = StatsAggregatedItem
-        load_instance = True
-        include_relationships = False
-        include_fk = True
-        
-stats_aggregated_item_schema = StatsAggregatedItemSchema()
-stats_aggregated_items_schema = StatsAggregatedItemSchema(many=True)
-
 class StatsTrackEventItemSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = StatsTrackEventItem
