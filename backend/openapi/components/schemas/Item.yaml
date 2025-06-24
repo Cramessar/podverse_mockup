@@ -1,0 +1,75 @@
+type: object
+properties:
+  id:
+    type: integer
+    description: Unique identifier for the item
+    example: 1
+
+  id_text:
+    type: string
+    maxLength: 15
+    description: Short identifier used in public-facing URLs
+    example: "ep_2a3f9c"
+
+  slug:
+    type: string
+    maxLength: 100
+    nullable: true
+    description: URL-friendly slug for the item
+    example: "episode-1-getting-started"
+
+  channel_id:
+    type: integer
+    description: ID of the channel this item belongs to
+    example: 42
+
+  guid:
+    type: string
+    format: uri
+    nullable: true
+    description: RSS `<guid>` of the item
+    example: "https://example.com/items/1"
+
+  guid_enclosure_url:
+    type: string
+    format: uri
+    nullable: true
+    description: Enclosure URL from RSS used as fallback if GUID is missing
+    example: "https://example.com/items/ep1.mp3"
+
+  pub_date:
+    type: string
+    format: date-time
+    description: Publication date of the item
+    example: "2024-01-15T10:30:00Z"
+
+  title:
+    type: string
+    maxLength: 255
+    description: Title of the item (usually the episode title)
+    example: "Episode 1: Getting Started"
+
+  item_flag_status_id:
+    type: integer
+    description: Foreign key to the item_flag_status table
+    example: 1
+
+  play_count:
+    type: integer
+    minimum: 0
+    description: Aggregated play count from stats_aggregated_item (optional)
+    example: 1250
+
+  download_count:
+    type: integer
+    minimum: 0
+    description: Aggregated download count from stats_aggregated_item (optional)
+    example: 500
+
+required:
+  - id
+  - id_text
+  - channel_id
+  - title
+  - pub_date
+  - item_flag_status_id

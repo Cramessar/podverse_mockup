@@ -1,17 +1,21 @@
-from flask import Blueprint, render_template_string, jsonify, Response
+from flask import render_template_string, send_file, Response
 import os
+from . import docs_bp 
 
-docs_bp = Blueprint("docs", __name__)
 
-OPENAPI_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../openapi/openapi.yaml")
+OPENAPI_BASE = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "..", "openapi")
+)
+BUNDLED_PATH = os.path.join(OPENAPI_BASE, "bundled.yaml")
 
 @docs_bp.route("/openapi.yaml")
 def openapi_yaml():
-    with open(OPENAPI_PATH, "r") as f:
+    # Serve the bundled OpenAPI spec as text/yaml
+    with open(BUNDLED_PATH, "r") as f:
         yaml_content = f.read()
-    return Response(yaml_content, mimetype="text/plain")
+    return Response(yaml_content, mimetype="text/yaml")
 
-@docs_bp.route("/docs")
+@docs_bp.route("/")
 def swagger_ui():
     swagger_html = """
     <!DOCTYPE html>
@@ -25,24 +29,16 @@ def swagger_ui():
       <script src="https://unpkg.com/swagger-ui-dist@4/swagger-ui-bundle.js"></script>
       <script>
         SwaggerUIBundle({
-          url: "/openapi.yaml",
+          url: "/admin/docs/openapi.yaml",
           dom_id: '#swagger-ui',
           presets: [
             SwaggerUIBundle.presets.apis,
             SwaggerUIBundle.SwaggerUIStandalonePreset
           ],
           layout: "BaseLayout"
-        })
+        });
       </script>
     </body>
     </html>
     """
     return render_template_string(swagger_html)
-
-@docs_bp.route("/")
-def index():
-    return jsonify({"status": "API running"})
-
-@docs_bp.route("/admin")
-def admin_root():
-    return {"message": "Admin API is up and running"}

@@ -1,12 +1,5 @@
-description: Unauthorized – invalid or missing JWT
+description: Unauthorized (401)
 content:
   application/json:
     schema:
-      type: object
-      properties:
-        error:
-          type: string
-          example: Unauthorized
-        message:
-          type: string
-          example: Authentication token is invalid or expired.
+      $ref: "../schemas/Error.yaml"

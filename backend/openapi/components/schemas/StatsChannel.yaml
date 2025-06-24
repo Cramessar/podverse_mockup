@@ -1,0 +1,27 @@
+type: object
+properties:
+  channel_id:
+    type: integer
+    description: Unique ID of the channel
+  podcast_index_id:
+    type: integer
+    description: Podcast Index ID
+  title:
+    type: string
+    description: Title of the podcast show
+  total_listens:
+    type: integer
+    description: Total listens during the selected time period
+  start_date:
+    type: string
+    format: date
+    description: Start date of the aggregation window (ISO 8601)
+  end_date:
+    type: string
+    format: date
+    description: End date of the aggregation window (ISO 8601)
+required:
+  - channel_id
+  - podcast_index_id
+  - title
+  - total_listens

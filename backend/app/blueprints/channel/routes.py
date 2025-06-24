@@ -2,36 +2,53 @@ from flask import request, jsonify
 from . import channel_bp
 from .schemas import channel_schema, channels_schema
 from .services import create_channel_service
-from flask import Blueprint
 
 # Create service instance using factory
 channel_service = create_channel_service()
 
-@channel_bp.route('/channels', methods=['GET'])
+@channel_bp.route('', methods=['GET'])
 def get_channels():
-    """Get all channels - Controller layer"""
+    """
+    Retrieve a list of channels
+    GET /channels
+    """
     try:
+        # Get query parameters for pagination and filtering
+        limit = request.args.get('limit', 20, type=int)
+        offset = request.args.get('offset', 0, type=int)
+        search = request.args.get('search', '')
+        sort_by = request.args.get('sort_by', 'id')
+        sort_order = request.args.get('sort_order', 'desc')
+        
+        # TODO: Implement with proper pagination and filtering
         channels = channel_service.get_all_channels()
-        return jsonify(channels_schema.dump(channels)), 200
+        
+        return jsonify({
+            'data': channels_schema.dump(channels),
+            'meta': {
+                'total': len(channels),
+                'limit': limit,
+                'offset': offset
+            }
+        }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
-@channel_bp.route('/channels/<int:channel_id>', methods=['GET'])
-def get_channel():
-    """Get a specific channel by ID - Controller layer"""
-    channel_id = request.args.get('channel_id', type=int)
-    if not channel_id:
-        return jsonify({'error': 'Channel ID is required'}), 400
-    
+@channel_bp.route('/<int:id>', methods=['GET'])
+def get_channel_by_id(id):
+    """
+    Retrieve a channel by ID
+    GET /channels/{id}
+    """
     try:
-        channel = channel_service.get_channel_by_id(channel_id)
+        channel = channel_service.get_channel_by_id(id)
         if not channel:
             return jsonify({'error': 'Channel not found'}), 404
         return jsonify(channel_schema.dump(channel)), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
-@channel_bp.route('/channels', methods=['POST'])
+@channel_bp.route('/', methods=['POST'])
 def create_channel():
     data = request.get_json()
     if not data:
@@ -43,7 +60,7 @@ def create_channel():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
-@channel_bp.route('/channels/<int:channel_id>', methods=['PUT'])
+@channel_bp.route('/<int:channel_id>', methods=['PUT'])
 def update_channel(channel_id):
     if not channel_id:
         return jsonify({'error': 'Channel ID is required'}), 400
@@ -62,7 +79,7 @@ def update_channel(channel_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
-@channel_bp.route('/channels/<int:channel_id>', methods=['DELETE'])
+@channel_bp.route('/<int:channel_id>', methods=['DELETE'])
 def delete_channel(channel_id):
     if not channel_id:
         return jsonify({'error': 'Channel ID is required'}), 400

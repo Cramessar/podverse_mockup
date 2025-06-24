@@ -1,0 +1,7 @@
+name: offset
+in: query
+required: false
+schema:
+  type: integer
+  minimum: 0
+description: Number of results to skip for pagination

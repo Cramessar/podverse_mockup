@@ -1,0 +1,24 @@
+/categories:
+  get:
+    summary: List podcast categories
+    description: |
+      Returns all available podcast categories, including parent and child relationships.
+
+      **Primary table:** `category`
+
+      **Use case:** Used to classify channels into hierarchical genres based on Apple Podcasts-style taxonomy.
+    tags:
+      - Categories
+    security:
+      - Auth0Bearer: []
+    responses:
+      '200':
+        description: List of categories
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "../components/schemas/Category.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"

@@ -14,7 +14,7 @@ export default function DashboardPage() {
 
   return (
 
-    <div className="flex min-h-screen bg-[#121214] text-white">
+    <div className="flex min-h-screen bg-podverse-background text-black">
       <Sidebar />
 
       {/* Main content */}
@@ -24,7 +24,7 @@ export default function DashboardPage() {
           <input
             type="search"
             placeholder="Search"
-            className="rounded-full px-5 py-2 w-1/3 bg-[#2a2a35] text-white placeholder-[#7a7a8c] focus:outline-none"
+            className="rounded-full px-5 py-2 w-1/3 bg-[#2a2a35] text-black placeholder-[#7a7a8c] focus:outline-none"
           />
           <div className="flex space-x-4">
             <button
@@ -45,13 +45,13 @@ export default function DashboardPage() {
 
         {/* Title and tabs */}
         <section>
-          <h1 className="text-3xl font-bold mb-1">Welcome to the Admin Panel</h1>
-          <p className="text-gray-400 mb-6">Manage your application effortlessly.</p>
+          <h1 className="text-3xl text-black font-bold mb-1">Welcome to the Admin Panel</h1>
+          <p className="text-black mb-6">Manage your application effortlessly.</p>
           <div className="inline-flex rounded border border-[#2a2a35] overflow-hidden">
             <button
               onClick={() => setActiveTab("feeds")}
               className={`px-6 py-3 font-semibold transition ${activeTab === "feeds"
-                  ? "bg-[#3772ff] text-white"
+                  ? "bg-[#3772ff] text-black"
                   : "bg-[#23232e] text-[#7a7a8c] hover:bg-[#2a2a35]"
                 }`}
             >

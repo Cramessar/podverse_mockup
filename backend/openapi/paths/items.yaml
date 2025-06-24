@@ -1,0 +1,130 @@
+# i might add POST item/{id} reparsse endpoint
+
+/items:
+  get:
+    summary: List all items
+    description: |
+      Returns a paginated list of items (episodes) with optional filters such as
+      channel ID and publish date range. Also supports search and sorting.
+
+      **Primary table:** `item`
+
+      **Related tables:**
+      - `channel`: used to filter items by parent channel (`channel_id`)
+      - `item_flag_status`: used to determine current flag/status of the item
+      - `stats_aggregated_item`: optionally joined to provide aggregated stats like play/download count
+    tags:
+      - Items
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - $ref: "../components/parameters/query/limit.yaml"
+      - $ref: "../components/parameters/query/offset.yaml"
+      - $ref: "../components/parameters/query/search.yaml"
+      - name: channel_id
+        in: query
+        schema:
+          type: integer
+        description: Filter items by their parent channel's ID
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum: [active, pending-archive, archived, pending-delete]
+        description: Filter items by their flag status (`item_flag_status.status`)
+      - name: published_after
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: Filter items published after this date
+      - name: published_before
+        in: query
+        schema:
+          type: string
+          format: date-time
+        description: Filter items published before this date
+      - name: sort_by
+        in: query
+        schema:
+          type: string
+          enum: [pub_date, title, id]
+        description: Field to sort results by (supports `pub_date`, `title`, or `id`)
+      - name: sort_order
+        in: query
+        schema:
+          type: string
+          enum: [asc, desc]
+          default: desc
+        description: Sort order (ascending or descending)
+    responses:
+      '200':
+        description: List of items returned
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: "../components/schemas/Item.yaml"
+                meta:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                      description: Total number of matching items
+                    limit:
+                      type: integer
+                      description: Limit applied to query
+                    offset:
+                      type: integer
+                      description: Offset applied to query
+      '400':
+        description: Invalid request parameters
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/Error.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+
+/items/{id}:
+  get:
+    summary: Get item by ID
+    description: |
+      Retrieves a specific item (episode) by its ID.
+
+      **Primary table:** `item`
+
+      **Related tables:**
+      - `channel`: provides information about the parent channel
+      - `item_flag_status`: provides the current flag status
+      - `stats_aggregated_item`: optionally used to return usage statistics for the item
+    tags:
+      - Items
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Unique ID of the item
+    responses:
+      '200':
+        description: Item found
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/Item.yaml"
+      '404':
+        description: Item not found
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/Error.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"

@@ -29,20 +29,3 @@ def sql_runner():
 
     return render_template('sql_runner.html', result=result, error=error)
 
-# sql script example please go step by step:
-# CREATE SCHEMA public;
-# CREATE TABLE public.feed (
-    
-#     id SERIAL PRIMARY KEY,
-#     feed_flag_status_id INTEGER NOT NULL,
-#     url TEXT NOT NULL,
-#     last_parsed TIMESTAMP,
-#     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-#     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-# );
-
-# INSERT INTO information_schema.feed (feed_flag_status_id, url, last_parsed, created_at, updated_at)
-# VALUES (1, 'https://example.com/feed1', NOW(), NOW(), NOW());
-
-
-# SELECT * FROM information_schema.feed LIMIT 5;

@@ -1,0 +1,67 @@
+# use for responses 
+type: object
+properties:
+  id:
+    type: integer
+    description: Feed ID (primary key)
+    example: 104
+
+  feed_flag_status_id:
+    type: integer
+    description: Foreign key to feed_flag_status table (status type)
+    example: 1
+
+  url:
+    type: string
+    format: uri
+    maxLength: 2083
+    description: RSS feed URL
+    example: https://example.com/rss.xml
+
+  # it's in feed table but not in sql schema
+  last_parsed:
+    type: string
+    format: date-time
+    nullable: true
+    description: Timestamp of the last parsing attempt
+    example: 2025-06-18T13:45:00Z
+
+  is_parsing:
+    type: string
+    format: date-time
+    nullable: true
+    description: Set to timestamp when parsing starts; null when idle
+    example: 2025-06-18T13:47:12Z
+
+  parsing_priority:
+    type: integer
+    minimum: 0
+    maximum: 5
+    description: Frequency tier for parsing; 0 = rarely, 5 = frequently
+    example: 2
+
+  last_parsed_file_hash:
+    type: string
+    pattern: '^[a-f0-9]{32}$'
+    nullable: true
+    description: MD5 hash of last parsed feed XML used for change detection
+    example: "c4ca4238a0b923820dcc509a6f75849b"
+
+  container_id:
+    type: string
+    maxLength: 12
+    nullable: true
+    description: ID of the container instance that last parsed the feed
+    example: "ab12cd34ef56"
+
+  created_at:
+    type: string
+    format: date-time
+    description: Timestamp when the feed was added
+    example: 2025-06-17T22:00:00Z
+
+  updated_at:
+    type: string
+    format: date-time
+    description: Timestamp when the feed was last updated
+    example: 2025-06-18T14:05:00Z

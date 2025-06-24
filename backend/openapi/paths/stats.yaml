@@ -1,0 +1,167 @@
+/stats/channels:
+  get:
+    summary: Retrieve aggregated channel statistics
+    description: |
+      Returns aggregated stats for channels such as total listens or views.
+      Sorted by highest monthly count (month_current_count DESC).
+      Supports optional filtering by time window (daily, weekly, monthly) and search by channel title or ID.
+      Data is sourced from the `channel` and `stats_aggregated_channel` tables.
+    tags:
+      - Statistics
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - $ref: "../components/parameters/query/time_filter.yaml"
+      - $ref: "../components/parameters/query/limit.yaml"
+      - $ref: "../components/parameters/query/offset.yaml"
+      - $ref: "../components/parameters/query/search.yaml"
+    responses:
+      '200':
+        description: Aggregated channel statistics returned
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: "../components/schemas/StatsChannel.yaml"
+                meta:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    limit:
+                      type: integer
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '500':
+        $ref: "../components/responses/InternalServerError.yaml"
+
+/stats/channels/{id}:
+  get:
+    summary: Retrieve detail stats for a specific channel
+    description: |
+      Returns detailed statistics, such as total listens or views, and metadata for a specific channel.
+      Includes basic channel info, aggregated stats, and raw event count within an optional time window.
+      Data comes from `stats_aggregated_channel` and `channel` tables.
+    tags:
+      - Statistics
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: start
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: end
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+    responses:
+      '200':
+        description: Channel detail statistics returned
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/ChannelDetails.yaml"
+      '404':
+        $ref: "../components/responses/NotFound.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '500':
+        $ref: "../components/responses/InternalServerError.yaml"
+
+/stats/items:
+  get:
+    summary: Retrieve aggregated item (episode) statistics
+    description: |
+      Returns aggregated stats for items (podcast episodes).
+      Sorted by highest monthly count (month_current_count DESC).
+      Supports optional filtering by time window and search by item title or ID.
+      Data is sourced from the `item`, `stats_aggregated_item` tables. 
+    tags:
+      - Statistics
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - $ref: "../components/parameters/query/time_filter.yaml"
+      - $ref: "../components/parameters/query/limit.yaml"
+      - $ref: "../components/parameters/query/offset.yaml"
+      - $ref: "../components/parameters/query/search.yaml"
+    responses:
+      '200':
+        description: Aggregated item statistics returned
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: "../components/schemas/StatsItem.yaml"
+                meta:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    limit:
+                      type: integer
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '500':
+        $ref: "../components/responses/InternalServerError.yaml"
+
+/stats/items/{id}:
+  get:
+    summary: Retrieve detail stats for a specific item
+    description: |
+      Returns detailed statistics and metadata for a specific item.
+      Includes basic item info, aggregated stats, and raw event count within an optional time window.
+      Data is sourced from the `item`, `stats_aggregated_item`, and `stats_track_event_item` tables.
+    tags:
+      - Statistics
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: start
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: end
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+    responses:
+      '200':
+        description: Item detail statistics returned
+        content:
+          application/json:
+            schema:
+               $ref: "../components/schemas/Item.yaml"
+      '404':
+        $ref: "../components/responses/NotFound.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '500':
+        $ref: "../components/responses/InternalServerError.yaml"

@@ -1,0 +1,1234 @@
+openapi: 3.0.0
+info:
+  title: Podverse Admin API
+  version: 1.0.0
+  description: Admin API for Podverse podcast platform dashboard
+servers:
+  - description: Local development
+    url: http://localhost:8000/admin
+security:
+  - Auth0Bearer: []
+paths:
+  /feeds:
+    get:
+      summary: Retrieve a list of RSS feeds
+      description: |
+        Returns a paginated list of RSS feeds including each feed’s URL, status, and associated metadata.
+        Supports optional search, limit, and offset parameters for pagination and filtering.
+        Data is sourced from the `feed` table, joined with `feed_flag_status` for human-readable status labels.
+      tags:
+        - Feeds
+      security:
+        - Auth0Bearer: []
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: List of feeds returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Feed'
+                  meta:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      limit:
+                        type: integer
+                      offset:
+                        type: integer
+    post:
+      summary: Create a new feed
+      description: |
+        Adds a new RSS feed to the system. This manually inserts a row into the `feed` table.
+        This will be used only if we want to allow admins to seed new feeds directly.
+        If feed ingestion is handled automatically via external APIs (e.g., Podcast Index), this may be disabled.
+        Required fields include a valid `url` (must be unique) and a `feed_flag_status_id`.
+      tags:
+        - Feeds
+      security:
+        - Auth0Bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedCreate'
+      responses:
+        '201':
+          description: Feed created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feed'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+  /feeds/{feed_id}:
+    get:
+      summary: Retrieve a feed by ID
+      description: |
+        Fetches complete feed metadata by `id`.
+
+        This includes:
+        - `url`: The RSS feed address
+        - `feed_flag_status_id`: Links to `feed_flag_status` table (e.g. active, spam)
+        - `is_parsing`: Timestamp set when feed is being parsed
+        - `parsing_priority`: Integer from 0 to 5 used to schedule parsing frequency
+
+        Optional joins with `channel` for UI display, but this route is scoped to the `feed` table.
+      tags:
+        - Feeds
+      security:
+        - Auth0Bearer: []
+      parameters:
+        - name: feed_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Feed details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feed'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update feed status or priority
+      description: |
+        Updates the feed’s flag status (`feed_flag_status_id`) or parsing frequency (`parsing_priority`).
+
+        This changes values in the `feed` table:
+        - `feed_flag_status_id`: e.g. mark as spam, archived, active
+        - `parsing_priority`: integer 0 (lowest) to 5 (highest)
+
+        These values are used internally to control parsing behavior and visibility in the system.
+      tags:
+        - Feeds
+      security:
+        - Auth0Bearer: []
+      parameters:
+        - name: feed_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                feed_flag_status_id:
+                  type: integer
+                  description: ID from `feed_flag_status` (e.g. active, spam)
+                parsing_priority:
+                  type: integer
+                  minimum: 0
+                  maximum: 5
+                  description: Controls parsing frequency (0 = infrequent, 5 = frequent)
+      responses:
+        '200':
+          description: Feed updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feed'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /feeds/{feed_id}/reparse:
+    post:
+      summary: Trigger RSS feed re-parse
+      description: |
+        This sets the `is_parsing` field on the `feed` table to the current timestamp, telling the background job to re-fetch and reprocess the feed data.
+
+        This is useful if a feed appears stuck or failed to parse previously.
+
+        NOTE: Actual parsing happens asynchronously in a worker, not in response to this call.
+      tags:
+        - Feeds
+      security:
+        - Auth0Bearer: []
+      parameters:
+        - name: feed_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Reparse triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Feed reparse has been scheduled.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /channels:
+    get:
+      summary: Retrieve a list of channels
+      description: |
+        Returns a paginated list of channels with their basic metadata.
+        Supports filtering by text-based search on `title`, and sorting by `id` or `title`.
+        Primary table is `channel`.
+        Related tables are :
+        - `medium`: used to include the medium type (e.g. podcast, video) 
+        - `feed`: used to show the associated RSS feed URL or status (optional).
+      tags:
+        - Channels
+      security:
+        - Auth0Bearer: []
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - $ref: '#/components/parameters/search'
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum:
+              - id
+              - title
+          description: |
+            Field to sort results by. Supported fields: `id`, `title`.
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+          description: Sort order (ascending or descending).
+      responses:
+        '200':
+          description: List of channels returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Channel'
+                  meta:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        description: Total number of matching channels
+                      limit:
+                        type: integer
+                        description: Limit applied to query
+                      offset:
+                        type: integer
+                        description: Offset applied to query
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /channels/{id}:
+    get:
+      summary: Retrieve a channel by ID
+      description: |
+        Returns details for a specific channel.
+        Includes associated relationships and metadata such as slug, podcast index ID, feed reference, and medium.
+        Primary table is `channel`.
+        Related tables are :
+        - `feed`: provides the associated feed URL and parsing status
+        - `medium`: provides the media type of the channel
+        - `channel_category` + `category`: maps the channel to its categories
+        - `stats_aggregated_channel`: optionally used to show precomputed statistics
+      tags:
+        - Channels
+      security:
+        - Auth0Bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The ID of the channel to retrieve
+      responses:
+        '200':
+          description: Channel details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /categories:
+    get:
+      summary: List podcast categories
+      description: |
+        Returns all available podcast categories, including parent and child relationships.
+
+        **Primary table:** `category`
+
+        **Use case:** Used to classify channels into hierarchical genres based on Apple Podcasts-style taxonomy.
+      tags:
+        - Categories
+      security:
+        - Auth0Bearer: []
+      responses:
+        '200':
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /mediums:
+    get:
+      summary: List all media types
+      description: |
+        Returns the list of valid podcast medium values, such as podcast, video, blog, etc.
+
+        **Primary table:** `medium`
+
+        **Use case:** Channels reference this table to define their content type.
+      tags:
+        - Medium
+      security:
+        - Auth0Bearer: []
+      responses:
+        '200':
+          description: List of mediums
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Medium'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /stats/channels:
+    get:
+      summary: Retrieve aggregated channel statistics
+      description: |
+        Returns aggregated stats for channels such as total listens or views.
+        Sorted by highest monthly count (month_current_count DESC).
+        Supports optional filtering by time window (daily, weekly, monthly) and search by channel title or ID.
+        Data is sourced from the `channel` and `stats_aggregated_channel` tables.
+      tags:
+        - Statistics
+      security:
+        - Auth0Bearer: []
+      parameters:
+        - $ref: '#/components/parameters/time_filter'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - $ref: '#/components/parameters/search'
+      responses:
+        '200':
+          description: Aggregated channel statistics returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StatsChannel'
+                  meta:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      limit:
+                        type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /stats/items:
+    get:
+      summary: Retrieve aggregated item (episode) statistics
+      description: |
+        Returns aggregated stats for items (podcast episodes).
+        Sorted by highest monthly count (month_current_count DESC).
+        Supports optional filtering by time window and search by item title or ID.
+        Data is sourced from the `item`, `stats_aggregated_item` tables. 
+      tags:
+        - Statistics
+      security:
+        - Auth0Bearer: []
+      parameters:
+        - $ref: '#/components/parameters/time_filter'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - $ref: '#/components/parameters/search'
+      responses:
+        '200':
+          description: Aggregated item statistics returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StatsItem'
+                  meta:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      limit:
+                        type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /items:
+    get:
+      summary: List all items
+      description: |
+        Returns a paginated list of items (episodes) with optional filters such as
+        channel ID and publish date range. Also supports search and sorting.
+
+        **Primary table:** `item`
+
+        **Related tables:**
+        - `channel`: used to filter items by parent channel (`channel_id`)
+        - `item_flag_status`: used to determine current flag/status of the item
+        - `stats_aggregated_item`: optionally joined to provide aggregated stats like play/download count
+      tags:
+        - Items
+      security:
+        - Auth0Bearer: []
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+        - $ref: '#/components/parameters/search'
+        - name: channel_id
+          in: query
+          schema:
+            type: integer
+          description: Filter items by their parent channel's ID
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - active
+              - pending-archive
+              - archived
+              - pending-delete
+          description: Filter items by their flag status (`item_flag_status.status`)
+        - name: published_after
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter items published after this date
+        - name: published_before
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter items published before this date
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum:
+              - pub_date
+              - title
+              - id
+          description: Field to sort results by (supports `pub_date`, `title`, or `id`)
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+          description: Sort order (ascending or descending)
+      responses:
+        '200':
+          description: List of items returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Item'
+                  meta:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        description: Total number of matching items
+                      limit:
+                        type: integer
+                        description: Limit applied to query
+                      offset:
+                        type: integer
+                        description: Offset applied to query
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /items/{id}:
+    get:
+      summary: Get item by ID
+      description: |
+        Retrieves a specific item (episode) by its ID.
+
+        **Primary table:** `item`
+
+        **Related tables:**
+        - `channel`: provides information about the parent channel
+        - `item_flag_status`: provides the current flag status
+        - `stats_aggregated_item`: optionally used to return usage statistics for the item
+      tags:
+        - Items
+      security:
+        - Auth0Bearer: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Unique ID of the item
+      responses:
+        '200':
+          description: Item found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  securitySchemes:
+    Auth0Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Auth0
+  parameters:
+    limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+      description: Max number of results to return
+    offset:
+      name: offset
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+      description: Number of results to skip for pagination
+    search:
+      name: search
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Search term to filter results by name or title
+    time_filter:
+      name: time_filter
+      in: query
+      description: Filter results by time window (e.g., daily, weekly, monthly)
+      required: false
+      schema:
+        type: string
+        enum:
+          - daily
+          - weekly
+          - monthly
+  schemas:
+    Feed:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Feed ID (primary key)
+          example: 104
+        feed_flag_status_id:
+          type: integer
+          description: Foreign key to feed_flag_status table (status type)
+          example: 1
+        url:
+          type: string
+          format: uri
+          maxLength: 2083
+          description: RSS feed URL
+          example: https://example.com/rss.xml
+        last_parsed:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp of the last parsing attempt
+          example: '2025-06-18T13:45:00Z'
+        is_parsing:
+          type: string
+          format: date-time
+          nullable: true
+          description: Set to timestamp when parsing starts; null when idle
+          example: '2025-06-18T13:47:12Z'
+        parsing_priority:
+          type: integer
+          minimum: 0
+          maximum: 5
+          description: Frequency tier for parsing; 0 = rarely, 5 = frequently
+          example: 2
+        last_parsed_file_hash:
+          type: string
+          pattern: ^[a-f0-9]{32}$
+          nullable: true
+          description: MD5 hash of last parsed feed XML used for change detection
+          example: c4ca4238a0b923820dcc509a6f75849b
+        container_id:
+          type: string
+          maxLength: 12
+          nullable: true
+          description: ID of the container instance that last parsed the feed
+          example: ab12cd34ef56
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the feed was added
+          example: '2025-06-17T22:00:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the feed was last updated
+          example: '2025-06-18T14:05:00Z'
+    FeedCreate:
+      type: object
+      required:
+        - url
+        - feed_flag_status_id
+      properties:
+        url:
+          type: string
+          format: uri
+          maxLength: 2083
+          description: RSS feed URL
+          example: https://example.com/rss.xml
+        feed_flag_status_id:
+          type: integer
+          description: Required status ID from feed_flag_status table (1=active, 2=always-parse, 3=spam, 4=pending-archive, 5=archived, 6=takedown)
+          example: 1
+          default: 1
+        parsing_priority:
+          type: integer
+          minimum: 0
+          maximum: 5
+          default: 0
+          description: Optional parsing priority (higher gets parsed more often)
+          example: 3
+        container_id:
+          type: string
+          maxLength: 12
+          nullable: true
+          description: Optional ID of the container instance initiating the parse
+          example: ab12cd34ef56
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: Invalid request parameters
+        code:
+          type: string
+          description: Error code for programmatic handling
+          example: INVALID_PARAMETERS
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+          example:
+            field: rss_url
+            reason: Invalid URL format
+      required:
+        - error
+        - code
+    Channel:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique numeric ID for the channel
+          example: 201
+        id_text:
+          type: string
+          maxLength: 15
+          nullable: true
+          description: Public-facing short ID for URLs
+          example: ch_8a3f91
+        slug:
+          type: string
+          maxLength: 100
+          nullable: true
+          description: URL-friendly slug
+          example: the-daily-news
+        feed_id:
+          type: integer
+          nullable: true
+          description: ID of the associated feed
+          example: 104
+        podcast_index_id:
+          type: integer
+          nullable: true
+          description: External Podcast Index identifier
+          example: 872361
+        podcast_guid:
+          type: string
+          format: uuid
+          nullable: true
+          description: '`<podcast:guid>` from the RSS feed'
+          example: 1e8f3d7c-7fc0-4b70-90e1-991ed05bc4c4
+        title:
+          type: string
+          maxLength: 255
+          description: Title of the podcast or media channel
+          example: The Daily News Podcast
+        sortable_title:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: Lowercased, normalized version of title for sorting
+          example: daily news podcast
+        medium_id:
+          type: integer
+          nullable: true
+          description: Foreign key to the `medium` table
+          example: 2
+        has_podcast_index_value:
+          type: boolean
+          description: Indicates if channel uses Podcast Index's value tag data
+          example: false
+        has_value_time_splits:
+          type: boolean
+          description: Indicates whether channel items use value time split logic
+          example: true
+      required:
+        - id
+        - title
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the category
+          example: 1
+        parent_id:
+          type: integer
+          nullable: true
+          description: ID of parent category for hierarchical structure
+          example: null
+        display_name:
+          type: string
+          maxLength: 255
+          description: Display name for the category
+          example: Arts
+        slug:
+          type: string
+          maxLength: 255
+          description: URL-friendly slug for the category
+          example: arts
+        mapping_key:
+          type: string
+          maxLength: 255
+          description: Camel case version of the slug for API mapping
+          example: arts
+      required:
+        - id
+        - display_name
+        - slug
+        - mapping_key
+    Medium:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique ID for the medium type
+          example: 3
+        value:
+          type: string
+          description: |
+            Content medium type. 
+            Valid values include:
+            - podcast
+            - music
+            - video
+            - blog
+            - audiobook
+            - newsletter
+            - publisher
+            - course
+            - mixed
+            (and their 'L' variants, e.g., podcastL, musicL, etc.)
+          example: podcast
+      required:
+        - id
+        - value
+    StatsChannel:
+      type: object
+      properties:
+        channel_id:
+          type: integer
+          description: Unique ID of the channel
+        podcast_index_id:
+          type: integer
+          description: Podcast Index ID
+        title:
+          type: string
+          description: Title of the podcast show
+        total_listens:
+          type: integer
+          description: Total listens during the selected time period
+        start_date:
+          type: string
+          format: date
+          description: Start date of the aggregation window (ISO 8601)
+        end_date:
+          type: string
+          format: date
+          description: End date of the aggregation window (ISO 8601)
+      required:
+        - channel_id
+        - podcast_index_id
+        - title
+        - total_listens
+    StatsItem:
+      type: object
+      properties:
+        item_id:
+          type: integer
+          description: Unique ID of the episode
+        title:
+          type: string
+          description: Episode title
+        channel_id:
+          type: integer
+          description: Parent channel ID
+        total_listens:
+          type: integer
+          description: Total listens during the selected time period
+        start_date:
+          type: string
+          format: date
+          description: Start date of the aggregation window (ISO 8601)
+        end_date:
+          type: string
+          format: date
+          description: End date of the aggregation window (ISO 8601)
+      required:
+        - item_id
+        - title
+        - channel_id
+        - total_listens
+    Item:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the item
+          example: 1
+        id_text:
+          type: string
+          maxLength: 15
+          description: Short identifier used in public-facing URLs
+          example: ep_2a3f9c
+        slug:
+          type: string
+          maxLength: 100
+          nullable: true
+          description: URL-friendly slug for the item
+          example: episode-1-getting-started
+        channel_id:
+          type: integer
+          description: ID of the channel this item belongs to
+          example: 42
+        guid:
+          type: string
+          format: uri
+          nullable: true
+          description: RSS `<guid>` of the item
+          example: https://example.com/items/1
+        guid_enclosure_url:
+          type: string
+          format: uri
+          nullable: true
+          description: Enclosure URL from RSS used as fallback if GUID is missing
+          example: https://example.com/items/ep1.mp3
+        pub_date:
+          type: string
+          format: date-time
+          description: Publication date of the item
+          example: '2024-01-15T10:30:00Z'
+        title:
+          type: string
+          maxLength: 255
+          description: Title of the item (usually the episode title)
+          example: 'Episode 1: Getting Started'
+        item_flag_status_id:
+          type: integer
+          description: Foreign key to the item_flag_status table
+          example: 1
+        play_count:
+          type: integer
+          minimum: 0
+          description: Aggregated play count from stats_aggregated_item (optional)
+          example: 1250
+        download_count:
+          type: integer
+          minimum: 0
+          description: Aggregated download count from stats_aggregated_item (optional)
+          example: 500
+      required:
+        - id
+        - id_text
+        - channel_id
+        - title
+        - pub_date
+        - item_flag_status_id
+    FeedFlagStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier
+          example: 1
+        status:
+          type: string
+          enum:
+            - active
+            - always-parse
+            - spam
+            - pending-archive
+            - archived
+            - takedown
+          description: Status assigned to the feed
+          example: active
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp of creation
+          example: '2024-01-01T10:00:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+          example: '2024-01-02T10:00:00Z'
+    FeedLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the feed log entry
+          example: 1
+        feed_id:
+          type: integer
+          description: Foreign key reference to feed table
+          example: 123
+        message:
+          type: string
+          description: Log message content
+          example: Feed parsed successfully
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when log entry was created
+          example: '2024-01-01T10:00:00Z'
+      required:
+        - id
+        - feed_id
+    ChannelDetails:
+      type: object
+      properties:
+        items:
+          type: array
+          description: List of items (episodes) associated with this channel
+          items:
+            $ref: '#/components/schemas/Item'
+        stats:
+          description: Aggregated statistics for the channel
+          $ref: '#/components/schemas/StatsChannel'
+        categories:
+          type: array
+          description: Categories assigned to this channel
+          items:
+            $ref: '#/components/schemas/Category'
+        feed:
+          description: Metadata from the feed this channel is linked to
+          $ref: '#/components/schemas/Feed'
+        medium:
+          description: Medium details (e.g., podcast, video, blog)
+          $ref: '#/components/schemas/Medium'
+    ItemFlagStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the item flag status
+          example: 2
+        status:
+          type: string
+          enum:
+            - active
+            - pending-archive
+            - archived
+            - pending-delete
+          description: |
+            Status assigned to an item to control lifecycle behavior.
+            - `active`: Item is live and visible
+            - `pending-archive`: Scheduled for archival
+            - `archived`: No longer active but kept in the system
+            - `pending-delete`: Marked for removal
+          example: archived
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp of creation
+          example: '2024-01-01T12:00:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+          example: '2024-01-05T09:30:00Z'
+      required:
+        - id
+        - status
+    StatsAggregatedChannel:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for aggregated channel stats
+          example: 1
+        channel_id:
+          type: integer
+          description: Foreign key reference to channel table
+          example: 123
+        day_current_count:
+          type: integer
+          description: Current day's aggregated count
+          example: 150
+        day_last_count:
+          type: integer
+          description: Previous day's aggregated count
+          example: 120
+        week_current_count:
+          type: integer
+          description: Current week's aggregated count
+          example: 800
+        week_last_count:
+          type: integer
+          description: Previous week's aggregated count
+          example: 750
+        month_current_count:
+          type: integer
+          description: Current month's aggregated count
+          example: 3200
+        month_last_count:
+          type: integer
+          description: Previous month's aggregated count
+          example: 2800
+        year_current_count:
+          type: integer
+          description: Current year's aggregated count
+          example: 35000
+        year_last_count:
+          type: integer
+          description: Previous year's aggregated count
+          example: 28000
+        all_time_count:
+          type: integer
+          description: All-time aggregated count
+          example: 125000
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+          example: '2024-01-01T10:00:00Z'
+      required:
+        - id
+        - channel_id
+    StatsAggregatedItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for aggregated item stats
+          example: 1
+        item_id:
+          type: integer
+          description: Foreign key reference to item table
+          example: 456
+        day_current_count:
+          type: integer
+          description: Current day's aggregated count
+          example: 25
+        day_last_count:
+          type: integer
+          description: Previous day's aggregated count
+          example: 20
+        week_current_count:
+          type: integer
+          description: Current week's aggregated count
+          example: 150
+        week_last_count:
+          type: integer
+          description: Previous week's aggregated count
+          example: 140
+        month_current_count:
+          type: integer
+          description: Current month's aggregated count
+          example: 600
+        month_last_count:
+          type: integer
+          description: Previous month's aggregated count
+          example: 580
+        year_current_count:
+          type: integer
+          description: Current year's aggregated count
+          example: 5200
+        year_last_count:
+          type: integer
+          description: Previous year's aggregated count
+          example: 4800
+        all_time_count:
+          type: integer
+          description: All-time aggregated count
+          example: 15000
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp of last update
+          example: '2024-01-01T10:00:00Z'
+      required:
+        - id
+        - item_id
+    StatsTrackEventChannel:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the channel tracking event
+          example: 1
+        account_guid:
+          type: string
+          maxLength: 15
+          description: Account GUID that triggered the event
+          example: abc123def456
+        channel_id:
+          type: integer
+          description: Foreign key reference to channel table
+          example: 123
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the event was tracked
+          example: '2024-01-01T10:00:00Z'
+      required:
+        - id
+        - account_guid
+        - channel_id
+        - created_at
+  responses:
+    BadRequest:
+      description: Bad request (400)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized (401)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not found (404)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnsupportedMediaType:
+      description: Unsupported media type (415)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: Internal server error (500)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Forbidden (403)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

@@ -1,0 +1,5 @@
+description: Forbidden (403)
+content:
+  application/json:
+    schema:
+      $ref: "../schemas/Error.yaml"

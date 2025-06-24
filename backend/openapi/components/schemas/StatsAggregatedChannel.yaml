@@ -1,0 +1,66 @@
+type: object
+properties:
+  id:
+    type: integer
+    description: Unique identifier for aggregated channel stats
+    example: 1
+  
+  channel_id:
+    type: integer
+    description: Foreign key reference to channel table
+    example: 123
+  
+  day_current_count:
+    type: integer
+    description: Current day's aggregated count
+    example: 150
+  
+  day_last_count:
+    type: integer
+    description: Previous day's aggregated count
+    example: 120
+  
+  week_current_count:
+    type: integer
+    description: Current week's aggregated count
+    example: 800
+  
+  week_last_count:
+    type: integer
+    description: Previous week's aggregated count
+    example: 750
+  
+  month_current_count:
+    type: integer
+    description: Current month's aggregated count
+    example: 3200
+  
+  month_last_count:
+    type: integer
+    description: Previous month's aggregated count
+    example: 2800
+  
+  year_current_count:
+    type: integer
+    description: Current year's aggregated count
+    example: 35000
+  
+  year_last_count:
+    type: integer
+    description: Previous year's aggregated count
+    example: 28000
+  
+  all_time_count:
+    type: integer
+    description: All-time aggregated count
+    example: 125000
+  
+  updated_at:
+    type: string
+    format: date-time
+    description: Timestamp of last update
+    example: "2024-01-01T10:00:00Z"
+
+required:
+  - id
+  - channel_id 
