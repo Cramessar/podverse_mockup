@@ -1,6 +1,7 @@
 from flask import render_template_string, send_file, Response
 import os
-from app.blueprints import docs_bp
+from . import docs_bp 
+
 
 OPENAPI_BASE = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "..", "openapi")

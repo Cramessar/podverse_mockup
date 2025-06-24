@@ -2,6 +2,7 @@ from app import create_app
 from app.extensions import db
 from dotenv import load_dotenv
 import os
+from flask import redirect
 from app.utils.logger import get_logger
 
 load_dotenv() # loads .env from root
@@ -11,6 +12,12 @@ logger = get_logger(__name__)
 
 config_name = os.getenv("FLASK_ENV", "development")
 app = create_app(config_name)
+
+# Redirect root path to the admin sitemap
+@app.route("/")
+def redirect_to_sitemap():
+    return redirect("/admin/site")
+
 
 if __name__ == '__main__':
     try:

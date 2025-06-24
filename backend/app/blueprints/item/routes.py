@@ -1,7 +1,8 @@
 from flask import request, jsonify
-from app.blueprints import item_bp
-from app.blueprints import item_schema, items_schema
-from app.services import create_item_service
+from . import item_bp
+from .schemas import item_schema, items_schema
+from .services import create_item_service
+
 
 item_service = create_item_service()
 

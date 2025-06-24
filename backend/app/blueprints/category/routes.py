@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from app.blueprints.category import category_bp
+from . import category_bp
 
 
 @category_bp.route('', methods=['GET'])

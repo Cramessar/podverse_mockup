@@ -1,11 +1,12 @@
 from flask import request, jsonify
 from faker import Faker
-from app.blueprints.feed import feed_bp
-from app.blueprints.feed.schemas import feed_schema, feeds_schema
+from . import feed_bp
+from .schemas import feed_schema, feeds_schema  # ✅ Clean, non-circular
 from app.models.feed import Feed
 from app.extensions import db
 from app.services.feed_parser import parse_rss_feed
 from app.utils.logger import get_logger, log_request, log_database_operation
+
 
 fake = Faker()
 logger = get_logger(__name__)
