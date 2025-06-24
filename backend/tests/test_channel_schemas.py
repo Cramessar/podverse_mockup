@@ -1,6 +1,7 @@
 import pytest
 from app.extensions import ValidationError
-from app.blueprints.channel.schemas import ChannelSchema, StatsTrackEventChannelSchema, StatsAggregatedChannelSchema, ChannelCategorySchema
+from app.blueprints.channel.schemas import ChannelSchema, StatsTrackEventChannelSchema, ChannelCategorySchema
+from app.blueprints.stats.schemas import StatsChannelSchema
 from app.models.channel import Channel, StatsTrackEventChannel, StatsAggregatedChannel, ChannelCategory
 from uuid import uuid4
     
@@ -61,7 +62,7 @@ class TestChannelSchema:
         with pytest.raises(ValidationError):
             ChannelSchema().load(self.invalid_channel_data())
             
-class TestChannelAggregatedSchema:
+class TestStatsChannelSchema:
     @pytest.fixture
     def valid_aggregated_data(self):
         return {
@@ -90,14 +91,14 @@ class TestChannelAggregatedSchema:
             "channel_id": None
         }
 
-    def test_stats_aggregated_channel_schema_valid_data(self, valid_aggregated_data):
-        result = StatsAggregatedChannelSchema().load(valid_aggregated_data)
+    def test_stats_channel_schema_valid_data(self, valid_aggregated_data):
+        result = StatsChannelSchema().load(valid_aggregated_data)
         assert isinstance(result, StatsAggregatedChannel)
         assert result.channel_id == 1
 
-    def test_stats_aggregated_channel_schema_invalid_data(self):
+    def test_stats_channel_schema_invalid_data(self):
         with pytest.raises(ValidationError):
-            StatsAggregatedChannelSchema().load(self.invalid_aggregated_data())
+            StatsChannelSchema().load(self.invalid_aggregated_data())
             
 class TestChannelCategorySchema:
     @pytest.fixture

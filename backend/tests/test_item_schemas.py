@@ -1,6 +1,7 @@
 import pytest
 from app.extensions import ValidationError
-from app.blueprints.item.schemas import ItemSchema, ItemFlagStatusSchema, StatsAggregatedItemSchema, StatsTrackEventItemSchema
+from app.blueprints.item.schemas import ItemSchema, ItemFlagStatusSchema, StatsTrackEventItemSchema
+from app.blueprints.stats.schemas import StatsItemSchema
 from app.models.item import Item, ItemFlagStatus, StatsAggregatedItem, StatsTrackEventItem
 from uuid import uuid4
 
@@ -56,7 +57,7 @@ class TestItemSchema:
             with pytest.raises(ValidationError):
                 ItemFlagStatusSchema().load(self.invalid_flag_status_data())
                 
-    class TestStatsAggregatedItemSchema:
+    class TestStatsItemSchema:
         @pytest.fixture
         def valid_stats_data(self):
             return {
@@ -86,13 +87,13 @@ class TestItemSchema:
             }
             
         def test_stats_aggregated_item_schema_valid_data(self, valid_stats_data):
-            result = StatsAggregatedItemSchema().load(valid_stats_data)
+            result = StatsItemSchema().load(valid_stats_data)
             assert isinstance(result, StatsAggregatedItem)
             assert result.item_id == 1
             
         def test_stats_aggregated_item_schema_invalid_data(self):
             with pytest.raises(ValidationError):
-                StatsAggregatedItemSchema().load(self.invalid_stats_data())
+                StatsItemSchema().load(self.invalid_stats_data())
                 
     class TestStatsTrackEventItemSchema:
         @pytest.fixture
