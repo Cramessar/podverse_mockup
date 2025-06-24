@@ -1,5 +1,5 @@
 from typing import List, Optional
-from ..models.medium import Medium
+from app.models.medium import Medium
 
 
 class MediumService:

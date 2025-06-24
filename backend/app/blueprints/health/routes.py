@@ -1,6 +1,6 @@
 # app/blueprints/health/routes.py
 
-from . import health_bp
+from app.blueprints.health import health_bp
 from flask import jsonify
 
 @health_bp.route("/health")

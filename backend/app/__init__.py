@@ -1,8 +1,8 @@
 # app/__init__.py
 
 from flask import Flask, request, g
-from .extensions import ma, db #,migrate
-from .blueprints import register_blueprints
+from app.extensions import ma, db #,migrate
+from app.blueprints import register_blueprints
 from flask_cors import CORS
 from config import config_by_name
 from app.utils.logger import get_logger, log_request, log_security_event

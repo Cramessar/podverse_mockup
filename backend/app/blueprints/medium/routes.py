@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from . import medium_bp
+from app.blueprints.medium import medium_bp
 
 
 @medium_bp.route('', methods=['GET'])

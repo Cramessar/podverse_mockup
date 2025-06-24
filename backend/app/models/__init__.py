@@ -1,8 +1,8 @@
 # Import order matters for relationships
-from .base import Base
-from .category import Category
-from .account import Account, SharableStatus, StatsTrackAccountGuid
-from .medium import Medium
-from .feed import Feed  
-from .channel import Channel, StatsAggregatedChannel, StatsTrackEventChannel, ChannelCategory
-from .item import Item
+from app.models.base import Base
+from app.models.category import Category
+from app.models.account import Account, SharableStatus, StatsTrackAccountGuid
+from app.models.medium import Medium
+from app.models.feed import Feed  
+from app.models.channel import Channel, StatsAggregatedChannel, StatsTrackEventChannel, ChannelCategory
+from app.models.item import Item

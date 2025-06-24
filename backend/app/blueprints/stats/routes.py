@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from . import stats_bp
+from app.blueprints.stats import stats_bp
 
 @stats_bp.route('/channels', methods=['GET'])
 def list_channel_stats():
