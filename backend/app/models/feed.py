@@ -3,7 +3,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import Optional
 from app.extensions import db
 from app.models.base import Base
-from sqlalchemy.orm import relationship
 
 class Feed(Base):
     __tablename__ = "feed"
@@ -17,7 +16,9 @@ class Feed(Base):
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now(), onupdate=db.func.now())
     # set to true when parsing starts and false when parsing ends
-    is_parsing: Mapped[Optional[bool]] = mapped_column(db.Boolean)
+    # In db schema, is_parsing is BOOLEAN DEFAULT false and nullable = YES.
+    is_parsing: Mapped[bool] = mapped_column(db.Boolean, default=False)
+
     
     flag_status = relationship("FeedFlagStatus", back_populates="feeds")
     channels = relationship("Channel", back_populates="feed")

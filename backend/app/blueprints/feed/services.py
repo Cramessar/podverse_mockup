@@ -1,40 +1,25 @@
+# feed_service.py
+
+#NOT: Refactor into classes only if logic grows more complex for now stand alonw functions are already modular since it's in the same file
+
 from app.models.feed import Feed
 from app.extensions import db
-from typing import List, Optional
+from app.utils.logger import get_logger, log_request, log_database_operation
+from sqlalchemy import select
 
-class FeedService:
-    """Service layer for Feed operations - minimal factory pattern implementation"""
+logger = get_logger(__name__)
 
-    @staticmethod
-    def get_all_feeds() -> List[Feed]:
-        return Feed.query.all()
+class DuplicateFeedError(Exception):
+    pass
 
-    @staticmethod
-    def get_feed_by_id(feed_id: int) -> Optional[Feed]:
-        return Feed.query.get(feed_id)
+def create_feed_service(feed_data):  # Creates a new feed from validated input
+    # feed_data is already a Feed instance from marshmallow schema
+    query = select(Feed).where(Feed.url == feed_data.url)
+    existing_feed = db.session.execute(query).scalar_one_or_none() # Check if feed with same URL already exists
+    if existing_feed:
+        raise DuplicateFeedError("Feed with this URL already exists")  # Prevent inserting duplicates
     
-    @staticmethod
-    def create_feed(data: dict) -> Feed:
-        feed = Feed(**data)
-        db.session.add(feed)
-        db.session.commit()
-        return feed
+    db.session.add(feed_data)      # Add the new feed to the session
+    db.session.commit()           # Commit the transaction to save it
+    return feed_data              # Return the newly created feed
     
-    @staticmethod
-    def update_feed(feed_id: int, data: dict) -> Optional[Feed]:
-        feed = Feed.query.get(feed_id)
-        if not feed:
-            return None
-        for key, value in data.items():
-            setattr(feed, key, value)
-        db.session.commit()
-        return feed
-    
-    @staticmethod
-    def delete_feed(feed_id: int) -> bool:
-        feed = Feed.query.get(feed_id)
-        if not feed:
-            return False
-        db.session.delete(feed)
-        db.session.commit()
-        return True

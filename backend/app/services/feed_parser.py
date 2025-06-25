@@ -40,6 +40,13 @@ def parse_rss_feed(url):
 
 
 
+# TODO: Where to use Feedparser
+# In a service function like parse_feed(url)
+# Only called during:
+# Manual reparse trigger
+# New feed creation (optional)
+# This function extracts metadata, saves it to DB, logs status/errors
+
 
 # --------- LAter when the models ready ---------
 # import feedparser

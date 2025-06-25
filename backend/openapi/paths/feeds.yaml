@@ -181,3 +181,5 @@
         $ref: "../components/responses/NotFound.yaml"
       '401':
         $ref: "../components/responses/Unauthorized.yaml"
+
+#TODO: POST /feeds/import and GET /feeds/export PATCH /feeds/bulk, DELETE /feeds/bulk 

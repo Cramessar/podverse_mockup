@@ -1,55 +1,39 @@
-from app.models.channel import Channel
+# app/blueprints/channel/services.py
+
+from app.models import Channel
 from app.extensions import db
-from typing import List, Optional
-from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+from app.utils.query_helpers import apply_sorting, paginate_query
+from app.utils.error_exceptions import NotFoundError
 
-class ChannelService:
-    """Service layer for Channel operations - minimal factory pattern implementation"""
+def get_channels_list(search, sort_by, sort_order, page, limit):
+    """
+    Retrieve a paginated list of channels with optional search and sorting.
+    Eager loads related feed, medium, and stats.
     
-    @staticmethod
-    def get_all_channels() -> List[Channel]:
-        return db.session.execute(select(Channel)).scalars().all()
+    """
+    # Use eager loading to fetch related medium and feed data in a single query (prevents N+1 query problem by joining related tables immediately)
+    query = db.session.query(Channel).options(joinedload(Channel.medium), joinedload(Channel.feed), joinedload(Channel.stats))
     
-    @staticmethod
-    def get_channel_by_id(channel_id: int) -> Optional[Channel]:
-        return db.session.get(Channel, channel_id)
+    if search:
+        query = query.filter(Channel.title.ilike(f"%{search}%"))
+        
+    query = apply_sorting(query, Channel, sort_by, sort_order)
     
-    @staticmethod
-    def create_channel(data: dict) -> Channel:
-        new_channel = Channel(**data)
-        
-        if new_channel == {}:
-            raise ValueError("No data provided for channel creation")
-        
-        # Should we validate other fields here?
-        
-        db.session.add(new_channel)
-        db.session.commit()
-        return new_channel
+    channels, meta = paginate_query(query, page, limit)
     
-    @staticmethod
-    def update_channel(channel_id: int, data: dict) -> Channel:
-        channel = db.session.get(Channel, channel_id)
-        if not channel:
-            raise ValueError("Channel not found")
-        
-        for key, value in data.items():
-            setattr(channel, key, value)
-        
-        db.session.commit()
-        return channel
-    
-    @staticmethod
-    def delete_channel(channel_id: int) -> None:
-        channel = db.session.get(Channel, channel_id)
-        if not channel:
-            raise ValueError("Channel not found")
+    return channels, meta
 
-        db.session.delete(channel)
-        db.session.commit()
-    
+def get_channel_detail(channel_id):
+    # using stats_aggregated_channel lets the admin see how popular the channel is without needing to sum up raw events every time.
+    channel = db.session.query(Channel).options(
+        joinedload(Channel.medium),
+        joinedload(Channel.feed),
+        joinedload(Channel.stats)
+    ).filter_by(id=channel_id).first()
 
-# Factory function for service creation
-def create_channel_service() -> ChannelService:
-    """Factory function to create channel service instance"""
-    return ChannelService()
+    if not channel:
+        raise NotFoundError(f"Channel with ID {channel_id} not found")
+
+    return channel
+    

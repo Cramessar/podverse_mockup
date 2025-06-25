@@ -1,3 +1,5 @@
+# app/blueprints/channel/schemas.py
+
 from app.extensions import ma, fields, validate
 from app.models.channel import Channel, StatsTrackEventChannel, ChannelCategory, StatsAggregatedChannel
 

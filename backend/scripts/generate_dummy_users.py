@@ -229,7 +229,7 @@ def generate_feeds(session, n=5):
         feed = Feed(
             url=fake.unique.url() + "/rss",
             feed_flag_status_id=1, # Assuming feed_flag_status_id=1 is a valid seeded ID
-            is_parsing=fake.boolean(chance_of_getting_true=10),  # 10% chance of being parsed
+            is_parsing=random.random() < 0.1,  # 10% chance of being parsed
             parsing_priority=random.randint(0, 5),
             last_parsed_file_hash=fake.md5(),
             container_id=fake.bothify(text="##########"),
@@ -245,8 +245,8 @@ def generate_feeds(session, n=5):
 def generate_feed(session):
     feed = Feed(
         url=fake.unique.url() + "/rss",
-        feed_flag_status_id=1, 
-        is_parsing=None,  
+        feed_flag_status_id=1,
+        is_parsing=False,
         parsing_priority=random.randint(0, 5),
     )
     session.add(feed)
