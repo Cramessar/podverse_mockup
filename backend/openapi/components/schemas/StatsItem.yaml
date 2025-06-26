@@ -1,0 +1,27 @@
+type: object
+properties:
+  item_id:
+    type: integer
+    description: Unique ID of the episode
+  title:
+    type: string
+    description: Episode title
+  channel_id:
+    type: integer
+    description: Parent channel ID
+  total_listens:
+    type: integer
+    description: Total listens during the selected time period
+  start_date:
+    type: string
+    format: date
+    description: Start date of the aggregation window (ISO 8601)
+  end_date:
+    type: string
+    format: date
+    description: End date of the aggregation window (ISO 8601)
+required:
+  - item_id
+  - title
+  - channel_id
+  - total_listens

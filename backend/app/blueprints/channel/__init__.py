@@ -2,6 +2,5 @@
 
 from flask import Blueprint
 
-channel_bp = Blueprint("channel", __name__) 
-
+channel_bp = Blueprint("channels", __name__)
 from . import routes

@@ -1,0 +1,36 @@
+type: object
+properties:
+  id:
+    type: integer
+    description: Unique identifier for the category
+    example: 1
+
+  parent_id:
+    type: integer
+    nullable: true
+    description: ID of parent category for hierarchical structure
+    example: null
+
+  display_name:
+    type: string
+    maxLength: 255
+    description: Display name for the category
+    example: "Arts"
+
+  slug:
+    type: string
+    maxLength: 255
+    description: URL-friendly slug for the category
+    example: "arts"
+
+  mapping_key:
+    type: string
+    maxLength: 255
+    description: Camel case version of the slug for API mapping
+    example: "arts"
+
+required:
+  - id
+  - display_name
+  - slug
+  - mapping_key 

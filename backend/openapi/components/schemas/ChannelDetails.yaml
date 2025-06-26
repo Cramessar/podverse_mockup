@@ -1,0 +1,26 @@
+# we will use this we decide to return nested data for the /channels/{id} endpoint
+type: object
+properties:
+  items:
+    type: array
+    description: List of items (episodes) associated with this channel
+    items:
+      $ref: "./Item.yaml"
+
+  stats:
+    description: Aggregated statistics for the channel
+    $ref: "./StatsChannel.yaml"
+
+  categories:
+    type: array
+    description: Categories assigned to this channel
+    items:
+      $ref: "./Category.yaml"
+
+  feed:
+    description: Metadata from the feed this channel is linked to
+    $ref: "./Feed.yaml"
+
+  medium:
+    description: Medium details (e.g., podcast, video, blog)
+    $ref: "./Medium.yaml"

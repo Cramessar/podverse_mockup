@@ -44,10 +44,10 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENC
 
 
 -- DOMAIN DEFINITIONS --
-CREATE DOMAIN short_id_v2 AS VARCHAR(15);
+CREATE DOMAIN short_id_v2 AS VARCHAR(64);
 CREATE DOMAIN varchar_short AS VARCHAR(50);
 CREATE DOMAIN varchar_normal AS VARCHAR(255);
-CREATE DOMAIN varchar_md5 AS VARCHAR(32);
+CREATE DOMAIN varchar_md5 AS VARCHAR(64);
 CREATE DOMAIN varchar_slug AS VARCHAR(100);
 CREATE DOMAIN varchar_uri AS VARCHAR(2083);
 CREATE DOMAIN varchar_url AS VARCHAR(2083) CHECK (VALUE ~ '^https?://|^http?://');
@@ -268,7 +268,8 @@ CREATE TABLE feed (
     -- Set to current time at beginning of parsing, and NULL at end of parsing. 
     -- This is to prevent multiple threads from parsing the same feed.
     -- If is_parsing is over X minutes old, assume last parsing failed and proceed to parse.
-    is_parsing server_time,
+    is_parsing BOOLEAN DEFAULT FALSE,
+
 
     -- 0 will only be parsed when PI API reports an update.
     -- higher parsing_priority will be parsed more frequently on a schedule.
@@ -294,7 +295,7 @@ EXECUTE FUNCTION set_updated_at_field();
 
 CREATE TABLE feed_log (
     id SERIAL PRIMARY KEY,
-    feed_id INTEGER NOT NULL UNIQUE REFERENCES feed(id) ON DELETE CASCADE,
+    feed_id INTEGER NOT NULL REFERENCES feed(id) ON DELETE CASCADE,
     last_http_status INTEGER,
     last_good_http_status_time server_time,
     last_finished_parse_time server_time,
@@ -310,7 +311,7 @@ CREATE TABLE channel (
     id SERIAL PRIMARY KEY,
     id_text short_id_v2 UNIQUE NOT NULL,
     slug varchar_slug,
-    feed_id INTEGER NOT NULL UNIQUE REFERENCES feed(id) ON DELETE CASCADE,
+    feed_id INTEGER NOT NULL REFERENCES feed(id) ON DELETE CASCADE,
     podcast_index_id INTEGER UNIQUE NOT NULL,
     podcast_guid UUID UNIQUE, -- <podcast:guid>
     title varchar_normal,

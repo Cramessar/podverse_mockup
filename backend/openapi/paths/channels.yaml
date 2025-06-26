@@ -1,0 +1,104 @@
+/channels:
+  get:
+    summary: Retrieve a list of channels
+    description: |
+      Returns a paginated list of channels with their basic metadata.
+      Supports filtering by text-based search on `title`, and sorting by `id` or `title`.
+      Primary table is `channel`.
+      Related tables are :
+      - `medium`: used to include the medium type (e.g. podcast, video) 
+      - `feed`: used to show the associated RSS feed URL or status (optional).
+    tags:
+      - Channels
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - $ref: "../components/parameters/query/limit.yaml"
+      - $ref: "../components/parameters/query/offset.yaml"
+      - $ref: "../components/parameters/query/search.yaml"
+      - name: sort_by
+        in: query
+        schema:
+          type: string
+          enum: [id, title]
+        description: |
+          Field to sort results by. Supported fields: `id`, `title`.
+      - name: sort_order
+        in: query
+        schema:
+          type: string
+          enum: [asc, desc]
+          default: desc
+        description: Sort order (ascending or descending).
+    responses:
+      '200':
+        description: List of channels returned
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: "../components/schemas/Channel.yaml"
+                meta:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                      description: Total number of matching channels
+                    limit:
+                      type: integer
+                      description: Limit applied to query
+                    offset:
+                      type: integer
+                      description: Offset applied to query
+      '400':
+        description: Invalid request parameters
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/Error.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+
+/channels/{id}:
+  get:
+    summary: Retrieve a channel by ID
+    description: |
+      Returns details for a specific channel.
+      Includes associated relationships and metadata such as slug, podcast index ID, feed reference, and medium.
+      Primary table is `channel`.
+      Related tables are :
+      - `feed`: provides the associated feed URL and parsing status
+      - `medium`: provides the media type of the channel
+      - `channel_category` + `category`: maps the channel to its categories
+      - `stats_aggregated_channel`: optionally used to show precomputed statistics
+    tags:
+      - Channels
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+        description: The ID of the channel to retrieve
+    responses:
+      '200':
+        description: Channel details
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/Channel.yaml"
+      '400':
+        $ref: "../components/responses/BadRequest.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '404':
+        $ref: "../components/responses/NotFound.yaml"
+      '500':
+        $ref: "../components/responses/InternalServerError.yaml"

@@ -1,0 +1,49 @@
+/flag-statuses/feed:
+  get:
+    summary: List feed flag statuses
+    description: |
+      Returns predefined statuses used to classify and control feed processing (e.g., active, spam, takedown).
+
+      **Primary table:** `feed_flag_status`
+
+      **Use case:** Used in the `feed` table to manage internal parsing behavior and moderation.
+    tags:
+      - Flag Statuses
+    security:
+      - Auth0Bearer: []
+    responses:
+      '200':
+        description: List of feed flag statuses
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "../components/schemas/FeedFlagStatus.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+
+/flag-statuses/item:
+  get:
+    summary: List item flag statuses
+    description: |
+      Returns predefined statuses used to mark items as active, archived, or flagged for deletion.
+
+      **Primary table:** `item_flag_status`
+
+      **Use case:** Used in the `item` table to manage content lifecycle and visibility.
+    tags:
+      - Flag Statuses
+    security:
+      - Auth0Bearer: []
+    responses:
+      '200':
+        description: List of item flag statuses
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "../components/schemas/ItemFlagStatus.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"

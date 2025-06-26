@@ -1,0 +1,26 @@
+type: object
+properties:
+  id:
+    type: integer
+    description: Unique identifier for the feed log entry
+    example: 1
+  
+  feed_id:
+    type: integer
+    description: Foreign key reference to feed table
+    example: 123
+  
+  message:
+    type: string
+    description: Log message content
+    example: "Feed parsed successfully"
+  
+  created_at:
+    type: string
+    format: date-time
+    description: Timestamp when log entry was created
+    example: "2024-01-01T10:00:00Z"
+
+required:
+  - id
+  - feed_id 

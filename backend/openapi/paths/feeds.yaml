@@ -1,0 +1,183 @@
+
+/feeds:
+  get:
+    summary: Retrieve a list of RSS feeds 
+    description: |
+      Returns a paginated list of RSS feeds including each feed’s URL, status, and associated metadata.
+      Supports optional search, limit, and offset parameters for pagination and filtering.
+      Data is sourced from the `feed` table, joined with `feed_flag_status` for human-readable status labels.
+    tags:
+      - Feeds
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - $ref: "../components/parameters/query/limit.yaml"
+      - $ref: "../components/parameters/query/offset.yaml"
+    responses:
+      '200':
+        description: List of feeds returned
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: ../components/schemas/Feed.yaml
+                meta:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    limit:
+                      type: integer
+                    offset:
+                      type: integer
+  post:
+    summary: Create a new feed
+    description: |
+      Adds a new RSS feed to the system. This manually inserts a row into the `feed` table.
+      This will be used only if we want to allow admins to seed new feeds directly.
+      If feed ingestion is handled automatically via external APIs (e.g., Podcast Index), this may be disabled.
+      Required fields include a valid `url` (must be unique) and a `feed_flag_status_id`.
+    tags:
+      - Feeds
+    security:
+      - Auth0Bearer: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/FeedCreate.yaml"
+    responses:
+      '201':
+        description: Feed created
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/Feed.yaml"
+      '400':  
+        $ref: "../components/responses/BadRequest.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '404':
+        $ref: "../components/responses/NotFound.yaml"
+      '415':
+        $ref: "../components/responses/UnsupportedMediaType.yaml"
+
+/feeds/{feed_id}:
+  get:
+    summary: Retrieve a feed by ID
+    description: |
+      Fetches complete feed metadata by `id`.
+
+      This includes:
+      - `url`: The RSS feed address
+      - `feed_flag_status_id`: Links to `feed_flag_status` table (e.g. active, spam)
+      - `is_parsing`: Timestamp set when feed is being parsed
+      - `parsing_priority`: Integer from 0 to 5 used to schedule parsing frequency
+      
+      Optional joins with `channel` for UI display, but this route is scoped to the `feed` table.
+    tags:
+      - Feeds
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: feed_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:  
+      '200':
+        description: Feed details
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/Feed.yaml"
+      '404':
+        $ref: "../components/responses/NotFound.yaml"
+
+  patch:
+    summary: Update feed status or priority
+    description: |
+      Updates the feed’s flag status (`feed_flag_status_id`) or parsing frequency (`parsing_priority`).
+
+      This changes values in the `feed` table:
+      - `feed_flag_status_id`: e.g. mark as spam, archived, active
+      - `parsing_priority`: integer 0 (lowest) to 5 (highest)
+
+      These values are used internally to control parsing behavior and visibility in the system.
+    tags: 
+      - Feeds
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: feed_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              feed_flag_status_id:
+                type: integer
+                description: ID from `feed_flag_status` (e.g. active, spam)
+              parsing_priority:
+                type: integer
+                minimum: 0
+                maximum: 5
+                description: Controls parsing frequency (0 = infrequent, 5 = frequent)
+    responses:
+      '200':
+        description: Feed updated
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/Feed.yaml"
+      '400':
+        $ref: "../components/responses/BadRequest.yaml"
+      '404':
+        $ref: "../components/responses/NotFound.yaml"
+
+/feeds/{feed_id}/reparse:
+  post:
+    summary: Trigger RSS feed re-parse
+    description: |
+      This sets the `is_parsing` field on the `feed` table to the current timestamp, telling the background job to re-fetch and reprocess the feed data.
+
+      This is useful if a feed appears stuck or failed to parse previously.
+
+      NOTE: Actual parsing happens asynchronously in a worker, not in response to this call.
+    tags:
+      - Feeds
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: feed_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      '200':
+        description: Reparse triggered
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Feed reparse has been scheduled."
+      '404':
+        $ref: "../components/responses/NotFound.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"

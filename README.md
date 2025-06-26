@@ -53,7 +53,7 @@ Frontend: http://localhost:3000
 
 Backend API: http://localhost:5000
 
-Postgres DB: localhost:5432
+Postgres DB (not an actual link, just looks uniform): http://localhost:5432
 
 Stopping & Cleaning Up
 To stop running containers:
@@ -62,6 +62,13 @@ To stop running containers:
 docker-compose down
 ```
 
-Tips
-Use docker logs <container-name> to view logs
-Use docker ps -a to list all containers
+Tips:
+Use this to view logs:
+```
+docker logs <container-name>
+```
+
+Use this list all containers:
+```
+docker ps -a
+```
