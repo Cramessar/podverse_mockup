@@ -1,9 +1,11 @@
-from flask import jsonify, current_app
+from flask import jsonify, current_app, request
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from app.extensions import ValidationError as MarshmallowValidationError
 from werkzeug.exceptions import HTTPException
 from app.utils.errors.exceptions import APIException, ValidationError, NotFoundError, DatabaseError
+from app.utils.logger import log_network_event
 import traceback
+import socket
 
 def register_error_handlers(app):
     
@@ -64,6 +66,22 @@ def register_error_handlers(app):
         current_app.logger.error(f"Unhandled exception: {str(error)}")
         current_app.logger.error(traceback.format_exc())
         
+        # Detect network related issues (low level)
+        network_related = isinstance(error, (socket.timeout, ConnectionError, TimeoutError, BrokenPipeError, ConnectionResetError))
+
+        # Log error in the logger
+        current_app.logger.error(
+            f"UNHANDLED EXCEPTION: {request.method} {request.path} - {str(error)}\n{traceback.format_exc()}"
+        )
+
+        # If it is a network related issue log the event 
+        if network_related:
+            log_network_event(
+                current_app.logger,
+                "NETWORK_ISSUE",
+                details=f"{type(error).__name__}: {str(error)}"
+            )
+
         return jsonify({
             'error': {
                 'message': 'An unexpected error occurred',
