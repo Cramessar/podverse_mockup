@@ -1,55 +1,33 @@
-//Routes for Feed APi
-//GET /feeds — Get all feeds
-//GET /feeds/<int:feed_id> — Get a specific feed by ID
-//POST /feeds — Create a new feed
-//PUT /feeds/<int:feed_id> — Update a feed
-//DELETE /feeds/<int:feed_id> — Delete a feed
-
-// /app/api/feeds/[feed_id]/route.ts
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5000";
 
-// GET /feeds/:feed_id
-export async function GET(req: NextRequest, { params }: { params: { feed_id: string } }) {
+// GET /feeds — Get all feeds
+export async function GET(req: NextRequest) {
   const session = await auth0.getSession();
   try {
-    const response = await axios.get(`${BACKEND_URL}/feeds/${params.feed_id}`);
+    const response = await axios.get(`${BACKEND_URL}/feeds`);
     return NextResponse.json(response.data, { status: response.status });
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Failed to fetch feed" },
+      { error: error.message || "Failed to fetch feeds" },
       { status: error.response?.status || 500 }
     );
   }
 }
 
-// PUT /feeds/:feed_id
-export async function PUT(req: NextRequest, { params }: { params: { feed_id: string } }) {
+// POST /feeds — Create a new feed
+export async function POST(req: NextRequest) {
   const session = await auth0.getSession();
   const data = await req.json();
   try {
-    const response = await axios.put(`${BACKEND_URL}/feeds/${params.feed_id}`, data);
+    const response = await axios.post(`${BACKEND_URL}/feeds`, data);
     return NextResponse.json(response.data, { status: response.status });
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Failed to update feed" },
-      { status: error.response?.status || 500 }
-    );
-  }
-}
-
-// DELETE /feeds/:feed_id
-export async function DELETE(req: NextRequest, { params }: { params: { feed_id: string } }) {
-  const session = await auth0.getSession();
-  try {
-    const response = await axios.delete(`${BACKEND_URL}/feeds/${params.feed_id}`);
-    return NextResponse.json(response.data, { status: response.status });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || "Failed to delete feed" },
+      { error: error.message || "Failed to create feed" },
       { status: error.response?.status || 500 }
     );
   }
