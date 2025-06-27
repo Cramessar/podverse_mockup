@@ -6,6 +6,7 @@ from app.blueprints import register_blueprints
 from flask_cors import CORS
 from config import config_by_name
 from app.utils.logger import get_logger, log_request, log_security_event
+from app.utils.errors.error_handlers import register_error_handlers
 import time
 
 def create_app(config_name="development"):
@@ -74,17 +75,8 @@ def create_app(config_name="development"):
         
         return response
     
-    @app.errorhandler(404)
-    def not_found(error):
-        """Log 404 errors"""
-        logger.warning(f"404 NOT FOUND: {request.method} {request.path}")
-        return {'error': 'Not found'}, 404
-    
-    @app.errorhandler(500)
-    def internal_error(error):
-        """Log 500 errors"""
-        logger.error(f"500 INTERNAL ERROR: {request.method} {request.path} - {str(error)}")
-        return {'error': 'Internal server error'}, 500
+    # register error handlers
+    register_error_handlers(app)
     
     # register all blueprints
     register_blueprints(app)

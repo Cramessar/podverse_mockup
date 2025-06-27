@@ -124,4 +124,27 @@ def log_security_event(logger, event_type, details=None):
         if ip:
             log_msg += f" - IP: {ip}"
     
-    logger.warning(log_msg) 
+    logger.warning(log_msg)
+
+def log_network_event(logger, event_type, details=None):
+    """
+    Helper function to log network related issues (timeouts, disconnects, etc)
+
+    Args:
+        logger: Logger instance
+        event_type: Type of network issue (TIMEOUT, CONNECTION_ERROR, BROKENPIPE, etc)
+        details: Description or traceback
+    """
+
+    log_msg = f"NETWORK {event_type}"
+
+    if details:
+        log_msg += f" - {details}"
+    
+    # Add client IP if available
+    if request:
+        ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
+        if ip:
+            log_msg += f" - IP: {ip}"
+    
+    logger.warning(log_msg)
