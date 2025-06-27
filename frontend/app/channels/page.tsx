@@ -19,23 +19,18 @@ export default function ChannelsPage() {
       {/* Main Content */}
       <main className="flex-1 p-8 space-y-8">
         {/* Topbar */}
-        <header className="flex justify-between items-center">
-          <input
-            type="search"
-            placeholder="Search Channels"
-            className="rounded-full px-5 py-2 w-1/3 bg-[#2a2a35] text-black placeholder-[#7a7a8c] focus:outline-none"
-          />
+        <header className="flex justify-end items-center">
           <div className="flex space-x-4">
             <button
               aria-label="Notifications"
-              className="p-2 rounded hover:bg-[#2a2a35] transition"
+              className="p-2 rounded hover:bg-podverse-surface transition"
             >
               🔔
             </button>
             <button
               onClick={handleLogout}
               aria-label="Logout"
-              className="p-2 rounded hover:bg-[#2a2a35] transition"
+              className="p-2 rounded hover:bg-podverse-surface transition"
             >
               Logout
             </button>
@@ -47,11 +42,11 @@ export default function ChannelsPage() {
           <h1 className="text-3xl font-bold text-podverse-secondary mb-2">
             Channel Management
           </h1>
-          <p className="text-black mb-6">
+          <p className="text-podverse-muted mb-6">
             Manage your podcast channels below. Sort, review, or remove entries as needed.
           </p>
 
-          <div className="bg-white rounded-lg p-6 shadow-md">
+          <div className="bg-podverse-surface rounded-lg p-6 shadow-md">
             <ChannelTable />
           </div>
         </section>
