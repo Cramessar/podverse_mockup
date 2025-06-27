@@ -1,4 +1,10 @@
 type: object
+required:
+  - id
+  - id_text
+  - channel_id
+  - title
+  - item_flag_status_id
 properties:
   id:
     type: integer
@@ -7,7 +13,7 @@ properties:
 
   id_text:
     type: string
-    maxLength: 15
+    maxLength: 64
     description: Short identifier used in public-facing URLs
     example: "ep_2a3f9c"
 
@@ -25,21 +31,22 @@ properties:
 
   guid:
     type: string
-    format: uri
+    maxLength: 2083
     nullable: true
-    description: RSS `<guid>` of the item
+    description: RSS `<guid>` of the item (either guid or guid_enclosure_url must be present)
     example: "https://example.com/items/1"
 
   guid_enclosure_url:
     type: string
-    format: uri
+    maxLength: 2083
     nullable: true
-    description: Enclosure URL from RSS used as fallback if GUID is missing
+    description: Enclosure URL from RSS used as fallback if GUID is missing (either guid or guid_enclosure_url must be present)
     example: "https://example.com/items/ep1.mp3"
 
   pub_date:
     type: string
     format: date-time
+    nullable: true
     description: Publication date of the item
     example: "2024-01-15T10:30:00Z"
 
@@ -54,22 +61,14 @@ properties:
     description: Foreign key to the item_flag_status table
     example: 1
 
-  play_count:
-    type: integer
-    minimum: 0
-    description: Aggregated play count from stats_aggregated_item (optional)
-    example: 1250
+  flag_status:
+    $ref: "./ItemFlagStatus.yaml"
 
-  download_count:
-    type: integer
-    minimum: 0
-    description: Aggregated download count from stats_aggregated_item (optional)
-    example: 500
+  stats:
+    $ref: "./StatsAggregatedItem.yaml"
 
-required:
-  - id
-  - id_text
-  - channel_id
-  - title
-  - pub_date
-  - item_flag_status_id
+  events:
+    type: array
+    items:
+      $ref: "./StatsTrackEventItem.yaml"
+    description: Item tracking events

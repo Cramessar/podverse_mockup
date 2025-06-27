@@ -1,0 +1,15 @@
+type: object
+description: Schema for bulk deleting multiple feeds
+required:
+  - feed_ids
+properties:
+  feed_ids:
+    type: array
+    description: List of feed IDs to delete
+    items:
+      type: integer
+    minItems: 1
+  force:
+    type: boolean
+    description: If true, force delete even if feeds have associated channels or items
+    default: false 

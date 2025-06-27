@@ -82,6 +82,164 @@
       '500':
         $ref: "../components/responses/InternalServerError.yaml"
 
+/stats/channels/{id}/events:
+  get:
+    summary: Retrieve real-time event counts for a channel
+    description: |
+      Returns real-time event tracking data for a specific channel within a time window.
+      Events include listens, shares, follows, etc.
+      Data is sourced from the `stats_track_event_channel` table.
+      Results can be filtered by time range and aggregated by different intervals.
+    tags:
+      - Statistics
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: start
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+          description: Start of the time window (ISO 8601)
+      - name: end
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+          description: End of the time window (ISO 8601)
+      - name: interval
+        in: query
+        required: false
+        schema:
+          type: string
+          enum: [hour, day, week, month]
+          default: day
+          description: Time interval for aggregating events
+    responses:
+      '200':
+        description: Channel event counts returned
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: "../components/schemas/StatsTrackEventChannel.yaml"
+                meta:
+                  type: object
+                  properties:
+                    total_events:
+                      type: integer
+                      description: Total number of events in the time window
+                    start:
+                      type: string
+                      format: date-time
+                    end:
+                      type: string
+                      format: date-time
+      '404':
+        $ref: "../components/responses/NotFound.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '500':
+        $ref: "../components/responses/InternalServerError.yaml"
+
+/stats/channels/export:
+  get:
+    summary: Export channel statistics data
+    description: |
+      Exports aggregated channel statistics in CSV or JSON format.
+      Includes metrics like total listens, shares, follows, etc.
+      Supports filtering by time range and aggregation intervals.
+      
+      This endpoint is useful for:
+      - Analytics dashboards
+      - Publisher reporting
+      - Channel performance analysis
+      - Trend identification
+    tags:
+      - Statistics
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: format
+        in: query
+        required: true
+        schema:
+          type: string
+          enum: [csv, json]
+          default: csv
+      - name: start_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Start date for stats aggregation
+      - name: end_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: End date for stats aggregation
+      - name: interval
+        in: query
+        required: false
+        schema:
+          type: string
+          enum: [day, week, month]
+          default: day
+        description: Time interval for aggregation
+    responses:
+      '200':
+        description: Channel statistics export file
+        content:
+          text/csv:
+            schema:
+              type: string
+              description: CSV format (when format=csv)
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: "../components/schemas/StatsAggregatedChannel.yaml"
+                meta:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    filters:
+                      type: object
+                      properties:
+                        interval:
+                          type: string
+                        date_range:
+                          type: object
+                          properties:
+                            start:
+                              type: string
+                              format: date
+                            end:
+                              type: string
+                              format: date
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '500':
+        $ref: "../components/responses/InternalServerError.yaml"
+
 /stats/items:
   get:
     summary: Retrieve aggregated item (episode) statistics
@@ -161,6 +319,172 @@
                $ref: "../components/schemas/Item.yaml"
       '404':
         $ref: "../components/responses/NotFound.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '500':
+        $ref: "../components/responses/InternalServerError.yaml"
+
+/stats/items/{id}/events:
+  get:
+    summary: Retrieve real-time event counts for an item
+    description: |
+      Returns real-time event tracking data for a specific item (episode) within a time window.
+      Events include listens, shares, bookmarks, etc.
+      Data is sourced from the `stats_track_event_item` table.
+      Results can be filtered by time range and aggregated by different intervals.
+    tags:
+      - Statistics
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: start
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+          description: Start of the time window (ISO 8601)
+      - name: end
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+          description: End of the time window (ISO 8601)
+      - name: interval
+        in: query
+        required: false
+        schema:
+          type: string
+          enum: [hour, day, week, month]
+          default: day
+          description: Time interval for aggregating events
+    responses:
+      '200':
+        description: Item event counts returned
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: "../components/schemas/StatsTrackEventItem.yaml"
+                meta:
+                  type: object
+                  properties:
+                    total_events:
+                      type: integer
+                      description: Total number of events in the time window
+                    start:
+                      type: string
+                      format: date-time
+                    end:
+                      type: string
+                      format: date-time
+      '404':
+        $ref: "../components/responses/NotFound.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '500':
+        $ref: "../components/responses/InternalServerError.yaml"
+
+/stats/items/export:
+  get:
+    summary: Export item statistics data
+    description: |
+      Exports aggregated item (episode) statistics in CSV or JSON format.
+      Includes metrics like listens, shares, bookmarks, etc.
+      Supports filtering by time range and aggregation intervals.
+      
+      This endpoint is useful for:
+      - Episode performance analysis
+      - Content strategy planning
+      - Listener engagement tracking
+      - Trend analysis
+    tags:
+      - Statistics
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: format
+        in: query
+        required: true
+        schema:
+          type: string
+          enum: [csv, json]
+          default: csv
+      - name: start_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Start date for stats aggregation
+      - name: end_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: End date for stats aggregation
+      - name: interval
+        in: query
+        required: false
+        schema:
+          type: string
+          enum: [day, week, month]
+          default: day
+        description: Time interval for aggregation
+      - name: channel_id
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Filter items by channel ID
+    responses:
+      '200':
+        description: Item statistics export file
+        content:
+          text/csv:
+            schema:
+              type: string
+              description: CSV format (when format=csv)
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: "../components/schemas/StatsAggregatedItem.yaml"
+                meta:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    filters:
+                      type: object
+                      properties:
+                        channel_id:
+                          type: integer
+                        interval:
+                          type: string
+                        date_range:
+                          type: object
+                          properties:
+                            start:
+                              type: string
+                              format: date
+                            end:
+                              type: string
+                              format: date
       '401':
         $ref: "../components/responses/Unauthorized.yaml"
       '500':

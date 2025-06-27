@@ -6,6 +6,7 @@ from flask import request, _request_ctx_stack, abort
 from jose import jwt
 import requests
 import os
+from flask_limiter.util import get_remote_address
 
 # 
 AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
@@ -82,3 +83,18 @@ def requires_auth(f):
         return f(*args, **kwargs)
 
     return decorated
+
+
+
+def get_limiter_key():
+    """
+    Return a unique key per user (Auth0 sub claim), or fallback to IP address.
+    No signature verification for performance.
+    """
+    auth = request.headers.get("Authorization", "")
+    token = auth.replace("Bearer ", "")
+    try:
+        payload = jwt.get_unverified_claims(token)  # JOSE's fast decode without verify
+        return payload.get("sub") or get_remote_address()
+    except Exception:
+        return get_remote_address()

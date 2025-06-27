@@ -1,9 +1,8 @@
-
 /feeds:
   get:
     summary: Retrieve a list of RSS feeds 
     description: |
-      Returns a paginated list of RSS feeds including each feed’s URL, status, and associated metadata.
+      Returns a paginated list of RSS feeds including each feed's URL, status, and associated metadata.
       Supports optional search, limit, and offset parameters for pagination and filtering.
       Data is sourced from the `feed` table, joined with `feed_flag_status` for human-readable status labels.
     tags:
@@ -24,7 +23,7 @@
                 data:
                   type: array
                   items:
-                    $ref: ../components/schemas/Feed.yaml
+                    $ref: "../components/schemas/Feed.yaml"
                 meta:
                   type: object
                   properties:
@@ -34,38 +33,6 @@
                       type: integer
                     offset:
                       type: integer
-  post:
-    summary: Create a new feed
-    description: |
-      Adds a new RSS feed to the system. This manually inserts a row into the `feed` table.
-      This will be used only if we want to allow admins to seed new feeds directly.
-      If feed ingestion is handled automatically via external APIs (e.g., Podcast Index), this may be disabled.
-      Required fields include a valid `url` (must be unique) and a `feed_flag_status_id`.
-    tags:
-      - Feeds
-    security:
-      - Auth0Bearer: []
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: "../components/schemas/FeedCreate.yaml"
-    responses:
-      '201':
-        description: Feed created
-        content:
-          application/json:
-            schema:
-              $ref: "../components/schemas/Feed.yaml"
-      '400':  
-        $ref: "../components/responses/BadRequest.yaml"
-      '401':
-        $ref: "../components/responses/Unauthorized.yaml"
-      '404':
-        $ref: "../components/responses/NotFound.yaml"
-      '415':
-        $ref: "../components/responses/UnsupportedMediaType.yaml"
 
 /feeds/{feed_id}:
   get:
@@ -100,62 +67,15 @@
       '404':
         $ref: "../components/responses/NotFound.yaml"
 
-  patch:
-    summary: Update feed status or priority
-    description: |
-      Updates the feed’s flag status (`feed_flag_status_id`) or parsing frequency (`parsing_priority`).
-
-      This changes values in the `feed` table:
-      - `feed_flag_status_id`: e.g. mark as spam, archived, active
-      - `parsing_priority`: integer 0 (lowest) to 5 (highest)
-
-      These values are used internally to control parsing behavior and visibility in the system.
-    tags: 
-      - Feeds
-    security:
-      - Auth0Bearer: []
-    parameters:
-      - name: feed_id
-        in: path
-        required: true
-        schema:
-          type: integer
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              feed_flag_status_id:
-                type: integer
-                description: ID from `feed_flag_status` (e.g. active, spam)
-              parsing_priority:
-                type: integer
-                minimum: 0
-                maximum: 5
-                description: Controls parsing frequency (0 = infrequent, 5 = frequent)
-    responses:
-      '200':
-        description: Feed updated
-        content:
-          application/json:
-            schema:
-              $ref: "../components/schemas/Feed.yaml"
-      '400':
-        $ref: "../components/responses/BadRequest.yaml"
-      '404':
-        $ref: "../components/responses/NotFound.yaml"
-
 /feeds/{feed_id}/reparse:
   post:
     summary: Trigger RSS feed re-parse
     description: |
-      This sets the `is_parsing` field on the `feed` table to the current timestamp, telling the background job to re-fetch and reprocess the feed data.
+      This sets the `is_parsing` field on the `feed` table to true, indicating that the feed should be re-fetched and reprocessed.
 
       This is useful if a feed appears stuck or failed to parse previously.
 
-      NOTE: Actual parsing happens asynchronously in a worker, not in response to this call.
+      NOTE: Actual parsing happens asynchronously in a worker, not in response to this call. The `is_parsing` flag will be set back to false when processing completes.
     tags:
       - Feeds
     security:
@@ -182,4 +102,194 @@
       '401':
         $ref: "../components/responses/Unauthorized.yaml"
 
-#TODO: POST /feeds/import and GET /feeds/export PATCH /feeds/bulk, DELETE /feeds/bulk 
+/feeds/import:
+  post:
+    summary: Import feeds from OPML file
+    description: |
+      Accepts an OPML file upload containing RSS feed URLs.
+      Extracts feed URLs from the OPML file and creates new feed entries in the system.
+      
+      The OPML file should follow standard OPML 2.0 format with <outline> elements containing xmlUrl attributes.
+      Duplicate feeds (matching URLs) will be skipped.
+    tags:
+      - Feeds
+    security:
+      - Auth0Bearer: []
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              file:
+                type: string
+                format: binary
+                description: OPML file containing feed URLs
+    responses:
+      '200':
+        description: Import results
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                imported:
+                  type: integer
+                  description: Number of feeds successfully imported
+                skipped:
+                  type: integer
+                  description: Number of feeds skipped (duplicates)
+                failed:
+                  type: integer
+                  description: Number of feeds that failed to import
+      '400':
+        $ref: "../components/responses/BadRequest.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+
+/feeds/export:
+  get:
+    summary: Export feeds as OPML or CSV metadata
+    description: |
+      Exports feed data in either OPML or CSV format:
+
+      OPML format:
+      - Standard OPML 2.0 specification
+      - Contains <outline> elements with xmlUrl attributes
+      - Includes basic feed metadata (title, url)
+
+      CSV format includes comprehensive metadata:
+      - Basic info: id, url, title
+      - Parsing state: parsing_priority, is_parsing, last_parsed_at
+      - Timestamps: created_at, updated_at
+      - Status: feed_flag_status and related metadata
+      
+      This endpoint is useful for:
+      - Importing feeds into other podcast systems (OPML)
+      - Reviewing feed parsing states and errors (CSV)
+      - Bulk feed management and auditing (CSV)
+    tags:
+      - Feeds
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: format
+        in: query
+        required: true
+        schema:
+          type: string
+          enum: [opml, csv]
+          default: opml
+        description: Export format (OPML or CSV)
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum: [active, inactive, error, all]
+          default: all
+        description: Filter feeds by status
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Search term to filter feeds by URL or metadata
+    responses:
+      '200':
+        description: Feed data exported successfully
+        content:
+          application/xml:
+            schema:
+              type: string
+              description: OPML format (when format=opml)
+          text/csv:
+            schema:
+              type: string
+              description: CSV format (when format=csv)
+      '400':
+        $ref: "../components/responses/BadRequest.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '500':
+        $ref: "../components/responses/InternalServerError.yaml"
+
+/feeds/bulk-update:
+  post:
+    summary: Bulk update feed properties
+    description: |
+      Updates multiple feeds' properties in a single operation.
+      Can modify parsing priority, flag status, or other operational properties.
+      Useful for batch operations like disabling multiple feeds or changing parsing schedules.
+    tags:
+      - Feeds
+    security:
+      - Auth0Bearer: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/FeedBulkUpdate.yaml"
+    responses:
+      '200':
+        description: Feeds updated successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                updated:
+                  type: integer
+                  description: Number of feeds successfully updated
+                skipped:
+                  type: integer
+                  description: Number of feeds skipped (not found)
+      '400':
+        $ref: "../components/responses/BadRequest.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+
+/feeds/bulk-delete:
+  post:
+    summary: Delete multiple feeds in bulk
+    description: |
+      Deletes multiple feeds simultaneously.
+      This is useful for batch operations like:
+      - Removing inactive or broken feeds
+      - Cleaning up spam feeds
+      - Mass feed removal operations
+      
+      Note: This operation is irreversible.
+    tags:
+      - Feeds
+    security:
+      - Auth0Bearer: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../components/schemas/FeedBulkDelete.yaml"
+    responses:
+      '200':
+        description: Feeds deleted successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deleted:
+                  type: integer
+                  description: Number of feeds successfully deleted
+                skipped:
+                  type: integer
+                  description: Number of feeds skipped (not found)
+                reason:
+                  type: string
+                  description: Reason provided for deletion (for audit logs)
+      '400':
+        $ref: "../components/responses/BadRequest.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml" 

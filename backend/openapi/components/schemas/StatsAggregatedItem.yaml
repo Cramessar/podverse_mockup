@@ -1,66 +1,139 @@
 type: object
+required:
+  - id
+  - item_id
 properties:
   id:
     type: integer
-    description: Unique identifier for aggregated item stats
+    description: Unique identifier for the aggregated stats
     example: 1
-  
+
   item_id:
     type: integer
-    description: Foreign key reference to item table
-    example: 456
-  
+    description: ID of the item these stats are for
+    example: 42
+
   day_current_count:
     type: integer
-    description: Current day's aggregated count
-    example: 25
-  
-  day_last_count:
+    minimum: 0
+    default: 0
+    description: Event count for current day
+    example: 150
+
+  day_1_count:
     type: integer
-    description: Previous day's aggregated count
-    example: 20
-  
+    minimum: 0
+    default: 0
+    description: Event count for day 1
+    example: 145
+
+  day_2_count:
+    type: integer
+    minimum: 0
+    default: 0
+    description: Event count for day 2
+    example: 140
+
+  day_3_count:
+    type: integer
+    minimum: 0
+    default: 0
+    description: Event count for day 3
+    example: 135
+
+  day_4_count:
+    type: integer
+    minimum: 0
+    default: 0
+    description: Event count for day 4
+    example: 130
+
+  day_5_count:
+    type: integer
+    minimum: 0
+    default: 0
+    description: Event count for day 5
+    example: 125
+
+  day_6_count:
+    type: integer
+    minimum: 0
+    default: 0
+    description: Event count for day 6
+    example: 120
+
+  day_7_count:
+    type: integer
+    minimum: 0
+    default: 0
+    description: Event count for day 7
+    example: 115
+
+  day_8_count:
+    type: integer
+    minimum: 0
+    default: 0
+    description: Event count for day 8
+    example: 110
+
   week_current_count:
     type: integer
-    description: Current week's aggregated count
-    example: 150
-  
-  week_last_count:
+    minimum: 0
+    default: 0
+    description: Event count for current week
+    example: 1000
+
+  week_1_count:
     type: integer
-    description: Previous week's aggregated count
-    example: 140
-  
+    minimum: 0
+    default: 0
+    description: Event count for week 1
+    example: 950
+
+  week_2_count:
+    type: integer
+    minimum: 0
+    default: 0
+    description: Event count for week 2
+    example: 900
+
+  week_3_count:
+    type: integer
+    minimum: 0
+    default: 0
+    description: Event count for week 3
+    example: 850
+
+  week_4_count:
+    type: integer
+    minimum: 0
+    default: 0
+    description: Event count for week 4
+    example: 800
+
   month_current_count:
     type: integer
-    description: Current month's aggregated count
-    example: 600
-  
-  month_last_count:
+    minimum: 0
+    default: 0
+    description: Event count for current month
+    example: 4000
+
+  month_1_count:
     type: integer
-    description: Previous month's aggregated count
-    example: 580
-  
-  year_current_count:
-    type: integer
-    description: Current year's aggregated count
-    example: 5200
-  
-  year_last_count:
-    type: integer
-    description: Previous year's aggregated count
-    example: 4800
-  
+    minimum: 0
+    default: 0
+    description: Event count for month 1
+    example: 3800
+
   all_time_count:
     type: integer
-    description: All-time aggregated count
-    example: 15000
-  
+    minimum: 0
+    default: 0
+    description: Total event count since tracking began
+    example: 25000
+
   updated_at:
     type: string
     format: date-time
     description: Timestamp of last update
     example: "2024-01-01T10:00:00Z"
-
-required:
-  - id
-  - item_id 

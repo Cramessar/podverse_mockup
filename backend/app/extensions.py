@@ -3,10 +3,10 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from marshmallow import fields, validate, ValidationError
 from flask_migrate import Migrate
+from marshmallow import fields, validate, ValidationError
 import os
+from app.utils.auth import get_limiter_key
 
 db = SQLAlchemy()
 ma = Marshmallow()
@@ -24,7 +24,7 @@ def get_limiter_storage():
         return None
 
 limiter = Limiter(
-    key_func=get_remote_address,
+    key_func=get_limiter_key,
     default_limits=["1000 per hour"],
     storage_uri=get_limiter_storage(),
     strategy="fixed-window"  # Can be "fixed-window", "moving-window", etc.

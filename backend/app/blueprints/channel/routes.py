@@ -1,7 +1,7 @@
 # app/blueprints/channel/routes.py
 
 from . import channel_bp
-from app.blueprints.channel.controller import list_channels, get_channel_by_id
+from app.blueprints.channel.controller import list_channels, get_channel_by_id, export_channels
 from app.utils.auth import requires_auth
 from app.extensions import limiter
 
@@ -11,6 +11,13 @@ from app.extensions import limiter
 @requires_auth
 def get_all_channels():
     return list_channels()
+
+
+@channel_bp.route('/export', methods=['GET'])
+@limiter.limit("10 per minute")  # Lower rate limit for exports?
+@requires_auth
+def export_channels_route():
+    return export_channels()
 
 
 @channel_bp.route('/<int:channel_id>', methods=['GET'])

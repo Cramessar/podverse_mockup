@@ -35,6 +35,8 @@ services:
       DATABASE_USER: podverse_admin
       DATABASE_PASSWORD: testest
       DATABASE_NAME: podverse_db
+    env_file:
+      - ./backend/.env
     volumes:
       - ./backend:/app
     depends_on:
