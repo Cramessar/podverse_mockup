@@ -15,6 +15,8 @@ const navLinks = [
   { href: "/notifications", label: "Notifications", icon: <BellIcon className= "w-6 h-6"/> },
   { href: "/profile", label: "Profile", icon: <UserIcon className= "w-6 h-6"/> },
   { href: "/theme", label: "Theme Editor", icon: <SwatchIcon className= "w-6 h-6"/> },
+  { href: "/channels", label: "Channels", icon: <RssIcon className="w-6 h-6" /> },
+
 ];
 
 export default function Sidebar() {

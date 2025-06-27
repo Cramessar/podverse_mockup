@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@auth0/nextjs-auth0": "^4.6.1",
+    "@auth0/nextjs-auth0": "^4.7.0",
     "@heroicons/react": "^2.2.0",
     "firebase": "^11.8.1",
     "next": "15.3.3",
