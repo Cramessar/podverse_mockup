@@ -128,108 +128,116 @@ export default function ChannelTable() {
     return <p className="text-red-500 bg-red-100 p-4 rounded border">{error}</p>;
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-podverse-secondary">Channels Overview</h2>
+  <div className="space-y-4">
+    <h2 className="text-xl font-semibold text-podverse-secondary">Channels Overview</h2>
 
-      <input
-        type="text"
-        placeholder="Search by title, slug, or identifier"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full p-2 border border-podverse-dark rounded bg-white text-black"
-      />
+    <input
+      type="text"
+      placeholder="Search by title, slug, or identifier"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="w-full p-2 border border-podverse-border rounded bg-podverse-surface text-podverse-text placeholder-podverse-muted"
+    />
 
-      <table className="w-full bg-white border border-gray-300 shadow rounded text-sm">
-        <thead className="bg-podverse-highlight text-black font-semibold text-left">
-          <tr>
-            <th className="p-3 border-b cursor-pointer" onClick={() => toggleSort("id")}>ID</th>
-            <th className="p-3 border-b cursor-pointer" onClick={() => toggleSort("id_text")}>Identifier</th>
-            <th className="p-3 border-b">Title</th>
-            <th className="p-3 border-b">Slug</th>
-            <th className="p-3 border-b">Podcast Index ID</th>
-            <th className="p-3 border-b">Feed ID</th>
-            <th className="p-3 border-b">Medium ID</th>
-            <th className="p-3 border-b">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {paginatedChannels.map((ch, i) => (
-            <tr
-              key={ch.id}
-              className={`${
-                i % 2 === 0 ? "bg-white" : "bg-podverse-cream"
-              } hover:bg-podverse-highlight`}
+    <table className="w-full border border-podverse-border bg-podverse-surface text-podverse-text text-sm rounded shadow">
+      <thead className="bg-podverse-accent text-black font-semibold text-left">
+        <tr>
+          {["ID", "Identifier", "Title", "Slug", "Podcast Index ID", "Feed ID", "Medium ID", "Actions"].map((header, idx) => (
+            <th
+              key={header}
+              className="p-3 border-b border-podverse-border cursor-pointer"
+              onClick={() => toggleSort(["id", "id_text"][idx] as keyof Channel)}
             >
-              <td className="p-3 border-b">{ch.id}</td>
-              <td className="p-3 border-b">{ch.id_text}</td>
-              <td className="p-3 border-b">
-                <input
-                  className="w-full bg-transparent"
-                  defaultValue={ch.title || ""}
-                  onBlur={(e) => handleInlineEdit(ch.id, { title: e.target.value })}
-                />
-              </td>
-              <td className="p-3 border-b">
-                <input
-                  className="w-full bg-transparent"
-                  defaultValue={ch.slug || ""}
-                  onBlur={(e) => handleInlineEdit(ch.id, { slug: e.target.value })}
-                />
-              </td>
-              <td className="p-3 border-b">
-                <input
-                  className="w-full bg-transparent"
-                  defaultValue={ch.podcast_index_id.toString()}
-                  onBlur={(e) => handleInlineEdit(ch.id, { podcast_index_id: Number(e.target.value) })}
-                />
-              </td>
-              <td className="p-3 border-b">
-                <input
-                  className="w-full bg-transparent"
-                  defaultValue={ch.feed_id.toString()}
-                  onBlur={(e) => handleInlineEdit(ch.id, { feed_id: Number(e.target.value) })}
-                />
-              </td>
-              <td className="p-3 border-b">
-                <input
-                  className="w-full bg-transparent"
-                  defaultValue={ch.medium_id?.toString() ?? ""}
-                  onBlur={(e) => handleInlineEdit(ch.id, { medium_id: Number(e.target.value) || null })}
-                />
-              </td>
-              <td className="p-3 border-b space-x-2">
-                <button onClick={() => handleDelete(ch.id)} className="text-podverse-danger hover:underline">Delete</button>
-              </td>
-            </tr>
+              {header}
+            </th>
           ))}
-        </tbody>
-      </table>
+        </tr>
+      </thead>
+      <tbody>
+        {paginatedChannels.map((ch, i) => (
+          <tr
+            key={ch.id}
+            className={`${
+              i % 2 === 0 ? "bg-podverse-background" : "bg-podverse-surface"
+            } hover:bg-podverse-highlight`}
+          >
+            <td className="p-3 border-b border-podverse-border">{ch.id}</td>
+            <td className="p-3 border-b border-podverse-border">{ch.id_text}</td>
+            <td className="p-3 border-b border-podverse-border">
+              <input
+                className="w-full bg-transparent text-podverse-text"
+                defaultValue={ch.title || ""}
+                onBlur={(e) => handleInlineEdit(ch.id, { title: e.target.value })}
+              />
+            </td>
+            <td className="p-3 border-b border-podverse-border">
+              <input
+                className="w-full bg-transparent text-podverse-text"
+                defaultValue={ch.slug || ""}
+                onBlur={(e) => handleInlineEdit(ch.id, { slug: e.target.value })}
+              />
+            </td>
+            <td className="p-3 border-b border-podverse-border">
+              <input
+                className="w-full bg-transparent text-podverse-text"
+                defaultValue={ch.podcast_index_id.toString()}
+                onBlur={(e) => handleInlineEdit(ch.id, { podcast_index_id: Number(e.target.value) })}
+              />
+            </td>
+            <td className="p-3 border-b border-podverse-border">
+              <input
+                className="w-full bg-transparent text-podverse-text"
+                defaultValue={ch.feed_id.toString()}
+                onBlur={(e) => handleInlineEdit(ch.id, { feed_id: Number(e.target.value) })}
+              />
+            </td>
+            <td className="p-3 border-b border-podverse-border">
+              <input
+                className="w-full bg-transparent text-podverse-text"
+                defaultValue={ch.medium_id?.toString() ?? ""}
+                onBlur={(e) => handleInlineEdit(ch.id, { medium_id: Number(e.target.value) || null })}
+              />
+            </td>
+            <td className="p-3 border-b border-podverse-border space-x-2">
+              <button
+                onClick={() => handleDelete(ch.id)}
+                className="text-podverse-danger hover:underline"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
 
-      <div className="flex justify-between items-center mt-4">
-        <button
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage((prev) => prev - 1)}
-          className="px-4 py-2 border border-podverse-dark rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <span>Page {currentPage} of {totalPages}</span>
-        <button
-          disabled={currentPage === totalPages}
-          onClick={() => setCurrentPage((prev) => prev + 1)}
-          className="px-4 py-2 border border-podverse-dark rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
-
-      <ConfirmationModal
-        isOpen={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        onConfirm={handleConfirmUpdate}
-        title="Confirm Update"
-        message={`Are you sure you want to update this channel?`}
-      />
+    <div className="flex justify-between items-center mt-4">
+      <button
+        disabled={currentPage === 1}
+        onClick={() => setCurrentPage((prev) => prev - 1)}
+        className="px-4 py-2 border border-podverse-border rounded disabled:opacity-50"
+      >
+        Previous
+      </button>
+      <span className="text-podverse-muted">
+        Page {currentPage} of {totalPages}
+      </span>
+      <button
+        disabled={currentPage === totalPages}
+        onClick={() => setCurrentPage((prev) => prev + 1)}
+        className="px-4 py-2 border border-podverse-border rounded disabled:opacity-50"
+      >
+        Next
+      </button>
     </div>
-  );
+
+    <ConfirmationModal
+      isOpen={showConfirm}
+      onClose={() => setShowConfirm(false)}
+      onConfirm={handleConfirmUpdate}
+      title="Confirm Update"
+      message="Are you sure you want to update this channel?"
+    />
+  </div>
+);
 }

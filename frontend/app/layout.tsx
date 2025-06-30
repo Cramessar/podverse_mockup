@@ -15,10 +15,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <div style={{ padding: 20, background: "lightgray" }}>
-          <p>✅ Layout rendered</p>
+      <body className="bg-podverse-background text-podverse-text font-sans min-h-screen">
+        {/* Optional: Layout rendered banner */}
+        <div className="p-4 bg-podverse-surface text-sm text-green-500 border-b border-podverse-border">
+          ✅ Layout rendered
         </div>
+
         {children}
       </body>
     </html>

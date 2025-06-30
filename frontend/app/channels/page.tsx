@@ -13,7 +13,7 @@ export default function ChannelsPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-podverse-background text-black">
+    <div className="flex min-h-screen bg-podverse-background text-podverse-text">
       <Sidebar />
 
       {/* Main Content */}
@@ -23,14 +23,14 @@ export default function ChannelsPage() {
           <div className="flex space-x-4">
             <button
               aria-label="Notifications"
-              className="p-2 rounded hover:bg-podverse-surface transition"
+              className="p-2 rounded hover:bg-podverse-border transition"
             >
               🔔
             </button>
             <button
               onClick={handleLogout}
               aria-label="Logout"
-              className="p-2 rounded hover:bg-podverse-surface transition"
+              className="p-2 rounded hover:bg-podverse-border transition"
             >
               Logout
             </button>
