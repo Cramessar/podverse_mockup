@@ -255,22 +255,69 @@ def generate_feed(session):
 
 
 def generate_channels(session, feeds, n=10):
+    # Get available mediums and categories from the database
+    mediums = session.query(Medium).all()
+    categories = session.query(Category).all()
+    
+    if not mediums:
+        print("No mediums found! Make sure init_db.sql was run first.")
+        return []
+    
+    if not categories:
+        print("No categories found! Make sure init_db.sql was run first.")
+        return []
+    
     channels = []
     random.shuffle(feeds)
 
     for i, feed in enumerate(feeds[:n]):
+        # Random medium assignment
+        medium = random.choice(mediums)
+        
         channel = Channel(
             feed_id=feed.id,
+            medium_id=medium.id,
             id_text=fake.unique.user_name(),
             podcast_index_id=fake.random_int(1000, 9999),
+            title=fake.catch_phrase(),
+            description=fake.text(max_nb_chars=500),
+            author=fake.name(),
+            image_url=fake.image_url(),
+            link_url=fake.url(),
+            language=random.choice(['en', 'es', 'fr', 'de', 'pt', 'it']),
+            explicit=random.choice([True, False]),
+            podcast_guid=str(uuid.uuid4()),
         )
         channels.append(channel)
 
     session.add_all(channels)
     session.commit()
-    print(f"Inserted {len(channels)} channels.")
+    print(f"Inserted {len(channels)} channels with mediums.")
+    
+    # Now associate channels with categories
+    generate_channel_categories(session, channels, categories)
+    
     return channels
 
+def generate_channel_categories(session, channels, categories, max_categories_per_channel=3):
+    """Associate channels with random categories"""
+    channel_categories = []
+    
+    for channel in channels:
+        # Each channel gets 1-3 random categories
+        num_categories = random.randint(1, max_categories_per_channel)
+        selected_categories = random.sample(categories, min(num_categories, len(categories)))
+        
+        for category in selected_categories:
+            channel_category = ChannelCategory(
+                channel_id=channel.id,
+                category_id=category.id
+            )
+            channel_categories.append(channel_category)
+    
+    session.add_all(channel_categories)
+    session.commit()
+    print(f"Created {len(channel_categories)} channel-category associations.")
 
 
 def generate_items(session, channels, n=20):
@@ -402,6 +449,48 @@ def generate_stats_aggregated_channels(session, channels, n=20):
         print(f"[DETAIL] {str(e.orig)}")
 
 
+def seed_existing_channels_with_categories_and_mediums(session):
+    """
+    Update existing channels that don't have mediums or categories assigned.
+    Useful for adding categories/mediums to channels created before enhancement.
+    """
+    print("🌱 Seeding existing channels with categories and mediums...")
+    
+    # Get data
+    mediums = session.query(Medium).all()
+    categories = session.query(Category).all()
+    
+    if not mediums or not categories:
+        print("❌ Missing reference data. Ensure init_db.sql was run first.")
+        return
+    
+    # Update channels without mediums
+    channels_without_mediums = session.query(Channel).filter(Channel.medium_id.is_(None)).all()
+    for channel in channels_without_mediums:
+        channel.medium_id = random.choice(mediums).id
+    
+    if channels_without_mediums:
+        session.commit()
+        print(f"✅ Assigned mediums to {len(channels_without_mediums)} channels.")
+    
+    # Add categories to channels that don't have any
+    all_channels = session.query(Channel).all()
+    existing_channel_category_ids = set(
+        session.query(ChannelCategory.channel_id).distinct().all()
+    )
+    
+    channels_without_categories = [
+        ch for ch in all_channels 
+        if (ch.id,) not in existing_channel_category_ids
+    ]
+    
+    if channels_without_categories:
+        generate_channel_categories(session, channels_without_categories, categories)
+        print(f"✅ Added categories to {len(channels_without_categories)} channels.")
+    else:
+        print("✅ All channels already have categories.")
+
+
 # ----------------- Main runner -----------------
 
 def main():
@@ -443,6 +532,7 @@ def main():
         generate_aggregated_items(session, items)
         generate_stats_track_event_channels(session, account_guids, channels)
         generate_stats_aggregated_channels(session, channels)
+        seed_existing_channels_with_categories_and_mediums(session)
         print("✅ Finished seeding Podverse mock data!")
     except Exception as e:
         print("[ERROR] Seeding process failed:")

@@ -25,6 +25,11 @@ class NotFoundError(APIException):
     """Exception raised when a resource is not found."""
     status_code = 404
     message = "Resource Not Found"
+
+class DuplicateFeedError(APIException):
+    """Exception raised when trying to create a feed that already exists."""
+    status_code = 409
+    message = "Duplicate Feed Error"
     
 class DatabaseError(APIException):
     """Exception raised for database-related errors."""

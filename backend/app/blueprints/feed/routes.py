@@ -1,48 +1,62 @@
-from flask import request, jsonify
-from faker import Faker
+#app/blueprints/feed/routes.py
+
+from flask import jsonify
 from . import feed_bp
-from .schemas import feed_schema, feeds_schema  # ✅ Clean, non-circular
-from app.models.feed import Feed
-from app.extensions import db
-from app.services.feed_parser import parse_rss_feed
-from app.utils.logger import get_logger, log_request, log_database_operation
-from marshmallow import ValidationError
-from .services import create_feed_service, DuplicateFeedError
-from sqlalchemy import select
-from app.utils.error_exceptions import ValidationError as APIValidationError
+from app.utils.logger import get_logger, log_request, log_request_start, log_request_end
+from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseError
+from .controllers import reparse_feed_controller, get_feeds_controller, import_feeds_controller
 
-
-fake = Faker()
 logger = get_logger(__name__)
 
-@feed_bp.route('/', methods=['POST'])
-def create_feed():
-    if not request.is_json:
-        return jsonify({'error': 'Invalid or missing JSON body'}), 400
-    
-    try:     
-        # Validate the input data without creating an instance
-        feed_data = feed_schema.load(request.get_json(), session=db.session) # validate and deserialize input
-        # Controller passes to service
-        feed = create_feed_service(feed_data)
-        return jsonify(feed_schema.dump(feed)), 201
-    
+@feed_bp.route('/<int:feed_id>/reparse', methods=['POST'])
+def reparse_feed(feed_id):
+    """Trigger reparse for a specific feed"""
+    try:
+        log_request(logger, 'POST', f'/feeds/{feed_id}/reparse')
+        
+        result = reparse_feed_controller(feed_id)
+        return jsonify(result), 200
+        
+    except NotFoundError:
+        raise
     except ValidationError as e:
-        return jsonify({'error': e.messages}), 400 
-    
-    except DuplicateFeedError as e:
-        return jsonify({'error': str(e)}), 400
-    
+        logger.warning(f"Validation error in reparse_feed: {str(e)}")
+        raise
     except Exception as e:
-        db.session.rollback()  # Rollback to avoid leaving the session in a broken state
-        logger.error(f"Error creating feed: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Unexpected error in reparse_feed: {str(e)}")
+        raise DatabaseError("Failed to reparse feed")
+
 
 @feed_bp.route('', methods=['GET'])
-def get_all_feeds():
-    log_request(logger, 'GET', '/feeds')
-    query = select(Feed)
-    feeds= db.session.execute(query).scalars().all()
-    
-    return jsonify(feeds_schema.dump(feeds)), 200
+def get_feeds():
+    """Get all feeds with pagination"""
+    try:
+        log_request(logger, 'GET', '/feeds')
+        
+        result = get_feeds_controller()
+        return jsonify(result), 200
+        
+    except ValidationError as e:
+        logger.warning(f"Validation error in get_feeds: {str(e)}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in get_feeds: {str(e)}")
+        raise DatabaseError("Failed to retrieve feeds")
+
+
+@feed_bp.route('/import', methods=['POST'])
+def import_feeds():
+    """Import feeds from OPML file upload"""
+    try:
+        log_request(logger, 'POST', '/feeds/import', include_payload=False)
+        
+        result = import_feeds_controller()
+        return jsonify(result), 200
+        
+    except ValidationError as e:
+        logger.warning(f"Validation error in import_feeds: {str(e)}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in import_feeds: {str(e)}")
+        raise DatabaseError("Failed to import feeds")
     

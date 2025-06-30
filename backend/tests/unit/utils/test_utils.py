@@ -3,7 +3,7 @@ from unittest.mock import patch
 import io
 from flask import Flask
 
-from app.utils.cvs_response import generate_csv_response
+from app.utils.export_response import generate_csv_response
 
 
 class TestCSVUtils:

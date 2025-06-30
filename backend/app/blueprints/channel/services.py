@@ -5,7 +5,21 @@ from app.models.channel import ChannelCategory
 from app.extensions import db
 from sqlalchemy.orm import joinedload
 from app.utils.query_helpers import apply_sorting, paginate_query
-from app.utils.error_exceptions import NotFoundError
+from app.utils.error_exceptions import NotFoundError, DatabaseError
+from app.utils.logger import get_logger, log_database_operation
+
+logger = get_logger(__name__)
+
+def channel_eagerload_options():
+    """
+    Use eager loading to fetch related medium and feed data in a single query (prevents N+1 query problem by joining related tables immediately)
+    """
+    return (
+        joinedload(Channel.medium),
+        joinedload(Channel.feed),
+        joinedload(Channel.stats),
+        joinedload(Channel.categories).joinedload(ChannelCategory.category)
+    )
 
 def get_channels_list(search, sort_by, sort_order, page, limit):
     """
@@ -13,16 +27,24 @@ def get_channels_list(search, sort_by, sort_order, page, limit):
     Eager loads related feed, medium, categories, and stats.
     
     """
-    # Use eager loading to fetch related medium and feed data in a single query (prevents N+1 query problem by joining related tables immediately)
-    query = db.session.query(Channel).options(joinedload(Channel.medium), joinedload(Channel.feed), joinedload(Channel.stats), joinedload(Channel.categories).joinedload(ChannelCategory.category))
-    
-    if search:
-        query = query.filter(Channel.title.ilike(f"%{search}%"))
-    query = apply_sorting(query, Channel, sort_by, sort_order)
-    
-    channels, meta = paginate_query(query, page, limit)
-    
-    return channels, meta
+    try:
+        query = db.session.query(Channel).options(*channel_eagerload_options())
+        log_database_operation(logger, "READ", "channels", f"page_{page}")
+        
+        if search:
+            query = query.filter(Channel.title.ilike(f"%{search}%"))
+            logger.info(f"Applying search filter: {search}")
+        
+        query = apply_sorting(query, Channel, sort_by, sort_order)
+        
+        channels, meta = paginate_query(query, page, limit)
+        
+        logger.info(f"Retrieved {len(channels)} channels for page {page} with search: {search or 'none'}")
+        return channels, meta
+        
+    except Exception as e:
+        logger.error(f"Error retrieving channels list: {str(e)}")
+        raise DatabaseError(f"Failed to retrieve channels: {str(e)}")
 
 def get_channels_for_export(search=None, sort_by='id', sort_order='asc', max_rows=10000):
     """
@@ -39,37 +61,49 @@ def get_channels_for_export(search=None, sort_by='id', sort_order='asc', max_row
     Returns:
         List of Channel objects
     """
-    
-    query = db.session.query(Channel).options(
-        joinedload(Channel.medium), 
-        joinedload(Channel.feed), 
-        joinedload(Channel.stats),
-        joinedload(Channel.categories).joinedload(ChannelCategory.category)
-    )
-    
-    if search:
-        query = query.filter(Channel.title.ilike(f"%{search}%"))
-    query = apply_sorting(query, Channel, sort_by, sort_order)
-    
-    # Limit to max_rows for performance
-    query = query.limit(max_rows)
-    
-    channels = query.all()
-    
-    return channels
+    try:
+        query = db.session.query(Channel).options(*channel_eagerload_options())
+        log_database_operation(logger, "READ", "channels", f"export_max_{max_rows}")
+        
+        if search:
+            query = query.filter(Channel.title.ilike(f"%{search}%"))
+            logger.info(f"Applying search filter for export: {search}")
+        
+        query = apply_sorting(query, Channel, sort_by, sort_order)
+        
+        # Limit to max_rows for performance
+        query = query.limit(max_rows)
+        
+        channels = query.all()
+        
+        logger.info(f"Retrieved {len(channels)} channels for export with search: {search or 'none'}")
+        return channels
+        
+    except Exception as e:
+        logger.error(f"Error retrieving channels for export: {str(e)}")
+        raise DatabaseError(f"Failed to retrieve channels for export: {str(e)}")
 
 def get_channel_detail(channel_id):
-    # using stats_aggregated_channel lets the admin see how popular the channel is without needing to sum up raw events every time.
-    
-    channel = db.session.query(Channel).options(
-        joinedload(Channel.medium),
-        joinedload(Channel.feed),
-        joinedload(Channel.stats),
-        joinedload(Channel.categories).joinedload(ChannelCategory.category)
-    ).filter_by(id=channel_id).first()
+    """
+    Get detailed channel information by ID.
+    Using stats_aggregated_channel lets the admin see how popular the channel is 
+    without needing to sum up raw events every time.
+    """
+    try:
+        log_database_operation(logger, "READ", "channels", channel_id)
+        
+        channel = db.session.query(Channel).options(*channel_eagerload_options()).filter_by(id=channel_id).first()
 
-    if not channel:
-        raise NotFoundError(f"Channel with ID {channel_id} not found")
+        if not channel:
+            logger.warning(f"Channel with ID {channel_id} not found")
+            raise NotFoundError(f"Channel with ID {channel_id} not found")
 
-    return channel
+        logger.info(f"Retrieved channel details for ID: {channel_id}")
+        return channel
+        
+    except NotFoundError:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving channel detail: {str(e)}")
+        raise DatabaseError(f"Failed to retrieve channel detail: {str(e)}")
     
