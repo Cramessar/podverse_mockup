@@ -1,74 +1,144 @@
-# Docker Setup & Usage for Podverse Mockup
+# 🐳 Podverse Mockup - Docker Setup & Usage
 
-Prerequisites
-Docker and Docker Desktop installed on your machine
+## 🚀 Prerequisites
 
-Get Docker for Windows, Mac, or Linux
-Docker for linux...good luck
-#
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) installed on your machine (Windows, macOS, WSL2, or a real-deal Linux box).
+- Docker Compose is included with Docker Desktop.
 
-# Setup Instructions
-1. Clone the repository, download as zip, git clone. However you want to grab the repo.
+> 🐧 Linux users: May the flags be ever in your favor. Install Docker & Compose manually and enable the daemon.
+
+---
+
+## 📦 Cloning the Repo
 
 ```bash
-Copy
 git clone https://github.com/Cramessar/podverse_mockup.git
 cd podverse_mockup
 ```
+
 ---
 
-2. Build Docker images
+## 🔨 Build Docker Images
 
-If you have Dockerfiles for backend and frontend, the db. Which you should have from the repo.
+You should have `Dockerfile`s for backend, frontend, and the database setup in place.
 
-run:
+To build and start all services (backend, frontend, and Postgres):
 
 ```bash
-Copy
 docker compose up --build
 ```
-You should now see the containers running in your docker desktop window.
+
+Once built, containers should appear in Docker Desktop, humming along nicely.
 
 ---
 
-3. Run containers
-You can always click on the "play" button in docker desktop to run your containers.
+## ▶️ Running the Containers
 
-Or if you are a loser and want to use a powershell terminal:
+You’ve got options:
+
+- **Option 1**: Click the “play” button in Docker Desktop. Easy.
+- **Option 2**: Real devs use terminals. (Or masochists. Hard to tell.)
 
 ```bash
-Copy
-docker-compose up
+docker compose up
 ```
-This will start all services as defined in the compose file (frontend, backend, database, etc.).
+
+This will start all services as defined in `docker-compose.yml`.
 
 ---
 
-# Database Setup & Initialization
-If you have SQL scripts for initializing the DB schema and seeding data (e.g., init_database.sql), you can:
-READ THE HOW TO DB, located in the podverse_db folder for your convienent viewing. 
+## 🧠 Database Setup & Initialization
 
-Accessing the Application
-Frontend: http://localhost:3000
+Schema and seeding are handled automatically by the backend container using scripts like `init_database.sql` or individual seed scripts.
 
-Backend API: http://localhost:5000
+For details on how it works or to re-run seeders, see:
+```
+/podverse_db/README.md
+```
 
-Postgres DB (not an actual link, just looks uniform): http://localhost:5432
+---
 
-Stopping & Cleaning Up
-To stop running containers:
+## 🌐 Access the Application
+
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:5000](http://localhost:5000)
+- **Postgres (DB)**: `localhost:5432` (connect via pgAdmin or DBeaver)
+
+> Postgres creds are usually defined in `.env` or `docker-compose.yml`. Use those if you need to connect manually.
+
+---
+
+## 🛑 Stopping Containers
+
+To gracefully stop all running services:
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
-Tips:
-Use this to view logs:
+---
+
+## 🧹 Cleanup & Troubleshooting
+
+If Docker starts acting like a gremlin got into your volumes, try the following to clean things up:
+
+### 🧼 Remove stopped containers, dangling images, and unused networks:
+
+```bash
+docker system prune -a
 ```
+
+> ⚠️ Warning: This deletes *all* unused data. Use wisely.
+
+### 🗑️ Remove all unused volumes (especially useful for DB issues):
+
+```bash
+docker volume prune
+```
+
+### 🔥 Nuke and rebuild everything (if all else fails):
+
+```bash
+docker compose down -v --remove-orphans
+docker system prune -a
+docker compose up --build
+```
+
+---
+
+## 🛠️ Helpful Commands
+
+### View logs for a container:
+
+```bash
 docker logs <container-name>
 ```
 
-Use this list all containers:
-```
+### List all containers (running or not):
+
+```bash
 docker ps -a
 ```
+
+### Restart a single container:
+
+```bash
+docker restart <container-name>
+```
+
+### Check container health status (if healthchecks are defined):
+
+```bash
+docker inspect --format='{{json .State.Health}}' <container-name>
+```
+
+---
+
+## 📝 Notes
+
+- Make sure your line endings for `entrypoint.sh` or seed scripts use **LF**, not **CRLF**, especially if editing on Windows.
+- Port conflicts? Double-check nothing else is running on 3000/5000/5432.
+
+---
+
+🎧 Happy coding, and may your containers always be green.
