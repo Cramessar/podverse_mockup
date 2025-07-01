@@ -101,6 +101,7 @@ docker volume prune
 ```bash
 docker compose down -v --remove-orphans
 docker system prune -a
+docker volume rm $(docker volume ls -q)
 docker compose up --build
 ```
 
