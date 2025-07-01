@@ -156,7 +156,6 @@ class StatsService:
             return {
                 "channel_id": result.channel_id,
                 "title": result.title,
-                "slug": result.slug,
                 "month_current_count": result.month_current_count,
                 "week_current_count": result.week_current_count,
                 "day_current_count": result.day_current_count,
