@@ -1,0 +1,25 @@
+type: object
+description: Schema for bulk updating multiple feeds
+required:
+  - feed_ids
+  - updates
+properties:
+  feed_ids:
+    type: array
+    description: List of feed IDs to update
+    items:
+      type: integer
+  updates:
+    type: object
+    description: Fields to update for the selected feeds
+    properties:
+      feed_flag_status_id:
+        type: integer
+        description: ID of the feed flag status
+      parsing_priority:
+        type: integer
+        description: Priority level for feed parsing (higher numbers = higher priority)
+      is_parsing:
+        type: boolean
+        description: Whether the feed is currently being parsed
+    minProperties: 1

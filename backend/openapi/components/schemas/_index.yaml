@@ -1,7 +1,9 @@
 Feed:
   $ref: "./Feed.yaml"
-FeedCreate:
-  $ref: "./FeedCreate.yaml"
+FeedBulkUpdate:
+  $ref: "./FeedBulkUpdate.yaml"
+FeedBulkDelete:
+  $ref: "./FeedBulkDelete.yaml"
 FeedFlagStatus:
   $ref: "./FeedFlagStatus.yaml"
 FeedLog:
@@ -28,5 +30,7 @@ StatsAggregatedItem:
   $ref: "./StatsAggregatedItem.yaml"
 StatsTrackEventChannel:
   $ref: "./StatsTrackEventChannel.yaml"
+StatsTrackEventItem:
+  $ref: "./StatsTrackEventItem.yaml"
 Error:
   $ref: "./Error.yaml"

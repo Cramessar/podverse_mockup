@@ -102,3 +102,80 @@
         $ref: "../components/responses/NotFound.yaml"
       '500':
         $ref: "../components/responses/InternalServerError.yaml"
+
+/channels/export:
+  get:
+    summary: Export channel data as CSV
+    description: |
+      Exports channel data in CSV format. The export includes:
+      
+      - Basic channel info (id, title, slug, sortable_title, id_text)
+      - Feed information (URL, status)
+      - Medium type and name
+      - Podcast metadata (podcast_index_id, podcast_guid, value flags)
+      - Statistics (aggregated counts)
+      - Timestamps (created_at, updated_at)
+      
+      This endpoint is useful for:
+      - Analytics and reporting
+      - Channel auditing and management
+      - Data backup and migration
+      - Integration with external systems
+      
+      The endpoint supports the same filtering and sorting options as the 
+      main channels list endpoint for consistency.
+    tags:
+      - Channels
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - $ref: "../components/parameters/query/search.yaml"
+      - name: sort_by
+        in: query
+        schema:
+          type: string
+          enum: [id, title]
+          default: id
+        description: Field to sort results by
+      - name: sort_order
+        in: query
+        schema:
+          type: string
+          enum: [asc, desc]
+          default: asc
+        description: Sort order (ascending or descending)
+      - name: max_rows
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50000
+          default: 10000
+        description: Maximum number of rows to export (for performance)
+    responses:
+      '200':
+        description: Channel data exported successfully as CSV
+        content:
+          text/csv:
+            schema:
+              type: string
+              format: binary
+              description: CSV file containing channel data with timestamped filename
+        headers:
+          Content-Disposition:
+            schema:
+              type: string
+              example: "attachment; filename=channels_export_20240101_120000.csv"
+            description: Specifies the filename for download
+      '400':
+        $ref: "../components/responses/BadRequest.yaml"
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '429':
+        description: Rate limit exceeded
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/Error.yaml"
+      '500':
+        $ref: "../components/responses/InternalServerError.yaml"
