@@ -36,7 +36,9 @@ services:
       DATABASE_PASSWORD: testest
       DATABASE_NAME: podverse_db
     volumes:
-      - ./backend:/app
+      - ./backend/scripts:/app/scripts
+      - ./backend/app:/app/app
+
     depends_on:
       - database
     networks:

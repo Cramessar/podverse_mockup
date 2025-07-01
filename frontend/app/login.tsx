@@ -1,6 +1,5 @@
 "use client";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -10,21 +9,23 @@ export default function AdminLogin() {
   };
 
   return (
-    <main className="min-h-screen bg-[#121212] flex flex-col justify-center items-center px-2">
-      <div className="max-w-md w-full bg-podverse-surface rounded-lg shadow-lg p-8 text-center">
-      <div className="mx-auto mb-4 w-62">
-        <img
-          src="/podverse-brand-blue.svg"
-          alt="Podverse Logo"
-          className="object-contain w-full"
-        />
-      </div>
-        <h1 className="text-4xl font-extrabold mb-6 text-black">
-            Support Dashboard
+    <main className="min-h-screen bg-podverse-background flex flex-col justify-center items-center px-4">
+      <div className="max-w-md w-full bg-podverse-surface rounded-lg shadow-xl p-8 text-center border border-podverse-border">
+        <div className="mx-auto mb-6 w-56">
+          <img
+            src="/podverse-brand-blue.svg"
+            alt="Podverse Logo"
+            className="w-full object-contain"
+          />
+        </div>
+
+        <h1 className="text-3xl font-bold mb-6 text-podverse-text">
+          Podverse Support Dashboard
         </h1>
+
         <button
           onClick={handleContinue}
-          className="w-full py-3 bg-podverse-accent hover:bg-podver-accent text-white rounded-md transition"
+          className="w-full py-3 bg-podverse-accent hover:bg-podverse-primary text-white rounded-md font-semibold transition"
         >
           Log In
         </button>

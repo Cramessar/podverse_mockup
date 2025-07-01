@@ -19,7 +19,7 @@ export async function middleware(request) {
         const { origin } = new URL(request.url);
         return NextResponse.redirect(`${origin}/auth/login?returnTo=/dashboard`);
     }
-    // <-- MISSING CLOSING BRACE HERE
+  // <-- MISSING CLOSING BRACE HERE
 } // <-- Add this closing brace
 
 export const config = {
