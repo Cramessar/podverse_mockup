@@ -2,9 +2,9 @@
 
 from flask import jsonify
 from . import feed_bp
-from app.utils.logger import get_logger, log_request, log_request_start, log_request_end
+from app.utils.logger import get_logger, log_request
 from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseError
-from .controllers import reparse_feed_controller, get_feeds_controller, import_feeds_controller
+from .controllers import reparse_feed_controller, get_all_feeds_controller, import_feeds_controller
 
 logger = get_logger(__name__)
 
@@ -33,7 +33,7 @@ def get_feeds():
     try:
         log_request(logger, 'GET', '/feeds')
         
-        result = get_feeds_controller()
+        result = get_all_feeds_controller()
         return jsonify(result), 200
         
     except ValidationError as e:

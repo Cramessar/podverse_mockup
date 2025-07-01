@@ -2,6 +2,7 @@
 
 import feedparser
 from typing import List, Dict, Any
+from uuid import uuid4
 
 def parse_feed(feed_url: str) -> dict[str, Any]:
     """

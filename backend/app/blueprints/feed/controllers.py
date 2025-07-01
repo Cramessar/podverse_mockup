@@ -4,7 +4,7 @@ from flask import request
 from werkzeug.datastructures import FileStorage
 from app.blueprints.feed.services import parse_and_update_feed, get_all_feeds, import_feeds_from_opml
 from app.blueprints.feed.schemas import feeds_schema
-from app.utils.query_params import get_pagination_params
+from app.utils.query_params import get_pagination_params, get_sorting_params, get_search_query
 from app.utils.error_exceptions import ValidationError
 from app.utils.logger import get_logger
 
@@ -20,18 +20,33 @@ def reparse_feed_controller(feed_id: int):
     logger.info(f"Completed reparse for feed ID: {feed_id} with status: {result.get('status')}")
     return result
 
-def get_feeds_controller():
+def get_all_feeds_controller():
     """
     Controller to handle getting all feeds with pagination
     Coordinates between request parsing, service calls, and response formatting
     """
-    # Get pagination parameters from query string
-    page, limit = get_pagination_params(request, default_page=1, default_limit=10, max_limit=100)
+    page, limit = get_pagination_params(request)
+    sort_by, sort_order = get_sorting_params(request, allowed_fields=['id', 'url', 'updated_at'], default_field='id')
+    search = get_search_query(request)
+    
+    # filtering params
+    parsing_priority = request.args.get("parsing_priority")
+    is_parsing = request.args.get("is_parsing")
+    status = request.args.get("status")
     
     logger.info(f"Fetching feeds - page: {page}, limit: {limit}")
     
     # Get feeds with pagination from service
-    result = get_all_feeds(page=page, limit=limit)
+    result = get_all_feeds(
+        page=page,
+        limit=limit,
+        parsing_priority=parsing_priority,
+        is_parsing=is_parsing,
+        status=status,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        search=search
+    )
     
     # Serialize the data
     serialized_data = feeds_schema.dump(result["data"])
