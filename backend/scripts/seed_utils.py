@@ -1,6 +1,7 @@
+# backend/scripts/seed_utils.py
 from datetime import datetime, timedelta
 import random
-import uuid
+from uuid import uuid4
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -52,7 +53,7 @@ def random_location():
     return random.choice(countries)
 
 def unique_uuid():
-    return str(uuid.uuid4())
+    return uuid4()
 
 import time
 import traceback

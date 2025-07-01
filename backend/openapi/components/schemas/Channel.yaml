@@ -1,4 +1,8 @@
 type: object
+required:
+  - id
+  - id_text
+  - title
 properties:
   id:
     type: integer
@@ -7,8 +11,7 @@ properties:
 
   id_text:
     type: string
-    maxLength: 15
-    nullable: true
+    maxLength: 64
     description: Public-facing short ID for URLs
     example: "ch_8a3f91"
 
@@ -46,7 +49,7 @@ properties:
 
   sortable_title:
     type: string
-    maxLength: 255
+    maxLength: 50
     nullable: true
     description: Lowercased, normalized version of title for sorting
     example: "daily news podcast"
@@ -66,6 +69,12 @@ properties:
     type: boolean
     description: Indicates whether channel items use value time split logic
     example: true
-required:
-  - id
-  - title
+
+  categories:
+    type: array
+    description: Categories associated with this channel
+    items:
+      $ref: "./Category.yaml"
+
+  medium:
+    $ref: "./Medium.yaml"

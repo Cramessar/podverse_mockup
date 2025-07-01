@@ -2,6 +2,8 @@
 import React from "react";
 import Sidebar from "../../components/Sidebar";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { BellIcon } from "@heroicons/react/24/outline";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"feeds" | "metrics">("metrics");

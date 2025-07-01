@@ -21,11 +21,26 @@ paths:
   /feeds/{feed_id}/reparse:
     $ref: "./paths/feeds.yaml#/~1feeds~1{feed_id}~1reparse"
 
+  /feeds/import:
+    $ref: "./paths/feeds.yaml#/~1feeds~1import"
+
+  /feeds/export:
+    $ref: "./paths/feeds.yaml#/~1feeds~1export"
+
+  /feeds/bulk-update:
+    $ref: "./paths/feeds.yaml#/~1feeds~1bulk-update"
+
+  /feeds/bulk-delete:
+    $ref: "./paths/feeds.yaml#/~1feeds~1bulk-delete"
+
   /channels:
     $ref: "./paths/channels.yaml#/~1channels"
 
   /channels/{id}:
     $ref: "./paths/channels.yaml#/~1channels~1{id}"
+
+  /channels/export:
+    $ref: "./paths/channels.yaml#/~1channels~1export"
 
   /categories:
     $ref: "./paths/categories.yaml#/~1categories"
@@ -33,19 +48,38 @@ paths:
   /mediums:
     $ref: "./paths/mediums.yaml#/~1mediums"
 
-
-
   /stats/channels:
     $ref: "./paths/stats.yaml#/~1stats~1channels"
 
+  /stats/channels/{id}:
+    $ref: "./paths/stats.yaml#/~1stats~1channels~1{id}"
+
+  /stats/channels/{id}/events:
+    $ref: "./paths/stats.yaml#/~1stats~1channels~1{id}~1events"
+
+  /stats/channels/export:
+    $ref: "./paths/stats.yaml#/~1stats~1channels~1export"
+
   /stats/items:
     $ref: "./paths/stats.yaml#/~1stats~1items"
+
+  /stats/items/{id}:
+    $ref: "./paths/stats.yaml#/~1stats~1items~1{id}"
+
+  /stats/items/{id}/events:
+    $ref: "./paths/stats.yaml#/~1stats~1items~1{id}~1events"
+
+  /stats/items/export:
+    $ref: "./paths/stats.yaml#/~1stats~1items~1export"
 
   /items:
     $ref: "./paths/items.yaml#/~1items"
 
   /items/{id}:
     $ref: "./paths/items.yaml#/~1items~1{id}"
+
+  /items/export:
+    $ref: "./paths/items.yaml#/~1items~1export"
 
 components:
   securitySchemes:

@@ -17,3 +17,4 @@ def test_db():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # http://localhost:8000/test-db as a sanity check to ensure the database connection is working
+

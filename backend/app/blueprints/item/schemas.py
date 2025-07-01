@@ -30,4 +30,3 @@ class StatsTrackEventItemSchema(ma.SQLAlchemyAutoSchema):
         
 stats_track_event_item_schema = StatsTrackEventItemSchema()
 stats_track_event_items_schema = StatsTrackEventItemSchema(many=True)
-

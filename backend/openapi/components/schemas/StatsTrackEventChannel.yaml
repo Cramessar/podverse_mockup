@@ -1,29 +1,48 @@
 type: object
+required:
+  - id
+  - channel_id
+  - event_type
+  - created_at
 properties:
   id:
     type: integer
-    description: Unique identifier for the channel tracking event
-    example: 1
-  
-  account_guid:
-    type: string
-    maxLength: 15
-    description: Account GUID that triggered the event
-    example: "abc123def456"
-  
+    description: Unique identifier for the event
+    example: 1001
+
   channel_id:
     type: integer
-    description: Foreign key reference to channel table
-    example: 123
-  
+    description: ID of the channel this event is associated with
+    example: 201
+
+  account_guid:
+    type: string
+    format: uuid
+    nullable: true
+    description: GUID of the account that triggered the event (if authenticated)
+    example: "1e8f3d7c-7fc0-4b70-90e1-991ed05bc4c4"
+
+  event_type:
+    type: string
+    enum:
+      - listen
+      - view
+      - share
+      - follow
+      - unfollow
+    description: Type of event that occurred
+    example: "listen"
+
   created_at:
     type: string
     format: date-time
-    description: Timestamp when the event was tracked
-    example: "2024-01-01T10:00:00Z"
+    description: Timestamp when the event occurred
+    example: "2024-01-15T10:30:00Z"
 
-required:
-  - id
-  - account_guid
-  - channel_id
-  - created_at 
+  metadata:
+    type: object
+    description: Additional metadata about the event (implementation specific)
+    additionalProperties: true
+    example:
+      duration: 300
+      source: "web_player" 
