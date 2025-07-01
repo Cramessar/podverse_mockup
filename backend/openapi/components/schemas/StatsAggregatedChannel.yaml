@@ -1,4 +1,7 @@
 type: object
+required:
+  - id
+  - channel_id
 properties:
   id:
     type: integer
@@ -14,53 +17,106 @@ properties:
     type: integer
     description: Current day's aggregated count
     example: 150
+    default: 0
   
-  day_last_count:
+  day_1_count:
     type: integer
-    description: Previous day's aggregated count
+    description: Previous day's count
     example: 120
+    default: 0
+  
+  day_2_count:
+    type: integer
+    description: Count from 2 days ago
+    example: 110
+    default: 0
+  
+  day_3_count:
+    type: integer
+    description: Count from 3 days ago
+    example: 95
+    default: 0
+  
+  day_4_count:
+    type: integer
+    description: Count from 4 days ago
+    example: 105
+    default: 0
+  
+  day_5_count:
+    type: integer
+    description: Count from 5 days ago
+    example: 115
+    default: 0
+  
+  day_6_count:
+    type: integer
+    description: Count from 6 days ago
+    example: 125
+    default: 0
+  
+  day_7_count:
+    type: integer
+    description: Count from 7 days ago
+    example: 130
+    default: 0
+  
+  day_8_count:
+    type: integer
+    description: Count from 8 days ago
+    example: 140
+    default: 0
   
   week_current_count:
     type: integer
     description: Current week's aggregated count
     example: 800
+    default: 0
   
-  week_last_count:
+  week_1_count:
     type: integer
-    description: Previous week's aggregated count
+    description: Previous week's count
     example: 750
+    default: 0
+  
+  week_2_count:
+    type: integer
+    description: Count from 2 weeks ago
+    example: 720
+    default: 0
+  
+  week_3_count:
+    type: integer
+    description: Count from 3 weeks ago
+    example: 680
+    default: 0
+  
+  week_4_count:
+    type: integer
+    description: Count from 4 weeks ago
+    example: 650
+    default: 0
   
   month_current_count:
     type: integer
     description: Current month's aggregated count
     example: 3200
+    default: 0
   
-  month_last_count:
+  month_1_count:
     type: integer
-    description: Previous month's aggregated count
+    description: Previous month's count
     example: 2800
-  
-  year_current_count:
-    type: integer
-    description: Current year's aggregated count
-    example: 35000
-  
-  year_last_count:
-    type: integer
-    description: Previous year's aggregated count
-    example: 28000
+    default: 0
   
   all_time_count:
     type: integer
     description: All-time aggregated count
     example: 125000
+    default: 0
   
   updated_at:
     type: string
     format: date-time
     description: Timestamp of last update
-    example: "2024-01-01T10:00:00Z"
-
-required:
-  - id
-  - channel_id 
+    example: "2024-01-01T10:00:00Z" 

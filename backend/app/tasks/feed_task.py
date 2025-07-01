@@ -9,3 +9,10 @@ def fetch_feed(feed_id):
     # TODO: call parse_rss_feed(feed.url) 
     # TODO: update feed and items in database
     pass
+
+
+# Where to use Celery
+# In a task module, e.g. tasks.py
+# For /feeds/{id}/reparse, call trigger_reparse.delay(feed_id)
+# Task sets is_parsing = True, calls feedparser, logs result, resets is_parsing
+

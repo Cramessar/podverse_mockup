@@ -1,5 +1,9 @@
 from flask import request, jsonify
 from app.blueprints.stats import stats_bp
+from app.utils.logger import get_logger, log_request
+from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseError
+
+logger = get_logger(__name__)
 
 @stats_bp.route('/channels', methods=['GET'])
 def list_channel_stats():
@@ -8,6 +12,8 @@ def list_channel_stats():
     GET /stats/channels
     """
     try:
+        log_request(logger, 'GET', '/stats/channels')
+        
         # TODO: Implement channel stats from database
         # Primary tables: channel, stats_aggregated_channel - burada channel_id ile stats_aggregated_channel'ı join edecem
         # Supports filtering by time window and search
@@ -21,11 +27,12 @@ def list_channel_stats():
             }
         }), 200
         
+    except ValidationError as e:
+        logger.warning(f"Validation error in list_channel_stats: {str(e)}")
+        raise
     except Exception as e:
-        return jsonify({
-            'error': 'Failed to retrieve channel statistics',
-            'message': str(e)
-        }), 500
+        logger.error(f"Unexpected error in list_channel_stats: {str(e)}")
+        raise DatabaseError("Failed to retrieve channel statistics")
 
 
 @stats_bp.route('/channels/<int:channel_id>', methods=['GET'])
@@ -35,6 +42,8 @@ def get_channel_stats_detail(channel_id):
     GET /stats/channels/{id}
     """
     try:
+        log_request(logger, 'GET', f'/stats/channels/{channel_id}')
+        
         # TODO: Implement channel detail stats from database
         # Primary tables: channel, stats_aggregated_channel
         
@@ -49,11 +58,12 @@ def get_channel_stats_detail(channel_id):
             'end': end
         }), 200
         
+    except ValidationError as e:
+        logger.warning(f"Validation error in get_channel_stats_detail: {str(e)}")
+        raise
     except Exception as e:
-        return jsonify({
-            'error': f'Failed to retrieve channel {channel_id} statistics',
-            'message': str(e)
-        }), 500
+        logger.error(f"Unexpected error in get_channel_stats_detail: {str(e)}")
+        raise DatabaseError("Failed to retrieve channel statistics")
 
 
 @stats_bp.route('/items', methods=['GET'])
@@ -63,6 +73,8 @@ def list_item_stats():
     GET /stats/items
     """
     try:
+        log_request(logger, 'GET', '/stats/items')
+        
         # TODO: Implement item stats from database
         # Primary tables: item, stats_aggregated_item
         # Supports filtering by time window and search
@@ -76,11 +88,12 @@ def list_item_stats():
             }
         }), 200
         
+    except ValidationError as e:
+        logger.warning(f"Validation error in list_item_stats: {str(e)}")
+        raise
     except Exception as e:
-        return jsonify({
-            'error': 'Failed to retrieve item statistics',
-            'message': str(e)
-        }), 500
+        logger.error(f"Unexpected error in list_item_stats: {str(e)}")
+        raise DatabaseError("Failed to retrieve item statistics")
 
 
 @stats_bp.route('/items/<int:item_id>', methods=['GET'])
@@ -90,6 +103,8 @@ def get_item_stats_detail(item_id):
     GET /stats/items/{id}
     """
     try:
+        log_request(logger, 'GET', f'/stats/items/{item_id}')
+        
         # TODO: Implement item detail stats from database
         # Primary tables: item, stats_aggregated_item, stats_track_event_item
         
@@ -104,8 +119,9 @@ def get_item_stats_detail(item_id):
             'end': end
         }), 200
         
+    except ValidationError as e:
+        logger.warning(f"Validation error in get_item_stats_detail: {str(e)}")
+        raise
     except Exception as e:
-        return jsonify({
-            'error': f'Failed to retrieve item {item_id} statistics',
-            'message': str(e)
-        }), 500 
+        logger.error(f"Unexpected error in get_item_stats_detail: {str(e)}")
+        raise DatabaseError("Failed to retrieve item statistics") 

@@ -1,0 +1,42 @@
+type: object
+description: Schema for tracking item-level events
+required:
+  - id
+  - account_guid
+  - item_id
+  - created_at
+  - event_type
+properties:
+  id:
+    type: integer
+    description: Unique identifier for the event
+    example: 1
+  account_guid:
+    type: string
+    format: uuid
+    description: UUID of the account that triggered the event
+    example: "123e4567-e89b-12d3-a456-426614174000"
+  item_id:
+    type: integer
+    description: ID of the item this event is for
+    example: 42
+  created_at:
+    type: string
+    format: date-time
+    description: When the event occurred
+    example: "2024-01-15T10:30:00Z"
+  event_type:
+    type: string
+    enum:
+      - listen
+      - view
+      - share
+      - download
+      - favorite
+      - unfavorite
+    description: Type of event
+    example: "listen"
+  metadata:
+    type: object
+    description: Additional metadata about the event (implementation specific)
+    additionalProperties: true 

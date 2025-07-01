@@ -14,14 +14,13 @@ class DevelopmentConfig(BaseConfig):
     )
     DEBUG = True
 
-
 class TestingConfig(BaseConfig):
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "TEST_DATABASE_URL",
         "postgresql://podverse_admin:testest@database:5432/podverse_db"
     )
     TESTING = True
-
+    DEBUG = True
 
 class ProductionConfig(BaseConfig):
     SQLALCHEMY_DATABASE_URI = os.getenv(

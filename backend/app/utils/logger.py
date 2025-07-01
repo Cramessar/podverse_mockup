@@ -1,7 +1,9 @@
+# app/utils/logger.py
+
 import logging
-import os
 import json
-from flask import request
+import time
+from flask import request, g
 
 def get_logger(name):
     """
@@ -32,6 +34,64 @@ def get_logger(name):
         logger.setLevel(logging.INFO)
     
     return logger
+
+def log_request_start(logger):
+    """
+    Log incoming request details and start timer
+    
+    Args:
+        logger: Logger instance
+    """
+    g.start_time = time.time()
+    
+    # Log the incoming request
+    endpoint = request.endpoint or request.path
+    logger.info(f"REQUEST START: {request.method} {request.path}")
+    
+    # Log security-relevant headers
+    user_agent = request.headers.get('User-Agent', 'Unknown')
+    ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
+    logger.info(f"REQUEST INFO: IP={ip}, User-Agent={user_agent[:100]}")
+    
+    # Check for potential security issues
+    if len(request.path) > 1000:
+        log_security_event(logger, 'SUSPICIOUS_REQUEST', details=f'Very long path: {len(request.path)} chars')
+    
+    # Log authentication header presence (without revealing token details)
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        logger.info(f"REQUEST AUTH: Authorization header present")
+    else:
+        logger.info(f"REQUEST AUTH: No authorization header")
+
+def log_request_end(logger, response):
+    """
+    Log response details and completion time
+    
+    Args:
+        logger: Logger instance
+        response: Flask response object
+    
+    Returns:
+        The response object (for chaining)
+    """
+    total_time = time.time() - g.start_time if hasattr(g, 'start_time') else 0
+    
+    logger.info(f"RESPONSE: {request.method} {request.path} - {response.status_code} - {total_time:.3f}s")
+    
+    # Log error responses
+    if response.status_code >= 400:
+        logger.warning(f"ERROR RESPONSE: {request.method} {request.path} - {response.status_code}")
+        
+    # Log security events for suspicious status codes
+    if response.status_code in [401, 403]:
+        log_security_event(logger, 'ACCESS_DENIED', 
+                         details=f'{request.method} {request.path} returned {response.status_code}')
+    elif response.status_code == 429:
+        log_security_event(logger, 'RATE_LIMIT_HIT', 
+                         details=f'{request.method} {request.path}')
+    
+    return response
 
 def log_request(logger, method, endpoint, status_code=None, include_payload=False):
     """
