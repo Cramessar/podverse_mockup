@@ -30,3 +30,8 @@ class DatabaseError(APIException):
     """Exception raised for database-related errors."""
     status_code = 500
     message = "Database Error"
+
+class DuplicateFeedError(APIException):
+    """Exception raised when attempting to create a duplicate feed."""
+    status_code = 409
+    message = "Feed already exists"
