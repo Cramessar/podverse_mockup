@@ -5,6 +5,8 @@
       Returns a paginated list of RSS feeds including each feed's URL, status, and associated metadata.
       Supports optional search, limit, and offset parameters for pagination and filtering.
       Data is sourced from the `feed` table, joined with `feed_flag_status` for human-readable status labels.
+      
+      **Enhanced Search**: Search across feed ID (exact match), feed URL (partial), and channel title (partial).
     tags:
       - Feeds
     security:
@@ -12,6 +14,7 @@
     parameters:
       - $ref: "../components/parameters/query/limit.yaml"
       - $ref: "../components/parameters/query/offset.yaml"
+      - $ref: "../components/parameters/query/search.yaml"
     responses:
       '200':
         description: List of feeds returned
@@ -190,12 +193,7 @@
           enum: [active, inactive, error, all]
           default: all
         description: Filter feeds by status
-      - name: search
-        in: query
-        required: false
-        schema:
-          type: string
-        description: Search term to filter feeds by URL or metadata
+      - $ref: "../components/parameters/query/search.yaml"
     responses:
       '200':
         description: Feed data exported successfully

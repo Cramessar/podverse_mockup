@@ -3,6 +3,7 @@
 #NOT: Refactor into classes only if logic grows more complex for now stand alonw functions are already modular since it's in the same file
 
 from app.models.feed import Feed, FeedFlagStatus
+from app.models.channel import Channel
 from app.blueprints.feed.reparse_helpers import reparse_feed_url, handle_bozo_parse_error, create_or_update_channel, insert_items, create_successful_feed_log, get_flag_status_id
 from app.extensions import db
 from app.utils.logger import get_logger, log_database_operation, log_network_event, log_error
@@ -11,6 +12,7 @@ from app.utils.error_exceptions import NotFoundError, ValidationError, DatabaseE
 from datetime import datetime
 import xml.etree.ElementTree as ET
 from flask import current_app
+from sqlalchemy import or_
 
 logger = get_logger(__name__)
 
@@ -145,8 +147,8 @@ def get_all_feeds(page=1, limit=10, parsing_priority=None, is_parsing=None, stat
     Get all feeds with pagination and return structured response
     """
     try:
-        # Create base query
-        query = db.session.query(Feed).join(FeedFlagStatus).order_by(Feed.id.desc())
+        # Create base query with left join to Channel for title search
+        query = db.session.query(Feed).join(FeedFlagStatus).outerjoin(Channel).order_by(Feed.id.desc())
         log_database_operation(logger, "READ", "feeds", f"page_{page}_limit_{limit}")
              
         if status:
@@ -164,8 +166,22 @@ def get_all_feeds(page=1, limit=10, parsing_priority=None, is_parsing=None, stat
             logger.info(f"Filtering feeds by is_parsing: {is_parsing}")
             
         if search:
-            query = query.filter(Feed.url.ilike(f"%{search}%"))
-            logger.info(f"Filtering feeds by search term: {search}")
+            # Enhanced search: ID (exact), URL (partial), or Channel title (partial)
+            search_conditions = []
+            
+            try:
+                search_id = int(search)
+                search_conditions.append(Feed.id == search_id)
+            except ValueError:
+                pass  # Not a valid integer, skip ID search
+            
+            # Always add URL and channel title searches
+            search_conditions.append(Feed.url.ilike(f"%{search}%"))
+            search_conditions.append(Channel.title.ilike(f"%{search}%"))
+            
+            # Combine with OR
+            query = query.filter(or_(*search_conditions))
+            logger.info(f"Filtering feeds by search term (ID/URL/title): {search}")
             
         # Safe dynamic sorting
         query = apply_sorting(query, Feed, sort_by, sort_order)
@@ -291,7 +307,7 @@ def get_feeds_for_export(search=None, sort_by='id', sort_order='asc', max_rows=1
     No pagination, but limited to max_rows for performance.
     
     Args:
-        search: Optional search term to filter by URL
+        search: Optional search term to filter by ID (exact), URL (partial), or channel title (partial)
         sort_by: Field to sort by (default: 'id')
         sort_order: Sort order (default: 'asc')
         max_rows: Maximum number of rows to export (default: 10000)
@@ -300,12 +316,28 @@ def get_feeds_for_export(search=None, sort_by='id', sort_order='asc', max_rows=1
         List of Feed objects
     """
     try:
-        query = db.session.query(Feed).join(FeedFlagStatus)
+        # Add left join to Channel for title search
+        query = db.session.query(Feed).join(FeedFlagStatus).outerjoin(Channel)
         log_database_operation(logger, "READ", "feeds", f"export_max_{max_rows}")
         
         if search:
-            query = query.filter(Feed.url.ilike(f"%{search}%"))
-            logger.info(f"Applying search filter for export: {search}")
+            # Enhanced search: ID (exact), URL (partial), or Channel title (partial)
+            search_conditions = []
+            
+            # Try to parse as integer for ID search
+            try:
+                search_id = int(search)
+                search_conditions.append(Feed.id == search_id)
+            except ValueError:
+                pass  # Not a valid integer, skip ID search
+            
+            # Always add URL and channel title searches
+            search_conditions.append(Feed.url.ilike(f"%{search}%"))
+            search_conditions.append(Channel.title.ilike(f"%{search}%"))
+            
+            # Combine with OR
+            query = query.filter(or_(*search_conditions))
+            logger.info(f"Applying enhanced search filter for export (ID/URL/title): {search}")
         
         query = apply_sorting(query, Feed, sort_by, sort_order)
         logger.info(f"Export query with sort: {sort_by} {sort_order}")
