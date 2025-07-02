@@ -28,7 +28,11 @@ const navLinks = [
     label: "Notifications",
     icon: <BellIcon className="w-6 h-6" />,
   },
-  { href: "/profile", label: "Profile", icon: <UserIcon className="w-6 h-6" /> },
+  {
+    href: "/profile",
+    label: "Profile",
+    icon: <UserIcon className="w-6 h-6" />,
+  },
   {
     href: "/theme",
     label: "Theme Editor",
@@ -38,6 +42,11 @@ const navLinks = [
     href: "/channels",
     label: "Channels",
     icon: <RssIcon className="w-6 h-6" />,
+  },
+  {
+    href: "/reports",
+    label: "Reports",
+    icon: <ChartBarIcon className="w-6 h-6" />, // You can change this to a different icon if desired
   },
 ];
 
