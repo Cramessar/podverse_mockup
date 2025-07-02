@@ -3,7 +3,7 @@
 from flask import request
 from werkzeug.datastructures import FileStorage
 from app.blueprints.feed.services import parse_and_update_feed, get_all_feeds, import_feeds_from_opml, get_feed_by_id, create_single_feed, get_feeds_for_export, bulk_update_feeds, bulk_reparse_feeds
-from app.blueprints.feed.schemas import feeds_schema, feed_schema, feeds_export_schema
+from app.blueprints.feed.schemas import feeds_schema, feed_schema, feeds_export_schema, feed_export_schema
 from app.utils.query_params import get_pagination_params, get_sorting_params, get_search_query
 from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseError
 from app.utils.logger import get_logger, log_database_operation
@@ -239,7 +239,7 @@ def export_single_feed_controller(feed_id: int):
             raise NotFoundError("Feed not found")
 
         # Serialize single feed for export
-        export_data = [feeds_export_schema.dump(feed)]
+        export_data = [feed_export_schema.dump(feed)]
 
         # Generate filename
         filename = f"feed_{feed_id}_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
