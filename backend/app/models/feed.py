@@ -51,6 +51,6 @@ class FeedLog(Base):
     last_good_http_status_time: Mapped[Optional[DateTime]] = mapped_column(DateTime)
     last_finished_parse_time: Mapped[Optional[DateTime]] = mapped_column(DateTime)
     parse_errors: Mapped[Optional[int]] = mapped_column(db.Integer, default=0)
-    message: Mapped[Optional[str]] = mapped_column(String(512)) 
+    message: Mapped[Optional[str]] = mapped_column(String(512))
 
     feed = relationship("Feed", back_populates="logs")

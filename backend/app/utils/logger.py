@@ -29,7 +29,6 @@ def get_logger(name):
         )
         console_handler.setFormatter(formatter)
         
-        # Add handler to logger
         logger.addHandler(console_handler)
         logger.setLevel(logging.INFO)
     
@@ -45,7 +44,6 @@ def log_request_start(logger):
     g.start_time = time.time()
     
     # Log the incoming request
-    endpoint = request.endpoint or request.path
     logger.info(f"REQUEST START: {request.method} {request.path}")
     
     # Log security-relevant headers
@@ -208,3 +206,14 @@ def log_network_event(logger, event_type, details=None):
             log_msg += f" - IP: {ip}"
     
     logger.warning(log_msg)
+    
+def log_error(context: str, error: Exception):
+    """
+    Helper function to log errors in consistent format with context and exception details across the codebase
+    
+    Args:
+        context: Context of the error
+        error: Exception object
+    """
+    logger = get_logger(context)
+    logger.error(f"[ERROR] {context}: {str(error)}", exc_info=True)
