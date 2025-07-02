@@ -1,11 +1,13 @@
 # backend/app/blueprints/stats/services.py
 from typing import List, Optional, Dict, Any
 from sqlalchemy import asc, desc, func
+from sqlalchemy.orm import joinedload
 from datetime import datetime
 from app.models.stats import StatsAggregatedChannel, StatsAggregatedItem, StatsTrackEventChannel, StatsTrackEventItem
 from app.models.channel import Channel
+from app.blueprints.stats.schemas import channel_details_schema, channel_daily_stats_only_schema, channel_weekly_stats_only_schema, stats_channel_schema_many
 from app.extensions import db
-from app.utils.error_exceptions import NotFoundError, DatabaseError
+from app.utils.error_exceptions import NotFoundError, DatabaseError, ValidationError
 from app.utils.logger import get_logger, log_database_operation
 
 logger = get_logger(__name__)
@@ -53,8 +55,7 @@ class StatsService:
     """Service layer for statistics operations"""
     
     @staticmethod
-    def get_channel_stats(time_filter: str = 'monthly', limit: int = 20, 
-                         offset: int = 0, search: str = '') -> Dict[str, Any]:
+    def get_channel_stats(filters: Dict[str, Any]) -> Dict[str, Any]:
         """
         Retrieve aggregated channel statistics
         Primary tables: channel, stats_aggregated_channel
@@ -63,42 +64,52 @@ class StatsService:
         # Sort by highest monthly count (month_current_count DESC)
         # Support filtering by time window and search
         
-        time_column_map = {
-            'monthly': StatsAggregatedChannel.month_current_count,
-            'weekly': StatsAggregatedChannel.week_current_count,
-            'daily': StatsAggregatedChannel.day_current_count,
-            'all': StatsAggregatedChannel.all_time_count,
-        }
-
-        sort_column = time_column_map(time_filter, StatsAggregatedChannel.month_current_count)
-    
         try:
-            query = (
-                db.session.query(
-                    Channel.id.label("channel_id"),
-                    Channel.title,
-                    StatsAggregatedChannel.month_current_count,
-                    StatsAggregatedChannel.week_current_count,
-                    StatsAggregatedChannel.day_current_count,
-                    StatsAggregatedChannel.all_time_count,
-                )
-                .join(StatsAggregatedChannel, Channel.id == StatsAggregatedChannel.channel_id)
-                .filter(Channel.title.ilike(f"%{search}%"))
-                .order_by(desc(sort_column))
-                .limit(limit)
-                .offset(offset)
-            )
+            query = db.session.query(StatsAggregatedChannel)
 
-            log_database_operation(logger, "READ", "channels and stats_aggregated_channel", f"{search}")
+            #Apply filters
+            if filters.get("channel_id"):
+                query = query.filter(StatsAggregatedChannel.channel_id == filters["channel_id"])
 
-            results = query.all()
+            if filters.get("channel_ids"):
+                query = query.filter(StatsAggregatedChannel.channel_id.in_(filters["channel_ids"]))
+
+            if filters.get("search"):
+                query = query.join(Channel).filter(Channel.title.ilike(f"%{filters['search']}%"))
+
+            # Sorting the data
+            sort_field = getattr(StatsAggregatedChannel, filters.get("sort_by", "channel_id"))
+            sort_column = desc(sort_field) if filters.get("sort_order") == "desc" else sort_field
+            query = query.order_by(sort_column)
+
+            # Pagination for returned data
+            page = filters.get("page", 1)
+            per_page = filters.get("per_page", 20)
+            pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
+
+            # Setup View type for time based statistics
+            view = filters.get("view", "monthly")
+            if view == "daily":
+                schema = channel_daily_stats_only_schema
+            elif view == "weekly":
+                schema = channel_weekly_stats_only_schema
+            elif view in ["monthly", "all_time"]:
+                schema = stats_channel_schema_many
+            else:
+                raise ValidationError(f"Unsupported view: {view}")
+                
+
+            log_database_operation(logger, "READ", "channels and stats_aggregated_channel", f"{filters}")
+
+            data = schema.dump(pagination.items, many=True)
 
             return {
-                "results": [dict(row._asdict()) for row in results],
-                "limit": limit,
-                "offset": offset,
-                "time_filter": time_filter,
-                "search": search,
+                "results": data,
+                "page" : page,
+                "per_page": per_page,
+                "total": pagination.total,
+                "view": view,
             }
 
         except Exception as e:
@@ -117,22 +128,15 @@ class StatsService:
         
         try:
             # Fetch Channel info and stats
-            result = (
-                db.session.query(
-                    Channel.id.label("channel_id"),
-                    Channel.title,
-                    StatsAggregatedChannel.month_current_count,
-                    StatsAggregatedChannel.week_current_count,
-                    StatsAggregatedChannel.day_current_count,
-                    StatsAggregatedChannel.all_time_count,
-                )
-                .join(StatsAggregatedChannel, Channel.id == StatsAggregatedChannel.channel_id)
+            channel = (
+                db.session.query(Channel)
+                .options(joinedload(Channel.stats))
                 .filter(Channel.id == channel_id)
                 .first()
             )
 
-            if not result:
-                raise DatabaseError(f"Channel with id {channel_id} not found")
+            if not channel:
+                raise NotFoundError(f"Channel with id {channel_id} not found")
 
             # Count the raw events in the given range
             event_query = db.session.query(func.count(StatsTrackEventChannel.id)).filter(
@@ -145,25 +149,16 @@ class StatsService:
                 event_query = event_query.filter(StatsTrackEventChannel.created_at <= end)
 
             event_count = event_query.scalar()
+            setattr(channel, 'raw_event_count', event_count)
 
             log_database_operation(
                 logger,
                 "READ",
-                "channels and stats_aggregated_channel",
+                "channel + stats_aggregated_channel + stats_tracks_event_channel",
                 f"channel_id={channel_id} start={start or 'none'} end={end or 'none'}"
             )
 
-            return {
-                "channel_id": result.channel_id,
-                "title": result.title,
-                "month_current_count": result.month_current_count,
-                "week_current_count": result.week_current_count,
-                "day_current_count": result.day_current_count,
-                "all_time_count": result.all_time_count,
-                "event_count_in_range": event_count,
-                "start": start,
-                "end": end,
-            }
+            return channel_details_schema.dump(channel)
 
         except Exception as e:
             logger.error(f"Error retrieving detailed stats for channel {channel_id}: {str(e)}")

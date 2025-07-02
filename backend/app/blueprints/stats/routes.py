@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import request, jsonify
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func, desc
@@ -8,6 +9,7 @@ from app.models.item import Item
 from app.models.stats import StatsAggregatedChannel, StatsAggregatedItem
 from app.utils.logger import get_logger, log_request
 from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseError
+from app.blueprints.stats.services import StatsService
 from app.blueprints.stats.schemas import (
     stats_channel_schema,
     stats_item_schema,
@@ -23,43 +25,20 @@ logger = get_logger(__name__)
 def list_channel_stats():
     try:
         log_request(logger, 'GET', '/stats/channels')
+        
+        # Validate and load the query parameters into a filters dict
         filters = channel_stats_filter_schema.load(request.args)
 
-        query = db.session.query(StatsAggregatedChannel)
-
-        # Filtering logic
-        if filters.get("channel_id"):
-            query = query.filter(StatsAggregatedChannel.channel_id == filters["channel_id"])
-
-        if filters.get("channel_ids"):
-            query = query.filter(StatsAggregatedChannel.channel_id.in_(filters["channel_ids"]))
-
-        # Sorting
-        sort_by = getattr(StatsAggregatedChannel, filters["sort_by"], StatsAggregatedChannel.channel_id)
-        sort_order = desc(sort_by) if filters["sort_order"] == "desc" else sort_by
-        query = query.order_by(sort_order)
-
-        # Pagination
-        page = filters["page"]
-        per_page = filters["per_page"]
-        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-
-        view = filters["view"]
-        if view == "details":
-            data = channel_details_schema.dump(pagination.items, many=True)
-        elif view == "daily":
-            data = channel_daily_stats_only_schema.dump(pagination.items, many=True)
-        elif view == "weekly":
-            data = channel_weekly_stats_only_schema.dump(pagination.items, many=True)
-        else:
-            data = stats_channel_schema.dump(pagination.items, many=True)
+        # Pass the filters directly into the channel_stats service
+        data = StatsService.get_channel_stats(filters)
 
         return jsonify({
-            "data": data,
+            "data": data["results"],
             "meta": {
-                "page": page,
-                "per_page": per_page,
-                "total": pagination.total
+                "page": data["page"],
+                "per_page": data["per_page"],
+                "total": data["total"],
+                "view": data["view"]
             }
         }), 200
 
@@ -75,16 +54,22 @@ def list_channel_stats():
 def get_channel_stats_detail(channel_id):
     try:
         log_request(logger, 'GET', f'/stats/channels/{channel_id}')
+        
+        # Optional Date Filters
+        start = request.args.get('start')
+        end = request.args.get('end')
+
+        start_date = datetime.fromisoformat(start) if start else None
+        end_date = datetime.fromisoformat(end) if end else None
+
+        data = StatsService.get_channel_stats_detail(channel_id, start_date, end_date)
         channel = db.session.query(Channel).options(joinedload(Channel.stats)).filter(Channel.id == channel_id).first()
-        if not channel:
-            raise NotFoundError("Channel not found")
-
-        data = channel_details_schema.dump(channel)
-
+        
         return jsonify({
             "data": data
         }), 200
-
+    except NotFoundError:
+        raise
     except ValidationError as e:
         logger.warning(f"Validation error in get_channel_stats_detail: {str(e)}")
         raise
