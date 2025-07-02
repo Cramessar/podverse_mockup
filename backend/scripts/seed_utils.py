@@ -1,6 +1,7 @@
+# backend/scripts/seed_utils.py
 from datetime import datetime, timedelta
 import random
-import uuid
+from uuid import uuid4
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
