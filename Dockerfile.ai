@@ -1,0 +1,22 @@
+# Dockerfile.ai
+
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy and install requirements
+COPY ai/backend/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the actual backend code
+COPY ai/backend/ ./
+
+# Ensure the default port is exposed
+EXPOSE 5050
+
+# Set environment variables explicitly (optional but helpful)
+ENV PYTHONUNBUFFERED=1
+
+# Run the Flask app
+CMD ["python", "app.py"]
