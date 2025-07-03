@@ -121,7 +121,9 @@ DATABASE_URL=postgresql://podverse_admin:testest@database:5432/podverse_db
 OLLAMA_MODEL_PATH=C:/Users/chris/.ollama
 ```
 
-![Look for this icon](ollama_icon.png) in the bottom right of your screen. Should make sense.🦙
+![Look for this icon](ollama_icon.png) 
+
+in the bottom right of your screen. Should make sense.🦙
 
 If you right click this and click on settings you will see you `Model location` and `Expose Ollama to the network`
 
