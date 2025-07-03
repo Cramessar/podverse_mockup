@@ -54,8 +54,8 @@ export default function Sidebar() {
               className={cn(
                 "px-2 py-2 rounded hover:bg-podverse-highlight transition cursor-pointer flex items-center gap-2",
                 pathname === href
-                  ? "bg-podverse-highlight text-black font-semibold"
-                  : ""
+                  ? "bg-podverse-highlight text-podverse-text font-semibold"
+                  : "text-black"
               )}
               title={label}
             >

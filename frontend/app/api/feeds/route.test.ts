@@ -11,14 +11,20 @@ jest.mock('@/lib/auth0', () => ({
 }));
 
 describe('/api/feeds API Route', () => {
-  it('GET returns all feeds', async () => {
-    const req = {} as NextRequest;
-    const res = await GET(req);
-    const json = await res.json();
-    expect(res.status).toBe(200);
-    expect(Array.isArray(json)).toBe(true);
-    expect(json[0]).toHaveProperty('title', 'Feed 1');
-  });
+it('GET returns all feeds', async () => {
+  const req = {
+    nextUrl: {
+      searchParams: {
+        toString: () => "" // or return a query string if you want to test with params
+      }
+    }
+  } as unknown as NextRequest;
+  const res = await GET(req);
+  const json = await res.json();
+  expect(res.status).toBe(200);
+  expect(Array.isArray(json)).toBe(true);
+  expect(json[0]).toHaveProperty('title', 'Feed 1');
+});
 
   it('POST creates a new feed', async () => {
     const req = {

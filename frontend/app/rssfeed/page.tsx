@@ -1,26 +1,9 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
-import { fetchFeeds, fetchFeedLogs } from "@/lib/api";
+//import { fetchFeeds, fetchFeedLogs } from "@/lib/api";
+import {Feed, FeedLog} from "@/types/feed";
 
-interface FeedLog {
-  time: string;
-  message: string;
-}
-
-interface Feed {
-  id: number;
-  url: string;
-  feed_flag_status_id: number;
-  is_parsing: boolean;
-  parsing_priority: number;
-  last_parsed_file_hash: string;
-  container_id: string;
-  created_at: string;
-  updated_at: string;
-  logs?: FeedLog[];
-}
 
 export default function AdminFeedsPage() {
   const [feeds, setFeeds] = useState<Feed[]>([]);
@@ -28,18 +11,22 @@ export default function AdminFeedsPage() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [error, setError] = useState<string>("");
 
+  //updated with new API
   useEffect(() => {
-    const loadFeeds = async () => {
-      try {
-        const response = await fetchFeeds();
-        setFeeds(response.data);
-      } catch (err: any) {
-        setError("Failed to load feeds");
-        console.error(err);
-      }
-    };
-    loadFeeds();
-  }, []);
+  const loadFeeds = async () => {
+    try {
+      const response = await fetch("/api/feeds");
+      if (!response.ok) throw new Error("Failed to load feeds");
+      const data = await response.json();
+      setFeeds(data); // assuming your API returns an array of feeds
+    } catch (err: any) {
+      setError("Failed to load feeds");
+      console.error(err);
+    }
+  };
+  loadFeeds();
+}, []);
+
 
   const toggleExpand = async (feedId: number) => {
     if (expandedFeedId === feedId) {
@@ -50,7 +37,9 @@ export default function AdminFeedsPage() {
     const feed = feeds.find(f => f.id === feedId);
     if (feed && !feed.logs) {
       try {
-        const logRes = await fetchFeedLogs(feedId);
+        const response = await fetch(`/api/feeds/${feedId}/logs`);
+        if (!response.ok) throw new Error("Failed to fetch logs");
+        const logRes = await response.json();
 
         const parsedLogs: FeedLog[] = logRes.logs.map((log: any) => ({
           time: log.last_finished_parse_time || log.last_good_http_status_time || new Date().toISOString(),
@@ -94,7 +83,7 @@ export default function AdminFeedsPage() {
     <div className="flex min-h-screen bg-podverse-background text-podverse-text">
       <Sidebar />
       <div className="flex-1 p-6">
-        <h1 className="text-2xl font-bold mb-4 text-podverse-secondary">
+        <h1 className="text-2xl font-bold mb-4 text-podverse-text">
           RSS Feed Dashboard
         </h1>
 

@@ -2,18 +2,23 @@ import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5000";
+// Use Docker Compose service name for backend URL
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
-// GET /feeds — Get all feeds
 export async function GET(req: NextRequest) {
-  const session = await auth0.getSession();
+  const query = req.nextUrl.searchParams.toString();
+  const url = `${BACKEND_URL}/admin/feeds${query ? `?${query}` : ""}`;
+  console.log("API route /api/feeds called with URL:", url);
   try {
-    const response = await axios.get(`${BACKEND_URL}/feeds`);
-    return NextResponse.json(response.data, { status: response.status });
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to fetch feeds");
+    const data = await response.json();
+    return NextResponse.json(data.data, { status: response.status });
   } catch (error: any) {
+    console.error("API route error:", error, error?.stack);
     return NextResponse.json(
       { error: error.message || "Failed to fetch feeds" },
-      { status: error.response?.status || 500 }
+      { status: 500 }
     );
   }
 }

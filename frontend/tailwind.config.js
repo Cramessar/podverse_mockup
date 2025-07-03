@@ -9,28 +9,19 @@ module.exports = {
     extend: {
       colors: {
         podverse: {
-          // 🎨 Base theme
-          background: "#0f172a",      // Dark slate / page background
-          surface: "#1e293b",         // Cards / table rows
-          border: "#334155",          // Soft border gray
-          text: "#f1f5f9",            // Off-white readable text
-          muted: "#94a3b8",           // Muted labels/subtext
+          // Original base colors
+          background: "#FFFFFF",//White
+          surface: "#E5EAF2",
+          text: "#000000", //Black
+          muted: "#A0A0A0",
+          border: "#2a2a2a",
 
-          // 🌈 Primary palette
-          primary: "#3b82f6",         // Sky Blue (e.g. buttons, links)
-          secondary: "#0ea5e9",       // Cyan (accents or secondary CTAs)
-          accent: "#6366f1",          // Indigo / purple accent
-          highlight: "#c084fc",       // Soft purple highlight
-          cream: "#fef3c7",           // Soft warm yellow cream (for cards?)
-
-          // ✅ Status colors
-          success: "#22c55e",         // Green
-          warning: "#facc15",         // Yellow
-          error: "#ef4444",           // Red
-          info: "#38bdf8",            // Light blue
-
-          // 🧪 Dev/test colors if needed
-          test: "#7dd3fc",
+          // Updated palette for podverse.fm vibe
+          primary: "#000000",      // Black
+          secondary: "#741b47",    // Burgundy
+          accent: "#0D7AB3",       // Podverse Blue
+          highlight: "#B1CAE3",    // 
+          cream: "#fae7b5",        // Soft Cream
         },
       },
       fontFamily: {
