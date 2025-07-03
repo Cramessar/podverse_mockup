@@ -61,8 +61,7 @@ services:
     ports:
       - "5050:5050"
     volumes:
-      - ./ai/backend:/app
-      - ./backend/app:/podverse_backend
+      - ./:/app
     depends_on:
       - backend
       - ai_db
@@ -70,6 +69,8 @@ services:
       FLASK_ENV: development
       BACKEND_URL: http://backend:8000
       DATABASE_URL: postgresql://ai_user:ai_pass@ai_db:5432/ai_profiles
+      PYTHONPATH: /app
+      PODVERSE_BACKEND_PATH: /app/backend/app
     networks:
       - podverse-network
 
@@ -82,10 +83,12 @@ services:
       POSTGRES_DB: ai_profiles
     volumes:
       - ai_pgdata:/var/lib/postgresql/data
+      - ./ai/db/db_init.sql:/docker-entrypoint-initdb.d/db_init.sql  
     ports:
       - "5433:5432"
     networks:
       - podverse-network
+
 
 volumes:
   pgdata:
