@@ -1,14 +1,24 @@
 # app/blueprints/channel/routes.py
 
-from flask import jsonify
+from flask import jsonify, g
 from . import channel_bp
 from app.blueprints.channel.controller import list_channels, get_channel_by_id, export_channels
 from app.utils.auth import requires_auth
-from app.utils.logger import get_logger, log_request
+from app.utils.logger import get_logger, log_request, log_request_start, log_request_end
 from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseError
 from app.extensions import limiter
 
 logger = get_logger(__name__)
+
+@channel_bp.before_request
+def before_request():
+    """Log the start of every request to channel endpoints"""
+    log_request_start(logger)
+
+@channel_bp.after_request
+def after_request(response):
+    """Log the end of every request to channel endpoints"""
+    return log_request_end(logger, response)
 
 @channel_bp.route('', methods=['GET'])
 @limiter.limit("30 per minute")

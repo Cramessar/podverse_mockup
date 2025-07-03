@@ -30,17 +30,11 @@ services:
       FLASK_APP: main.py
       FLASK_ENV: development
       DATABASE_URL: postgresql://podverse_admin:testest@database:5432/podverse_db
-      DATABASE_HOST: database
-      DATABASE_PORT: 5432
-      DATABASE_USER: podverse_admin
-      DATABASE_PASSWORD: testest
-      DATABASE_NAME: podverse_db
     env_file:
       - ./backend/.env
     volumes:
       - ./backend/scripts:/app/scripts
       - ./backend/app:/app/app
-
     depends_on:
       - database
     networks:
@@ -58,9 +52,59 @@ services:
     networks:
       - podverse-network
 
+  ai:
+    build:
+      context: .
+      dockerfile: Dockerfile.ai
+    image: podverse-ai:latest
+    container_name: podverse_ai
+    ports:
+      - "5050:5050"
+    volumes:
+      - ./:/app
+    depends_on:
+      - backend
+      - ai_db
+    environment:
+      FLASK_ENV: development
+      BACKEND_URL: http://backend:8000
+      DATABASE_URL: postgresql://ai_user:ai_pass@ai_db:5432/ai_profiles
+      PYTHONPATH: /app
+      PODVERSE_BACKEND_PATH: /app/backend/app
+    networks:
+      - podverse-network
+
+  ai_db:
+    image: postgres:15
+    container_name: podverse_ai_db
+    environment:
+      POSTGRES_USER: ai_user
+      POSTGRES_PASSWORD: ai_pass
+      POSTGRES_DB: ai_profiles
+    volumes:
+      - ai_pgdata:/var/lib/postgresql/data
+      - ./ai/db/db_init.sql:/docker-entrypoint-initdb.d/db_init.sql  
+    ports:
+      - "5433:5432"
+    networks:
+      - podverse-network
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    volumes:
+      - ${OLLAMA_MODEL_PATH:-./.ollama}:/root/.ollama  # Default fallback
+    ports:
+      - "11435:11434"
+    restart: always
+    networks:
+      - podverse-network
+
+
 
 volumes:
   pgdata:
+  ai_pgdata:
 
 networks:
   podverse-network:

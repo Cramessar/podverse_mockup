@@ -3,4 +3,10 @@ in: query
 required: false
 schema:
   type: string
-description: Search term to filter results by name or title
+description: |
+  Search term to filter results. Supports multiple search modes:
+  - **Exact ID match**: Enter a numeric ID (e.g., "123") to find a specific feed
+  - **URL partial match**: Enter part of a URL (e.g., "example.com") to find feeds containing that text
+  - **Channel title partial match**: Enter part of a channel title to find feeds with matching channel names
+  
+  Search is case-insensitive and uses OR logic across all fields.

@@ -1,4 +1,4 @@
-# app/__init__.py
+# backend/app/__init__.py
 
 from flask import Flask, request, g
 from app.extensions import ma, db, limiter, migrate
