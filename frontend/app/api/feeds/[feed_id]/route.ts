@@ -3,16 +3,19 @@ import axios from "axios";
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 // GET /feeds/:feed_id
 export async function GET(_request: Request, context: any) {
+
   const { feed_id } = context.params;
-  const session = await auth0.getSession();
+  const url = `${BACKEND_URL}/admin/feeds/${feed_id}}`;
+  console.log("API route /api/feeds/id called with URL:", url);
   try {
-    const response = await axios.get(`${BACKEND_URL}/feeds/${feed_id}`);
+    const response = await axios.get(`${BACKEND_URL}/admin/feeds/${feed_id}`);
     return NextResponse.json(response.data, { status: response.status });
   } catch (error: any) {
+    console.error("API route error:", error, error?.stack);
     return NextResponse.json(
       { error: error.message || "Failed to fetch feed" },
       { status: error.response?.status || 500 }

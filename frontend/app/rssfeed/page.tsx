@@ -1,8 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
-//import { fetchFeeds, fetchFeedLogs } from "@/lib/api";
-import {Feed, FeedLog} from "@/types/feed";
+import {Feed, FeedLog, RecentLog} from "@/types/feed";
 
 
 export default function AdminFeedsPage() {
@@ -10,6 +9,8 @@ export default function AdminFeedsPage() {
   const [expandedFeedId, setExpandedFeedId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [logLoading, setLogLoading] = useState(false);
+  const [logError, setLogError] = useState<string | null>(null);
 
   //updated with new API
   useEffect(() => {
@@ -28,44 +29,41 @@ export default function AdminFeedsPage() {
 }, []);
 
 
-  const toggleExpand = async (feedId: number) => {
-    if (expandedFeedId === feedId) {
-      setExpandedFeedId(null);
-      return;
-    }
+ const toggleExpand = async (feedId: number) => {
+  if (expandedFeedId === feedId) {
+    setExpandedFeedId(null);
+    setLogError(null);
+    return;
+  }
 
-    const feed = feeds.find(f => f.id === feedId);
-    if (feed && !feed.logs) {
-      try {
-        const response = await fetch(`/api/feeds/${feedId}/logs`);
-        if (!response.ok) throw new Error("Failed to fetch logs");
-        const logRes = await response.json();
+  setLogLoading(true);
+  setLogError(null);
 
-        const parsedLogs: FeedLog[] = logRes.logs.map((log: any) => ({
-          time: log.last_finished_parse_time || log.last_good_http_status_time || new Date().toISOString(),
-          message: `${log.message || "No message available"}${log.last_http_status ? ` (HTTP ${log.last_http_status})` : ""}`
-        }));
+  try {
+    const response = await fetch(`/api/feeds/${feedId}`);
+    if (!response.ok) throw new Error("Failed to fetch feed details");
+    const feedData = await response.json();
 
-        const updatedFeeds = feeds.map(f =>
-          f.id === feedId ? { ...f, logs: parsedLogs } : f
-        );
-        setFeeds(updatedFeeds);
-      } catch (err) {
-        console.error("Failed to fetch logs for feed", feedId);
-      }
-    }
+    const updatedFeeds = feeds.map(f =>
+      f.id === feedId ? { ...f, logs: feedData.recent_logs || [] } : f
+    );
+    setFeeds(updatedFeeds);
+  } catch (err) {
+    setLogError("FAILED to load");
+  }
 
-    setExpandedFeedId(feedId);
-  };
+  setLogLoading(false);
+  setExpandedFeedId(feedId);
+};
 
   const handleCopyLogs = (logs: FeedLog[]) => {
-    const text = logs.map((log) => `${log.time}: ${log.message}`).join("\n");
+    const text = logs.map((log) => `${log.created_at}: ${log.message}`).join("\n");
     navigator.clipboard.writeText(text);
     alert("Logs copied to clipboard!");
   };
 
   const handleDownloadLogs = (logs: FeedLog[], title: string) => {
-    const text = logs.map((log) => `${log.time}: ${log.message}`).join("\n");
+    const text = logs.map((log) => `${log.created_at}: ${log.message}`).join("\n");
     const blob = new Blob([text], { type: "text/plain" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -158,36 +156,62 @@ export default function AdminFeedsPage() {
                     </td>
                   </tr>
                   {expandedFeedId === feed.id && (
-                    <tr className="bg-podverse-surface">
-                      <td colSpan={8} className="px-6 py-3 border-t border-podverse-border">
-                        <div className="flex justify-between items-center mb-2">
-                          <h3 className="font-semibold text-sm text-podverse-text">
-                            Audit Log
-                          </h3>
-                          <div className="space-x-2">
-                            <button
-                              className="text-xs bg-podverse-surface px-2 py-1 rounded hover:bg-podverse-highlight text-podverse-accent"
-                              onClick={() => handleCopyLogs(feed.logs ?? [])}
-                            >
-                              Copy Log
-                            </button>
-                            <button
-                              className="text-xs bg-podverse-surface px-2 py-1 rounded hover:bg-podverse-highlight text-podverse-accent"
-                              onClick={() => handleDownloadLogs(feed.logs ?? [], feed.id.toString())}
-                            >
-                              Download Log
-                            </button>
-                          </div>
-                        </div>
-                        <ul className="text-xs text-podverse-muted list-disc ml-5">
-                          {(feed.logs ?? []).map((log, i) => (
-                            <li key={i}>
-                              <strong>{new Date(log.time).toLocaleString()}:</strong> {log.message}
-                            </li>
-                          ))}
-                        </ul>
-                      </td>
-                    </tr>
+  <tr className="bg-podverse-surface">
+    <td colSpan={8} className="px-6 py-3 border-t border-podverse-border">
+      <div>
+        <h3 className="font-semibold text-sm text-podverse-text mb-2">
+          Audit Log
+        </h3>
+        <div className="flex flex-col gap-2 mb-4 max-h-60 overflow-y-auto bg-gray-50 rounded p-2">
+          {logLoading ? (
+            <div className="text-podverse-muted">Loading logs...</div>
+          ) : logError ? (
+            <div className="text-red-500">{logError}</div>
+          ) : !feed.recent_logs || feed.recent_logs.length === 0 ? (
+            <div className="text-podverse-muted">No logs available</div>
+          ) : (
+            feed.recent_logs.map((log, i) => (
+              <div key={i} className="text-xs border-b border-gray-200 py-2">
+                <div>
+                  <strong>Time:</strong>{" "}
+                  {new Date(
+                    log.last_finished_parse_time ||
+                    log.last_good_http_status_time ||
+                    ""
+                  ).toLocaleString()}
+                </div>
+                <div>
+                  <strong>Status:</strong>{" "}
+                  <span className={log.parse_errors === 0 ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
+                    {log.parse_errors === 0 ? "Live" : "Error"}
+                  </span>
+                </div>
+                  <div>
+                    <strong>Message:</strong> {log.message}
+                  </div>
+              </div>
+            ))
+          )}
+        </div>
+        <div className="space-x-2">
+          <button
+            className="text-xs bg-podverse-surface px-2 py-1 rounded hover:bg-podverse-highlight text-podverse-accent"
+            onClick={() => handleCopyLogs(feed.logs ?? [])}
+            disabled={!feed.logs || feed.logs.length === 0}
+          >
+            Copy Log
+          </button>
+          <button
+            className="text-xs bg-podverse-surface px-2 py-1 rounded hover:bg-podverse-highlight text-podverse-accent"
+            onClick={() => handleDownloadLogs(feed.logs ?? [], feed.id.toString())}
+            disabled={!feed.logs || feed.logs.length === 0}
+          >
+            Download Log
+          </button>
+        </div>
+      </div>
+    </td>
+  </tr>
                   )}
                 </React.Fragment>
               ))}
