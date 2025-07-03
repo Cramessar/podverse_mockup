@@ -6,8 +6,7 @@ import os
 
 def extract_blueprint_routes():
     """Extracts blueprint routes from the Podverse backend blueprint registry."""
-    
-    # ✅ Fallback to correct backend location inside AI container
+
     base_path = os.getenv("PODVERSE_BACKEND_PATH", "/app/backend/app")
     init_file_path = Path(base_path) / "blueprints" / "__init__.py"
 
@@ -16,11 +15,20 @@ def extract_blueprint_routes():
     if not init_file_path.exists():
         raise FileNotFoundError(f"[❌] Could not find __init__.py at: {init_file_path}")
 
-    with init_file_path.open("r") as f:
+    with init_file_path.open("r", encoding="utf-8") as f:
         content = f.read()
 
-    pattern = re.compile(r'register_blueprint\((\w+),\s*url_prefix=["\'](/[\w/-]+)["\']\)')
+    # Matches: app.register_blueprint(name, url_prefix='/foo') OR app.register_blueprint(name,url_prefix="/bar")
+    pattern = re.compile(
+        r'register_blueprint\(\s*(\w+).*?url_prefix\s*=\s*[\'"](/[\w\-/]*)[\'"]',
+        re.DOTALL
+    )
+
     matches = pattern.findall(content)
+
+    # Debugging output to see raw matches
+    print(f"[🔍 DEBUG] Raw matches: {matches}")
+
 
     routes = {name: f"/admin{url}" for name, url in matches}
     print(f"[✅ ROUTES FOUND] {routes}")

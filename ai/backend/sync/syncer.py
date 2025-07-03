@@ -1,13 +1,13 @@
 # ai/backend/sync/syncer.py
 
+import os
 import requests
 from ai.backend.sync.blueprint_parser import extract_blueprint_routes
 from ai.backend.models.synced_entity import SyncedEntity
 from ai.backend.db import SessionLocal
 from sqlalchemy.exc import SQLAlchemyError
 
-BASE_BACKEND_URL = "http://backend:8000"  # Docker alias for podverse backend
-
+BASE_BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:8000")
 
 def sync_all_routes():
     routes = extract_blueprint_routes()
@@ -22,15 +22,19 @@ def sync_all_routes():
             response = requests.get(full_url)
             response.raise_for_status()
 
-            # Ensure we're working with JSON content
             content_type = response.headers.get("Content-Type", "")
             if "application/json" not in content_type:
-                print(f"[SKIP] {name} returned non-JSON content type: {content_type}")
+                print(f"[SKIP] {name} returned non-JSON content: {content_type}")
                 print(f"[RESPONSE TEXT] \n{response.text}")
                 continue
 
             data = response.json()
-            entity_type = path.rstrip("/").split("/")[-1]  # e.g., /admin/channels → "channels"
+
+
+            if isinstance(data, dict) and "data" in data:
+                data = data["data"]
+
+            entity_type = path.rstrip("/").split("/")[-1]
 
             synced = SyncedEntity(
                 route_name=name,

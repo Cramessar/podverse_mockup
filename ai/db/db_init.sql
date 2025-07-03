@@ -7,8 +7,8 @@ DROP TABLE IF EXISTS synced_entities CASCADE;
 -- Table for synced raw data from backend endpoints
 CREATE TABLE synced_entities (
     id SERIAL PRIMARY KEY,
-    route_name VARCHAR(255),                -- NEW: name like "channel_bp"
-    entity_type VARCHAR(255) NOT NULL,      -- e.g. "channels", "feeds"
+    route_name VARCHAR(255),                
+    entity_type VARCHAR(255) NOT NULL,      -- e.g. "channels", "feeds", more later
     url VARCHAR(512) NOT NULL,              -- full synced URL
     raw_data JSONB NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

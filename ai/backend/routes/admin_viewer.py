@@ -6,7 +6,12 @@ from ai.backend.db import SessionLocal
 from ai.backend.models.synced_entity import SyncedEntity
 from ai.backend.models.ai_profiles import AIChannelProfile
 
-admin_viewer_bp = Blueprint("admin_viewer", __name__, url_prefix="/admin/db-viewer")
+
+admin_viewer_bp = Blueprint("admin_viewer", __name__, url_prefix="/admin-viewer")
+
+@admin_viewer_bp.route("/something")
+def inspect_view():
+    return "Hello from Admin Viewer"
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>

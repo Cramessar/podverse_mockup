@@ -89,6 +89,18 @@ services:
     networks:
       - podverse-network
 
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    volumes:
+      - ${OLLAMA_MODEL_PATH:-./.ollama}:/root/.ollama  # Default fallback
+    ports:
+      - "11435:11434"
+    restart: always
+    networks:
+      - podverse-network
+
+
 
 volumes:
   pgdata:
