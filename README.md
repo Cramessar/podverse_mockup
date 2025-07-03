@@ -98,11 +98,13 @@ To check models:
 http://localhost:5050/ollama/models
 ```
 
-To pull a model manually (example):
+To pull a model manually, click on the model name. In the top right there should be a command like this:
 
 ```bash
-ollama pull mistral
+ollama run gemma3n
 ```
+
+Copy and paste it in command prompt. You dont have to navigate to any folder. Just open as usual and past the command. 
 
 ---
 
@@ -120,6 +122,9 @@ DATABASE_URL=postgresql://podverse_admin:testest@database:5432/podverse_db
 # Ollama Model Path. This is where ollama stores all your models by default. 
 OLLAMA_MODEL_PATH=C:/Users/chris/.ollama
 ```
+Please look at the .env.example. It will make sense eventually I promise.
+
+---
 
 ![Look for this icon](ollama_icon.png) 
 
@@ -162,6 +167,8 @@ docker volume prune
 
 ### 🔥 Nuke and rebuild everything (if all else fails):
 
+I cannot stress this enough. Too many problems will be caused by old build caches, volumes, etc. Just run these commands every few days and rebuild. 
+
 ```bash
 docker compose down -v --remove-orphans
 docker system prune -a
@@ -172,6 +179,10 @@ docker compose up --build
 ---
 
 ## 🛠️ Helpful Commands
+
+### ![Don't be a Dumbass](https://media.giphy.com/media/l2JhOVyjSHGejoXXq/giphy.gif)
+
+Just use docker desktop. It simplifies all of these tips.
 
 ### View logs for a container:
 
