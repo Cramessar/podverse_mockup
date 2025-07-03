@@ -4,6 +4,7 @@ import Sidebar from "../../components/Sidebar";
 import { useRouter } from "next/navigation";
 import { BellIcon } from "@heroicons/react/24/outline";
 import { Feed, RecentLog } from "@/types/feed";
+import FeedStatsChart from "../../components/FeedStatsChart";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchFeeds = async () => {
       try {
-        const response = await fetch("/api/feeds?limit=1000");
+        const response = await fetch("/api/feeds?limit=2000");
         if (!response.ok) throw new Error("Failed to load feeds");
         const data = await response.json();
         setFeeds(data);
@@ -63,6 +64,12 @@ export default function DashboardPage() {
   const handleLogout = () => {
     router.push("/auth/logout");
   };
+
+  // --- Stats calculations ---
+  const totalFeeds = feeds.length;
+  const flaggedFeeds = feeds.filter(f => f.feed_flag_status_id === 2 || f.feed_flag_status_id === 3).length;
+  const healthyFeeds = feeds.filter(f => f.feed_flag_status_id !== 2 && f.feed_flag_status_id !== 3).length;
+  const flaggedPercent = totalFeeds > 0 ? Math.round((flaggedFeeds / totalFeeds) * 100) : 0;
 
   return (
     <div className="flex min-h-screen bg-gray-100 text-black">
@@ -181,7 +188,8 @@ export default function DashboardPage() {
                     </span>
                   </div>
                 ))
-              )}
+                )
+              }
             </div>
           </div>
         </section>
@@ -189,28 +197,27 @@ export default function DashboardPage() {
         {/* Stats at the bottom */}
         <section className="mt-8">
           <div className="grid grid-cols-4 gap-6 mb-8">
-            {[
-              { title: "Podcasts", value: "1,250", change: "+5%" },
-              { title: "New podcasts", value: "320", change: "+10%" },
-              { title: "Views", value: "$12,500", change: "+15%" },
-              { title: "Feedback Score", value: "4.8", change: "No Change" },
-            ].map(({ title, value, change }) => (
-              <div
-                key={title}
-                className="bg-white rounded p-6 flex flex-col justify-between"
-              >
-                <p className="text-gray-500">{title}</p>
-                <h3 className="text-3xl font-semibold text-black">{value}</h3>
-                <p className="text-gray-400">{change}</p>
-              </div>
-            ))}
-          </div>
-          {/* Chart placeholder */}
-          <div className="bg-white rounded p-6 shadow-md">
-            <h3 className="text-xl font-semibold mb-4 text-black">Monthly Sales</h3>
-            <div className="h-48 bg-gray-100 flex items-center justify-center text-gray-400">
-              Chart goes here
+            <div className="bg-white rounded p-6 flex flex-col justify-between">
+              <p className="text-gray-500">Total RSS Feeds</p>
+              <h3 className="text-3xl font-semibold text-black">{totalFeeds.toLocaleString()}</h3>
             </div>
+            <div className="bg-white rounded p-6 flex flex-col justify-between">
+              <p className="text-gray-500">Healthy Feeds</p>
+              <h3 className="text-3xl font-semibold text-black">{healthyFeeds.toLocaleString()}</h3>
+            </div>
+            <div className="bg-white rounded p-6 flex flex-col justify-between">
+              <p className="text-gray-500">Flagged Feeds</p>
+              <h3 className="text-3xl font-semibold text-black">{flaggedFeeds.toLocaleString()}</h3>
+            </div>
+            <div className="bg-white rounded p-6 flex flex-col justify-between">
+              <p className="text-gray-500">Flagged %</p>
+              <h3 className="text-3xl font-semibold text-black">{flaggedPercent}%</h3>
+            </div>
+          </div>
+          {/* Pie Chart for Healthy vs Flagged Feeds */}
+          <div className="bg-white rounded p-6 shadow-md">
+            <h3 className="text-xl font-semibold mb-4 text-black">Feed Health Distribution</h3>
+            <FeedStatsChart healthy={healthyFeeds} flagged={flaggedFeeds} />
           </div>
         </section>
       </main>
