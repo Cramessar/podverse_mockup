@@ -8,6 +8,8 @@ class ItemSchema(ma.SQLAlchemyAutoSchema):
         include_relationships = False
         include_fk = True
     
+    flag_status = ma.Nested("ItemFlagStatusSchema")
+    
 item_schema = ItemSchema()
 items_schema = ItemSchema(many=True)
 
