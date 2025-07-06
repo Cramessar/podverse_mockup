@@ -6,6 +6,8 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from faker import Faker
+import uuid
+
 
 # Initialize Faker
 fake = Faker()
@@ -53,7 +55,12 @@ def random_location():
     return random.choice(countries)
 
 def unique_uuid():
-    return uuid4()
+    """Returns a proper UUID object for database storage"""
+    return uuid.uuid4()
+
+def unique_uuid_str():
+    """Returns a UUID as string for cases that need string representation"""
+    return str(uuid.uuid4())
 
 import time
 import traceback

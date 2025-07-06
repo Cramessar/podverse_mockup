@@ -29,13 +29,14 @@ def get_channels_list(search, sort_by, sort_order, page, limit):
     """
     try:
         query = db.session.query(Channel).options(*channel_eagerload_options())
-        log_database_operation(logger, "READ", "channels", f"page_{page}")
+        log_database_operation(logger, "READ", "channels", f"page_{page}_limit_{limit}")
         
         if search:
             query = query.filter(Channel.title.ilike(f"%{search}%"))
-            logger.info(f"Applying search filter: {search}")
+            logger.info(f"Applying search filter for channels: {search}")
         
         query = apply_sorting(query, Channel, sort_by, sort_order)
+        logger.info(f"Applying sort: {sort_by} {sort_order}")
         
         channels, meta = paginate_query(query, page, limit)
         
@@ -70,6 +71,7 @@ def get_channels_for_export(search=None, sort_by='id', sort_order='asc', max_row
             logger.info(f"Applying search filter for export: {search}")
         
         query = apply_sorting(query, Channel, sort_by, sort_order)
+        logger.info(f"Export query with sort: {sort_by} {sort_order}")
         
         # Limit to max_rows for performance
         query = query.limit(max_rows)
@@ -77,6 +79,9 @@ def get_channels_for_export(search=None, sort_by='id', sort_order='asc', max_row
         channels = query.all()
         
         logger.info(f"Retrieved {len(channels)} channels for export with search: {search or 'none'}")
+        if len(channels) == max_rows:
+            logger.warning(f"Export hit max_rows limit of {max_rows} - results may be truncated")
+        
         return channels
         
     except Exception as e:
@@ -98,12 +103,12 @@ def get_channel_detail(channel_id):
             logger.warning(f"Channel with ID {channel_id} not found")
             raise NotFoundError(f"Channel with ID {channel_id} not found")
 
-        logger.info(f"Retrieved channel details for ID: {channel_id}")
+        logger.info(f"Retrieved channel details for ID: {channel_id} - Title: {channel.title}")
         return channel
         
     except NotFoundError:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving channel detail: {str(e)}")
+        logger.error(f"Error retrieving channel detail for ID {channel_id}: {str(e)}")
         raise DatabaseError(f"Failed to retrieve channel detail: {str(e)}")
     

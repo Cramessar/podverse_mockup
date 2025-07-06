@@ -15,6 +15,7 @@
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
     "@heroicons/react": "^2.2.0",
+    "axios": "^1.10.0",
     "firebase": "^11.8.1",
     "next": "15.3.3",
     "react": "^19.0.0",

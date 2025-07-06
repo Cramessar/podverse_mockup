@@ -8,7 +8,8 @@ feed_flag_statuses = [
     "spam",
     "pending-archive",
     "archived",
-    "takedown"
+    "takedown",
+    "parse_error"
 ]
 
 def seed_feed_flag_status():
