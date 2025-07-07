@@ -68,3 +68,4 @@ docker-compose.override.yml
 *.tmp
 *.temp
 .env.*
+!.env.example
