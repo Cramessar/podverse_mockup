@@ -22,7 +22,7 @@ cd podverse_mockup
 
 You should have `Dockerfile`s for backend, frontend, and the database setup in place.
 
-To build and start all services (backend, frontend, and Postgres):
+To build and start all services (backend, frontend, Postgres, Redis, Celery, and Celery-Beat):
 
 ```bash
 docker compose up --build
@@ -34,16 +34,25 @@ Once built, containers should appear in Docker Desktop, humming along nicely.
 
 ## ▶️ Running the Containers
 
-You’ve got options:
+You've got options:
 
-* **Option 1**: Click the “play” button in Docker Desktop. Easy.
+* **Option 1**: Click the "play" button in Docker Desktop. Easy.
 * **Option 2**: Real devs use terminals. (Or masochists. Hard to tell.)
 
 ```bash
 docker compose up
 ```
 
-This will start all services as defined in `docker-compose.yml`.
+This will start all services as defined in `docker-compose.yml`:
+- **Backend**: Flask API server with task queue integration
+- **Frontend**: Next.js application  
+- **Database**: PostgreSQL database
+- **Redis**: In-memory store for caching and task queue
+- **Celery**: Background task worker
+- **Celery-Beat**: Scheduled task scheduler
+- **AI**: AI service for enhanced functionality
+- **AI DB**: Dedicated database for AI profiles
+- **Ollama**: LLM service for AI capabilities
 
 ---
 
@@ -61,11 +70,20 @@ For details on how it works or to re-run seeders, see:
 
 ## 🌐 Access the Application
 
-* **Frontend**: [http://localhost:3000](http://localhost:3000)
-* **Backend API**: [http://localhost:5000](http://localhost:5000)
-* **Postgres (DB)**: `localhost:5432` (connect via pgAdmin or DBeaver)
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:8000](http://localhost:8000)
+- **Postgres (DB)**: `localhost:5432` (connect via pgAdmin or DBeaver)
+- **Redis**: `localhost:6379` (for caching and task queue)
+- **AI Service**: [http://localhost:5050](http://localhost:5050)
+- **AI DB**: `localhost:5433`
+- **Ollama**: `localhost:11435`
 
 > Postgres creds are usually defined in `.env` or `docker-compose.yml`. Use those if you need to connect manually.
+
+### Background Services
+
+- **Celery Worker**: Handles background tasks (feed parsing, data processing)
+- **Celery Beat**: Scheduled task runner (auto-reparse feeds every hour)
 
 ---
 
@@ -76,8 +94,7 @@ To run the AI container using Ollama:
 You will need ollama. Make sure to download the program [Ollama Download](https://ollama.com/download).
 Then you will need models. Some models are better than others for different things. [Models](https://ollama.com/search)
 
-If you want some suggesttions for now `mistral`, `gemma3`, `gemma3n`
-
+If you want some suggestions for now `mistral`, `gemma3`, `gemma3n`
 
 * The default expected endpoint is:
 
@@ -87,7 +104,6 @@ OLLAMA_BASE_URL=http://ollama:11434
 But seeing as we need 11434 to make sure ollama is running the container uses 11435. This is important
 
 * Make sure Ollama the app is running otherwise the Ollama container will not see what models you have downloaded.
-
 
 * Running and reachable by the app backend.
 * Loaded with at least one supported model.
@@ -133,7 +149,6 @@ in the bottom right of your screen. Should make sense.🦙
 If you right click this and click on settings you will see you `Model location` and `Expose Ollama to the network`
 
 I trust this makes sense given the above info. 
-
 
 ---
 

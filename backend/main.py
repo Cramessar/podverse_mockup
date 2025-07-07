@@ -1,3 +1,5 @@
+# backend/main.py
+
 from app import create_app
 from app.extensions import db
 from dotenv import load_dotenv
@@ -9,6 +11,7 @@ load_dotenv() # loads .env from root
 
 # Use our centralized logger
 logger = get_logger(__name__)
+
 
 config_name = os.getenv("FLASK_ENV", "development")
 app = create_app(config_name)

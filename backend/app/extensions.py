@@ -4,29 +4,16 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_limiter import Limiter
 from flask_migrate import Migrate
-from marshmallow import fields, validate, ValidationError
-import os
-from app.utils.auth import get_limiter_key
+from marshmallow import fields, validate
+from app.utils.limiter_utils import get_limiter_key, get_limiter_storage
 
 db = SQLAlchemy()
 ma = Marshmallow()
 migrate = Migrate()
 
-# Configure Flask-Limiter with Redis for production or in-memory for development/testing
-def get_limiter_storage():
-    """Return appropriate storage backend based on environment."""
-    redis_url = os.getenv('REDIS_URL')
-    if redis_url:
-        # Production: use Redis
-        return redis_url
-    else:
-        # Development/Testing: use in-memory storage
-        return None
-
 limiter = Limiter(
     key_func=get_limiter_key,
     default_limits=["1000 per hour"],
     storage_uri=get_limiter_storage(),
-    strategy="fixed-window"  # Can be "fixed-window", "moving-window", etc.
+    strategy="fixed-window"
 )
-# add celery extension here

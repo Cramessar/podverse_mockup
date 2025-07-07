@@ -18,6 +18,14 @@ services:
     networks:
       - podverse-network
 
+  redis:
+    image: redis/redis-stack:latest
+    container_name: podverse_redis
+    ports:
+      - "6380:6379"
+    networks:
+      - podverse-network
+
   backend:
     build:
       context: .
@@ -26,17 +34,76 @@ services:
     container_name: podverse_backend
     ports:
       - "8000:8000"
+    env_file:
+      - ./backend/.env
     environment:
       FLASK_APP: main.py
       FLASK_ENV: development
       DATABASE_URL: postgresql://podverse_admin:testest@database:5432/podverse_db
-    env_file:
-      - ./backend/.env
+      REDIS_URL: redis://redis:6379/0
+      REDIS_RESULT_BACKEND: redis://redis:6379/1
     volumes:
       - ./backend/scripts:/app/scripts
       - ./backend/app:/app/app
+      - ./backend/exports:/app/exports
     depends_on:
       - database
+      - redis
+    networks:
+      - podverse-network
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: podverse-backend:latest
+    container_name: podverse_celery
+    entrypoint: ""  # override entrypoint.sh
+    command: celery -A make_celery worker --loglevel=info
+    env_file:
+      - ./backend/.env
+    environment:
+      FLASK_APP: main.py
+      FLASK_ENV: development
+      DATABASE_URL: postgresql://podverse_admin:testest@database:5432/podverse_db
+      REDIS_URL: redis://redis:6379/0
+      REDIS_RESULT_BACKEND: redis://redis:6379/1
+    depends_on:
+      - database
+      - redis
+      - backend
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/scripts:/app/scripts
+      - ./backend/exports:/app/exports
+    networks:
+      - podverse-network
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: podverse-backend:latest
+    container_name: podverse_celery_beat
+    entrypoint: ""  # override entrypoint.sh
+    command: celery -A make_celery beat --loglevel=info
+    env_file:
+      - ./backend/.env
+    environment:
+      FLASK_APP: main.py
+      FLASK_ENV: development
+      DATABASE_URL: postgresql://podverse_admin:testest@database:5432/podverse_db
+      REDIS_URL: redis://redis:6379/0
+      REDIS_RESULT_BACKEND: redis://redis:6379/1
+    depends_on:
+      - database
+      - redis
+      - backend
+      - celery
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/scripts:/app/scripts
+      - ./backend/exports:/app/exports
     networks:
       - podverse-network
 
@@ -99,8 +166,6 @@ services:
     restart: always
     networks:
       - podverse-network
-
-
 
 volumes:
   pgdata:

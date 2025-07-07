@@ -56,18 +56,22 @@ feed_flag_statuses_schema = FeedFlagStatusSchema(many=True)
 class FeedExportSchema(ma.SQLAlchemyAutoSchema):
     flag_status = ma.Method("get_flag_status")
     channel_title = ma.Method("get_channel_title")
+    channel_id = ma.Method("get_channel_id")
     
     class Meta:
         model = Feed
         load_instance = False
         include_fk = True
-        fields = ('id', 'url', 'parsing_priority', 'is_parsing', 'created_at', 'updated_at', 'flag_status', 'channel_title')
+        fields = ('id', 'url', 'parsing_priority', 'is_parsing', 'created_at', 'updated_at', 'flag_status', 'channel_title', 'channel_id')
     
     def get_flag_status(self, feed_obj):
         return feed_obj.flag_status.status if feed_obj.flag_status else None
     
     def get_channel_title(self, feed_obj):
         return feed_obj.channels[0].title if feed_obj.channels else None
+        
+    def get_channel_id(self, feed_obj):
+        return feed_obj.channels[0].id if feed_obj.channels else None
 
 feed_export_schema = FeedExportSchema()
 feeds_export_schema = FeedExportSchema(many=True)

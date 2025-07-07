@@ -1,35 +1,38 @@
 # app/utils/auth.py
 
-import json
 from functools import wraps
-from flask import request, _request_ctx_stack, abort
+from typing import Dict, Any, Callable, TypeVar, cast
+from flask import request, _request_ctx_stack, current_app
 from jose import jwt
 import requests
-import os
-from flask_limiter.util import get_remote_address
+from app.utils.error_exceptions import AuthError
 
-# 
-AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
-API_AUDIENCE = os.getenv("API_AUDIENCE")
-ALGORITHMS = [os.getenv("ALGORITHMS", "RS256")]
+def get_auth0_config() -> Dict[str, Any]:
+    """Get Auth0 configuration from current app config.
 
-# this class is used to raise an error when the auth is invalid
-class AuthError(Exception):
-    def __init__(self, error, status_code):
-        self.error = error
-        self.status_code = status_code
+    Returns:
+        Dict[str, Any]: Dictionary containing AUTH0_DOMAIN, API_AUDIENCE, and ALGORITHMS
+    """
+    return {
+        "AUTH0_DOMAIN": current_app.config["AUTH0_DOMAIN"],
+        "API_AUDIENCE": current_app.config["API_AUDIENCE"],
+        "ALGORITHMS": [current_app.config.get("ALGORITHMS", "RS256")]
+    }
 
-
-def get_token_auth_header():
-    '''
-    This function is used to get the token from the request headers
-    if the token is not found, it will raise an error
-    '''
+def get_token_auth_header() -> str:
+    """Extract and validate bearer token from request headers.
+    
+    Returns:
+        str: The extracted JWT token
+        
+    Raises:
+        AuthError: If token is missing or invalid
+    """
     auth = request.headers.get("Authorization", None) # get the token from the request headers
     if not auth:
         raise AuthError({"code": "authorization_header_missing"}, 401)
 
-    parts = auth.split() # split the token into parts
+    parts = auth.split() # split the token into parts for bearer token
 
     if parts[0].lower() != "bearer":
         raise AuthError({"code": "invalid_header"}, 401)
@@ -38,19 +41,30 @@ def get_token_auth_header():
 
     return parts[1] # return the token
 
-def requires_auth(f):
-    '''
-    This decorator is used to check if the user is authenticated
-    '''
+# Define a generic type for the decorated function
+F = TypeVar('F', bound=Callable[..., Any])
+
+def requires_auth(f: F) -> F:
+    """Decorator to verify JWT token and authenticate requests.
+    
+    Args:
+        f (Callable): The function type to decorate
+        
+    Returns:
+        Callable: The decorated function with authentication
+        
+    Raises:
+        AuthError: If token validation fails
+    """
     @wraps(f)
-    def decorated(*args, **kwargs):
+    def decorated(*args: Any, **kwargs: Any) -> Any:
         token = get_token_auth_header() 
-        jsonurl = requests.get(f"https://{AUTH0_DOMAIN}/.well-known/jwks.json") # get the jwks from the auth0 domain
+        jsonurl = requests.get(f"https://{current_app.config['AUTH0_DOMAIN']}/.well-known/jwks.json") # get the jwks from the auth0 domain
         jwks = jsonurl.json() # parse the jwks
         unverified_header = jwt.get_unverified_header(token) # get the unverified header from the token
 
         # find the key in the jwks
-        rsa_key = {}
+        rsa_key: Dict[str, str] = {}
         for key in jwks["keys"]:
             if key["kid"] == unverified_header["kid"]: # if the kid is the same as the kid in the token then set the rsa key
                 rsa_key = {
@@ -68,9 +82,9 @@ def requires_auth(f):
             payload = jwt.decode(
                 token,
                 rsa_key,
-                algorithms=ALGORITHMS,
-                audience=API_AUDIENCE,
-                issuer=f"https://{AUTH0_DOMAIN}/"
+                algorithms=current_app.config["ALGORITHMS"],
+                audience=current_app.config["API_AUDIENCE"],
+                issuer=f"https://{current_app.config['AUTH0_DOMAIN']}/"
             )
         except jwt.ExpiredSignatureError:
             raise AuthError({"code": "token_expired"}, 401)
@@ -82,19 +96,4 @@ def requires_auth(f):
         _request_ctx_stack.top.current_user = payload
         return f(*args, **kwargs)
 
-    return decorated
-
-
-
-def get_limiter_key():
-    """
-    Return a unique key per user (Auth0 sub claim), or fallback to IP address.
-    No signature verification for performance.
-    """
-    auth = request.headers.get("Authorization", "")
-    token = auth.replace("Bearer ", "")
-    try:
-        payload = jwt.get_unverified_claims(token)  # JOSE's fast decode without verify
-        return payload.get("sub") or get_remote_address()
-    except Exception:
-        return get_remote_address()
+    return cast(F, decorated)

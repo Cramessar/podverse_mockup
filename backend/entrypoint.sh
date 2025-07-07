@@ -31,6 +31,7 @@ if [ $COUNT -eq $MAX_RETRIES ]; then
   echo "$(date '+%Y-%m-%d %H:%M:%S') - Seeding failed after $MAX_RETRIES attempts. Continuing without seed data."
 fi
 
-echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting Flask app..."
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting Flask app with gunicorn..."
 
-exec python main.py
+# Start Gunicorn
+exec gunicorn --bind 0.0.0.0:8000 --workers 4 --access-logfile - --error-logfile - "main:app"

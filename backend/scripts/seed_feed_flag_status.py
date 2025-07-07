@@ -1,6 +1,9 @@
 from seed_utils import get_db_session
 from app.models.feed import FeedFlagStatus
 from sqlalchemy.exc import IntegrityError
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 feed_flag_statuses = [
     "active",
@@ -9,20 +12,28 @@ feed_flag_statuses = [
     "pending-archive",
     "archived",
     "takedown",
-    "parse_error"
+    "parse_error",
+    "fetch_error"
 ]
 
 def seed_feed_flag_status():
     session = get_db_session()
     try:
         for status in feed_flag_statuses:
-            entry = FeedFlagStatus(status=status)
-            session.add(entry)
+            # Check if status exists
+            existing = session.query(FeedFlagStatus).filter_by(status=status).first()
+            if not existing:
+                entry = FeedFlagStatus(status=status)
+                session.add(entry)
+                logger.info(f"Added new status: {status}")
+            else:
+                logger.info(f"Status already exists: {status}")
         session.commit()
-        print("✅ Feed flag statuses seeded successfully")
-    except IntegrityError as e:
+        logger.info("Feed flag statuses seeded successfully")
+    except Exception as e:
         session.rollback()
-        print("⚠️  Integrity error:", str(e))
+        logger.error(f"Error seeding feed flag statuses: {str(e)}")
+        raise
     finally:
         session.close()
 

@@ -240,7 +240,7 @@ INSERT INTO medium (value) VALUES
 -- used internally for identifying and handling spam and other special flag statuses.
 CREATE TABLE feed_flag_status (
     id SERIAL PRIMARY KEY,
-    status TEXT UNIQUE CHECK (status IN ('active', 'always-parse', 'spam', 'pending-archive', 'archived', 'takedown')),
+    status TEXT UNIQUE CHECK (status IN ('active', 'always-parse', 'spam', 'pending-archive', 'archived', 'takedown', 'parse_error', 'fetch_error')),
     created_at server_time_with_default,
     updated_at server_time_with_default
 );
@@ -250,7 +250,9 @@ BEFORE UPDATE ON feed_flag_status
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at_field();
 
-INSERT INTO feed_flag_status (status) VALUES ('active'), ('always-parse'), ('spam'), ('pending-archive'), ('archived'), ('takedown');
+INSERT INTO feed_flag_status (status) VALUES 
+('active'), ('always-parse'), ('spam'), ('pending-archive'), ('archived'), ('takedown'),
+('parse_error'), ('fetch_error');
 
 --** FEED
 

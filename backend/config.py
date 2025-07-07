@@ -1,3 +1,5 @@
+  #backend/config.py
+
 import os
 
 # Each env uses the same DB URI by default, but can override with env vars
@@ -10,6 +12,16 @@ class BaseConfig:
     FEED_ITEM_LIMIT = 500
     FEED_REQUEST_TIMEOUT = 10  # seconds
     FEED_REQUEST_RETRIES = 2
+
+    # Celery configuration
+    CELERY_BROKER_URL = os.getenv("REDIS_URL")
+    CELERY_RESULT_BACKEND = os.getenv("REDIS_RESULT_BACKEND")
+    CELERY_TASK_IGNORE_RESULT = True
+  
+    # Auth0 configuration
+    AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
+    API_AUDIENCE = os.getenv("API_AUDIENCE")
+    ALGORITHMS = [os.getenv("ALGORITHMS", "RS256")]
 
 
 class DevelopmentConfig(BaseConfig):

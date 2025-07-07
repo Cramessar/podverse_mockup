@@ -57,6 +57,7 @@ yarn-error.log*
 notes.md
 *.log
 logs/
+exports/
 
 # Docker
 .docker/

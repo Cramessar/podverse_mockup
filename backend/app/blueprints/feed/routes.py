@@ -1,12 +1,23 @@
 #app/blueprints/feed/routes.py
 
-from flask import jsonify
+from flask import jsonify, request
 from . import feed_bp
 from app.utils.logger import get_logger, log_request_start, log_request_end
 from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseError
 from app.extensions import limiter
 from app.utils.auth import requires_auth
-from .controllers import reparse_feed_controller, get_all_feeds_controller, import_feeds_controller, get_feed_by_id_controller, create_feed_controller, bulk_export_feeds_controller, export_single_feed_controller, bulk_update_feeds_controller, bulk_reparse_feeds_controller
+from .controllers import (
+    reparse_feed_controller, 
+    get_all_feeds_controller, 
+    import_feeds_controller, 
+    get_feed_by_id_controller, 
+    create_feed_controller, 
+    bulk_export_feeds_controller, 
+    export_single_feed_controller, 
+    bulk_update_feeds_controller, 
+    bulk_reparse_feeds_controller,
+    get_feed_logs_controller
+)
 
 logger = get_logger(__name__)
 
@@ -38,21 +49,17 @@ def create_feed():
 
 
 @feed_bp.route('/<int:feed_id>/reparse', methods=['POST'])
-@limiter.limit("8 per minute")  
-#@requires_auth
-def reparse_feed(feed_id):
-    """Trigger reparse for a specific feed"""
-    try:
-        result = reparse_feed_controller(feed_id)
-        return jsonify(result), 200
-    except NotFoundError:
-        raise
-    except ValidationError as e:
-        logger.warning(f"Validation error in reparse_feed: {str(e)}")
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error in reparse_feed: {str(e)}")
-        raise DatabaseError("Failed to reparse feed")
+def reparse_feed(feed_id: int):
+    """
+    Reparse a specific feed by ID
+    Can be run synchronously or asynchronously based on query parameter
+    """
+    # Check for async mode in query params or request body
+    async_mode = request.args.get('async', '').lower() == 'true'
+    if request.is_json:
+        async_mode = async_mode or request.json.get('async', False)
+    
+    return reparse_feed_controller(feed_id, async_mode=async_mode)
 
 
 @feed_bp.route('', methods=['GET'])
@@ -167,5 +174,42 @@ def bulk_reparse_feeds():
     except Exception as e:
         logger.error(f"Unexpected error in bulk_reparse_feeds: {str(e)}")
         raise DatabaseError("Failed to bulk reparse feeds")
+
+
+@feed_bp.route('/auto-reparse-status', methods=['GET'])
+@limiter.limit("10 per minute")  
+#@requires_auth
+def auto_reparse_status():
+    """Check if auto_reparse_all task is currently running"""
+    try:
+        from app.utils.helpers import is_auto_reparse_running
+        
+        is_running = is_auto_reparse_running()
+        
+        return jsonify({
+            "auto_reparse_running": is_running,
+            "status": "running" if is_running else "idle"
+        }), 200
+    except Exception as e:
+        logger.error(f"Error checking auto_reparse_status: {str(e)}")
+        raise DatabaseError("Failed to check auto reparse status")
+
+
+@feed_bp.route('/<int:feed_id>/logs', methods=['GET'])
+@limiter.limit("80 per minute")
+#@requires_auth
+def get_feed_logs(feed_id):
+    """Get logs for a specific feed"""
+    try:
+        result = get_feed_logs_controller(feed_id)
+        return jsonify(result), 200
+    except NotFoundError:
+        raise
+    except ValidationError as e:
+        logger.warning(f"Validation error in get_feed_logs: {str(e)}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in get_feed_logs: {str(e)}")
+        raise DatabaseError("Failed to retrieve feed logs")
 
 

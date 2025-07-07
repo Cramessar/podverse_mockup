@@ -3,9 +3,11 @@
 import logging
 import json
 import time
-from flask import request, g
+from typing import Optional, Any, Dict, Union
+from flask import request, g, Flask, Response
+from logging import Logger
 
-def get_logger(name):
+def get_logger(name: str) -> Logger:
     """
     Get a logger with consistent formatting
     
@@ -13,7 +15,7 @@ def get_logger(name):
         name: Usually __name__ from the calling module
     
     Returns:
-        Configured logger instance
+        Logger: Configured logger instance
     """
     logger = logging.getLogger(name)
     
@@ -34,7 +36,24 @@ def get_logger(name):
     
     return logger
 
-def log_request_start(logger):
+def register_logging(app: Flask) -> None:
+    """
+    Register logging handlers for Flask app
+    
+    Args:
+        app: Flask application instance
+    """
+    logger = get_logger(__name__)
+
+    @app.before_request
+    def before_request() -> None:
+        log_request_start(logger)
+
+    @app.after_request
+    def after_request(response: Response) -> Response:
+        return log_request_end(logger, response)
+
+def log_request_start(logger: Logger) -> None:
     """
     Log incoming request details and start timer
     
@@ -62,7 +81,7 @@ def log_request_start(logger):
     else:
         logger.info(f"REQUEST AUTH: No authorization header")
 
-def log_request_end(logger, response):
+def log_request_end(logger: Logger, response: Response) -> Response:
     """
     Log response details and completion time
     
@@ -71,7 +90,7 @@ def log_request_end(logger, response):
         response: Flask response object
     
     Returns:
-        The response object (for chaining)
+        Response: The response object (for chaining)
     """
     total_time = time.time() - g.start_time if hasattr(g, 'start_time') else 0
     
@@ -91,7 +110,10 @@ def log_request_end(logger, response):
     
     return response
 
-def log_request(logger, method, endpoint, status_code=None, include_payload=False):
+
+
+def log_request(logger: Logger, method: str, endpoint: str, 
+               status_code: Optional[int] = None, include_payload: bool = False) -> None:
     """
     Helper function to log HTTP requests consistently
     
@@ -119,7 +141,8 @@ def log_request(logger, method, endpoint, status_code=None, include_payload=Fals
     
     logger.info(log_msg)
 
-def log_database_operation(logger, operation, table, record_id=None):
+def log_database_operation(logger: Logger, operation: str, table: str, 
+                         record_id: Optional[Union[int, str]] = None) -> None:
     """
     Helper function to log database operations
     
@@ -133,8 +156,11 @@ def log_database_operation(logger, operation, table, record_id=None):
         logger.info(f"DB {operation}: {table} (ID: {record_id})")
     else:
         logger.info(f"DB {operation}: {table}")
+        
+        
 
-def log_auth_event(logger, event_type, user_id=None, email=None, details=None):
+def log_auth_event(logger: Logger, event_type: str, user_id: Optional[str] = None, 
+                  email: Optional[str] = None, details: Optional[str] = None) -> None:
     """
     Helper function to log authentication events
     
@@ -161,8 +187,10 @@ def log_auth_event(logger, event_type, user_id=None, email=None, details=None):
             log_msg += f" - IP: {ip}"
     
     logger.info(log_msg)
+    
+    
 
-def log_security_event(logger, event_type, details=None):
+def log_security_event(logger: Logger, event_type: str, details: Optional[str] = None) -> None:
     """
     Helper function to log security-related events
     
@@ -183,8 +211,10 @@ def log_security_event(logger, event_type, details=None):
             log_msg += f" - IP: {ip}"
     
     logger.warning(log_msg)
+    
+    
 
-def log_network_event(logger, event_type, details=None):
+def log_network_event(logger: Logger, event_type: str, details: Optional[str] = None) -> None:
     """
     Helper function to log network related issues (timeouts, disconnects, etc)
 
@@ -193,7 +223,6 @@ def log_network_event(logger, event_type, details=None):
         event_type: Type of network issue (TIMEOUT, CONNECTION_ERROR, BROKENPIPE, etc)
         details: Description or traceback
     """
-
     log_msg = f"NETWORK {event_type}"
 
     if details:
@@ -207,7 +236,9 @@ def log_network_event(logger, event_type, details=None):
     
     logger.warning(log_msg)
     
-def log_error(context: str, error: Exception):
+    
+    
+def log_error(context: str, error: Exception) -> None:
     """
     Helper function to log errors in consistent format with context and exception details across the codebase
     

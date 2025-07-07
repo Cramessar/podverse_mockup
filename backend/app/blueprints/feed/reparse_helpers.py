@@ -10,6 +10,7 @@ from app.extensions import db
 from app.models.channel import Channel
 from faker import Faker
 import random
+from app.utils.helpers import get_flag_status_id
 
 logger = get_logger(__name__)
 fake = Faker()
@@ -23,8 +24,14 @@ def reparse_feed_url(feed_url: str) -> dict:
 
 def handle_bozo_parse_error(feed: Feed, parsed_data: dict) -> dict:
     # 2 if bozo true then mark the feed as error and log
-    log_network_event(logger, "RSS_PARSE_ERROR", f"URL: {feed.url}, Error: {parsed_data['feed']['bozo_exception']}")
-    feed.feed_flag_status_id = get_flag_status_id("parse_error") # status trakcing
+    error_msg = (
+        str(parsed_data.get("feed", {}).get("bozo_exception"))
+        if isinstance(parsed_data, dict) and "feed" in parsed_data
+        else "Unknown parse error"
+    )
+    
+    log_network_event(logger, "RSS_PARSE_ERROR", f"URL: {feed.url}, Error: {error_msg}")
+    feed.feed_flag_status_id = get_flag_status_id("parse_error") # status tracking
 
     feed_log = FeedLog(
         feed_id=feed.id,
@@ -37,30 +44,35 @@ def handle_bozo_parse_error(feed: Feed, parsed_data: dict) -> dict:
     feed.is_parsing = False
     db.session.commit()
 
-    logger.warning(f"Parse failed for Feed ID: {feed.id} — Error: {parsed_data['feed']['bozo_exception']}")
-    return {"status": "parse_failed", "error": str(parsed_data["feed"]["bozo_exception"])}
+    logger.warning(f"Parse failed for Feed ID: {feed.id} — Error: {error_msg}")
+    return {
+        "status": "failed",
+        "error": error_msg,
+        "feed_id": feed.id
+    }
 
 
 def create_or_update_channel(parsed_data: dict, feed: Feed) -> Channel:
-    # prod stage de channek yarattigin kisma channel = Channel(feed_id=feed.id) yap, else logdan baska bir sey gelmiyor. aynisi item icin de gecerli
     """
     Create or update channel based on parsed feed data
     """
     channel = db.session.query(Channel).filter_by(feed_id=feed.id).first()
+    channel_data = parsed_data.get("channel", {})
+    title = channel_data.get("title") or "Untitled Feed"
 
     if not channel:
         channel = Channel(
             feed_id=feed.id,
             id_text=fake.unique.user_name()[:15],
             podcast_index_id=random.randint(1000000, 9999999),
-            title=parsed_data["channel"]["title"] or "Untitled Feed",
+            title=title,
             has_podcast_index_value=False,
             has_value_time_splits=False
         )
         log_database_operation(logger, "CREATE", "channels", None)
     else:
         log_database_operation(logger, "UPDATE", "channels", channel.id)
-        channel.title = parsed_data["channel"]["title"] or channel.title
+        channel.title = title
 
     db.session.add(channel)
     db.session.flush()  # makes sure channel.id is available
@@ -113,13 +125,3 @@ def create_successful_feed_log(feed_id: int, http_status: int = 200):
     db.session.add(feed_log)
     log_database_operation(logger, "CREATE", "feed_logs", None)
 
-
-def get_flag_status_id(status: str) -> int:
-    """
-    Get the ID of a feed flag status by its status string.
-    """
-    from app.models.feed import FeedFlagStatus
-    record = db.session.query(FeedFlagStatus).filter_by(status=status).first()
-    if not record:
-        raise RuntimeError(f"FeedFlagStatus '{status}' not found")
-    return record.id

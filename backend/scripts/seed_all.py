@@ -1,5 +1,7 @@
 import argparse
 from seed_utils import run_seeder_with_retry
+from app.utils.logger import get_logger
+from app import create_app
 
 # Import all seeders
 from seed_user import seed_user
@@ -15,6 +17,8 @@ from seed_stats_event_channel import seed_stats_event_channel
 from seed_stats_event_item import seed_stats_event_item
 from seed_stats_aggregated_channel import seed_stats_aggregated_channel
 from seed_stats_aggregated_item import seed_stats_aggregated_item
+
+logger = get_logger(__name__)
 
 # Seeder list (name, seeder function)
 SEED_JOBS = [
@@ -47,35 +51,44 @@ def main():
     only = set(normalize_name(name) for name in args.only.split(",")) if args.only else None
     skip = set(normalize_name(name) for name in args.skip.split(",")) if args.skip else set()
 
-    print("\n🚀 Starting full seeding process...\n")
+    # Create Flask app and push application context
+    app = create_app()
+    with app.app_context():
+        logger.info("\nStarting full seeding process...\n")
 
-    summary = []
+        summary = []
 
-    for label, func in SEED_JOBS:
-        normalized = normalize_name(label)
+        for label, func in SEED_JOBS:
+            normalized = normalize_name(label)
 
-        if only and normalized not in only:
-            continue
-        if normalized in skip:
-            print(f"⏭️ Skipping {label}")
-            continue
+            if only and normalized not in only:
+                continue
+            if normalized in skip:
+                logger.info(f"Skipping {label}")
+                continue
 
-        if args.count is not None:
-            try:
-                run_seeder_with_retry(lambda: func(n=args.count), label=label)
-            except TypeError:
-                # For seeders that don't accept `n`
-                run_seeder_with_retry(func, label=label)
-        else:
-            run_seeder_with_retry(func, label=label)
+            logger.info(f"Seeding {label}...")
+            if args.count is not None:
+                try:
+                    success = run_seeder_with_retry(lambda: func(n=args.count))
+                except TypeError:
+                    # For seeders that don't accept `n`
+                    success = run_seeder_with_retry(func)
+            else:
+                success = run_seeder_with_retry(func)
 
-        summary.append(f"✅ {label}")
+            if success:
+                logger.info(f"✅ {label} seeded successfully!\n")
+                summary.append(f"✅ {label}")
+            else:
+                logger.error(f"❌ Failed to seed {label}\n")
+                summary.append(f"❌ {label}")
 
-    print("\n🎉 Seeder Summary:")
-    for entry in summary:
-        print(" ", entry)
+        logger.info("\nSeeder Summary:")
+        for entry in summary:
+            logger.info(f"  {entry}")
 
-    print("\n✅ All seeders completed. Database is ready!\n")
+        logger.info("\n✅ All seeders completed. Database is ready!\n")
 
 if __name__ == "__main__":
     main()

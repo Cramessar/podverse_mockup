@@ -1,7 +1,6 @@
 # app/blueprints/__init__.py
 
 from flask import Blueprint
-from app.utils.auth import AuthError
 
 # Admin blueprints
 from app.blueprints.docs import docs_bp
@@ -39,7 +38,3 @@ def register_blueprints(app):
     app.register_blueprint(health_bp)
     app.register_blueprint(db_test_bp)
     app.register_blueprint(sql_runner_bp)
-
-    @app.errorhandler(AuthError)
-    def handle_auth_error(ex):
-        return {"error": ex.error}, ex.status_code

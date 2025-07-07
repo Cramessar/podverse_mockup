@@ -7,7 +7,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from faker import Faker
 import uuid
+<<<<<<< HEAD
 
+=======
+from sqlalchemy.orm import Session
+from app.extensions import db
+from app.utils.logger import get_logger
+>>>>>>> cb05fd0 (feat: implement Celery reparse and scheduled data export functionality)
 
 # Initialize Faker
 fake = Faker()
@@ -17,9 +23,11 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://podverse_admin:testest@da
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def get_db_session():
-    """Provides a new database session."""
-    return SessionLocal()
+logger = get_logger(__name__)
+
+def get_db_session() -> Session:
+    """Get a database session."""
+    return db.session
 
 def random_past_date(within_days=365):
     return datetime.utcnow() - timedelta(
@@ -54,9 +62,9 @@ def random_location():
     ]
     return random.choice(countries)
 
-def unique_uuid():
-    """Returns a proper UUID object for database storage"""
-    return uuid.uuid4()
+def unique_uuid() -> str:
+    """Generate a unique UUID."""
+    return str(uuid.uuid4())
 
 def unique_uuid_str():
     """Returns a UUID as string for cases that need string representation"""
@@ -65,17 +73,16 @@ def unique_uuid_str():
 import time
 import traceback
 
-def run_seeder_with_retry(seeder_func, label="", retries=3, delay=3):
-    attempt = 0
-    while attempt < retries:
+def run_seeder_with_retry(seeder_func, max_retries=3):
+    """Run a seeder function with retries."""
+    for attempt in range(max_retries):
         try:
-            print(f"🌱 Seeding {label} (Attempt {attempt + 1}/{retries})...")
             seeder_func()
-            print(f"✅ {label} seeded successfully!\n")
-            return
+            return True
         except Exception as e:
-            print(f"⚠️  Error seeding {label}: {e}")
-            traceback.print_exc()
-            attempt += 1
-            time.sleep(delay)
-    print(f"❌ Failed to seed {label} after {retries} attempts.\n")
+            logger.warning(f"Error seeding: {str(e)}")
+            if attempt < max_retries - 1:
+                continue
+            else:
+                logger.error(f"Failed to seed after {max_retries} attempts.")
+                return False
