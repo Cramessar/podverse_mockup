@@ -109,7 +109,7 @@ def parse_and_update_feed_object(feed: Feed):
         create_successful_feed_log(feed.id, parsed_data["feed"]["http_status"])
         
         feed.is_parsing = False
-        feed.updated_at = datetime.utcnow()
+        feed.updated_at = datetime.utcnow()  # updated only on success
         db.session.commit()
         
         logger.info(f"Successfully reparsed Feed ID: {feed.id}, Channel ID: {channel.id}, Items: {len(parsed_data['items'])}")
@@ -125,7 +125,6 @@ def parse_and_update_feed_object(feed: Feed):
         db.session.rollback()
         logger.error(f"Parse error for feed {feed.id} ({feed.url}): {str(e)}")
         feed.feed_flag_status_id = get_flag_status_id("parse_error")
-        feed.updated_at = datetime.utcnow()
         db.session.commit()
         return {
             "status": "failed",
@@ -142,7 +141,7 @@ def parse_and_update_feed_object(feed: Feed):
         if "Name or service not known" in str(e) or "Failed to resolve" in str(e):
             logger.warning(f"Feed ID {feed.id} marked as unreachable due to DNS failure")
             feed.feed_flag_status_id = get_flag_status_id("fetch_error")
-            feed.updated_at = datetime.utcnow()
+
             db.session.commit()
             return {
                 "status": "failed",
@@ -150,7 +149,7 @@ def parse_and_update_feed_object(feed: Feed):
                 "feed_id": feed.id
             }
         
-        # Log network issues separately from general errors
+        # Logging network issues separately from general errors
         if "timeout" in str(e).lower() or "connection" in str(e).lower():
             log_network_event(logger, "RSS_FETCH_ERROR", f"URL: {feed.url}, Error: {str(e)}")
             

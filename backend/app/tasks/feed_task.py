@@ -92,7 +92,7 @@ def auto_reparse_all() -> Dict[str, Any]:
                 reparse_feed_task.delay(feed.id)  # fire async
                 queued_feed_ids.append(feed.id) # add to list of queued feed ids to see which seed were successfilo or unsecc procssed during each batch
                 count += 1
-                logger.info(f"Queued feed ID {feed.id} for reparse (status: {feed.feed_flag_status.status})")
+                logger.info(f"Queued feed ID {feed.id} for reparse (status: {feed.flag_status.status})")
             except Exception as e:
                 error_feed_ids.append(feed.id)
                 logger.error(f"Failed to queue reparse for feed {feed.id}: {str(e)}")
