@@ -52,10 +52,10 @@ def create_missing_tables():
 def auto_migrate():
     logger.info("[AutoMigrate] Starting schema check...")
 
-    # 1. Add missing tables
+    # Add missing tables
     create_missing_tables()
 
-    # 2. Add missing columns to existing tables
+    # Add missing columns to existing tables
     for cls in Base.__subclasses__():
         try:
             add_missing_columns(engine, cls)
