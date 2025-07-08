@@ -1,7 +1,8 @@
 # app/blueprints/channel/schemas.py
 
 from app.extensions import ma, fields, validate
-from app.models.channel import Channel, StatsTrackEventChannel
+from app.models.channel import Channel
+from app.models.stats import StatsTrackEventChannel
 
 class ChannelSchema(ma.SQLAlchemyAutoSchema):
     class Meta:

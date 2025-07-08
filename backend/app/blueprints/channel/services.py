@@ -32,7 +32,19 @@ def get_channels_list(search, sort_by, sort_order, page, limit):
         log_database_operation(logger, "READ", "channels", f"page_{page}_limit_{limit}")
         
         if search:
-            query = query.filter(Channel.title.ilike(f"%{search}%"))
+            # Try to parse as integer for ID and podcast_index_id search
+            try:
+                search_id = int(search)
+                query = query.filter(
+                    db.or_(
+                        Channel.id == search_id,
+                        Channel.podcast_index_id == search_id,
+                        Channel.title.ilike(f"%{search}%")
+                    )
+                )
+            except ValueError:
+                # If search is not a number, only search by title
+                query = query.filter(Channel.title.ilike(f"%{search}%"))
             logger.info(f"Applying search filter for channels: {search}")
         
         query = apply_sorting(query, Channel, sort_by, sort_order)

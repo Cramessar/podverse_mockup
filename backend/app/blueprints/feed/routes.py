@@ -1,6 +1,7 @@
 #app/blueprints/feed/routes.py
 
 from flask import jsonify, request
+from sqlalchemy import and_, or_, desc
 from . import feed_bp
 from app.utils.logger import get_logger, log_request_start, log_request_end
 from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseError

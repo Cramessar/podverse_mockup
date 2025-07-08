@@ -4,16 +4,11 @@ import random
 from uuid import uuid4
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 from faker import Faker
 import uuid
-<<<<<<< HEAD
-
-=======
-from sqlalchemy.orm import Session
 from app.extensions import db
 from app.utils.logger import get_logger
->>>>>>> cb05fd0 (feat: implement Celery reparse and scheduled data export functionality)
 
 # Initialize Faker
 fake = Faker()

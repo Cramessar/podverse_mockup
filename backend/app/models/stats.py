@@ -1,6 +1,5 @@
 # backend/app/models/stats.py
 
-from datetime import datetime
 from sqlalchemy import Integer, ForeignKey, DateTime, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.extensions import db

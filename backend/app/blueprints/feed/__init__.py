@@ -1,5 +1,5 @@
 from flask import Blueprint
 
-feed_bp = Blueprint('feed', __name__)
+feed_bp = Blueprint('feeds', __name__)
 
 from . import routes

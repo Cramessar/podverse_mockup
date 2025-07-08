@@ -7,7 +7,12 @@ from typing import Dict, Any
 from app.services.data_export import export_data_to_csv
 from app.utils.file_system_helpers import get_export_directory, FSError
 from app.utils.redis_lock import redis_lock, RedisLockError
-from app.utils.logger import get_logger
+from app.utils.logger import get_logger, log_error
+from datetime import datetime, timedelta
+from app.extensions import db
+from app.models.export_logs import ExportLog
+from app.utils.export_logging import create_export_log_simple, finalize_export_log
+
 
 logger = get_logger(__name__)
 
@@ -41,8 +46,27 @@ def scheduled_export_task(self: Task) -> Dict[str, Any]:
                     logger.error(f"Failed to get export directory: {str(e)}")
                     raise
                 
+                # Create export log
+                log = create_export_log_simple(
+                    export_type="channels",
+                    format="csv",
+                    filters={} # no filters for scheduled export
+                )
+                
                 # Perform export with directory override
                 result = export_data_to_csv(export_dir=export_dir)
+                
+                # finalize export log
+                finalize_export_log(
+                    log, 
+                    status="success" , 
+                    file_path=os.path.join(result["export_directory"], result["channels_file"]), 
+                    counts={
+                        "channels": result.get("channels_count", 0),
+                        "feeds": result.get("feeds_count", 0),
+                        "items": result.get("items_count", 0)
+                    }
+                )
                 
                 logger.info(f"Export completed successfully: {result}")
                 return {
@@ -55,7 +79,9 @@ def scheduled_export_task(self: Task) -> Dict[str, Any]:
                 logger.error(f"Filesystem error during export: {str(e)}")
                 if self.request.retries < self.max_retries:
                     logger.info(f"Retrying export task (attempt {self.request.retries + 1})")
-                    self.retry(exc=e, countdown=60 * (self.request.retries + 1))  # Exponential backoff
+                    finalize_export_log(log, status="failed", error_message=str(e))
+                    # retry the task
+                    self.retry(exc=e, countdown=60 * (self.request.retries + 1))  # exponential backoff
                 return {
                     "status": "error",
                     "error": str(e)
@@ -65,6 +91,8 @@ def scheduled_export_task(self: Task) -> Dict[str, Any]:
                 logger.error(f"Export failed: {str(e)}")
                 if self.request.retries < self.max_retries: # if the task has not been retried 3 times
                     logger.info(f"Retrying export task (attempt {self.request.retries + 1})")
+                    finalize_export_log(log, status="failed", error_message=str(e))
+                    
                     self.retry(exc=e, countdown=60 * (self.request.retries + 1))  # Exponential backoff
                 return {
                     "status": "error",
@@ -83,3 +111,37 @@ def scheduled_export_task(self: Task) -> Dict[str, Any]:
             "status": "error",
             "error": f"Unexpected error: {str(e)}"
         }
+
+@shared_task
+def cleanup_old_export_files() -> str:
+    """
+    Cleanup export files older than 30 days and update their records.
+    """
+    # Find logs with files older than 30 days #! this can be increased 
+    cutoff_date = datetime.utcnow() - timedelta(days=30) # delete files older than 30 days
+    old_logs = ExportLog.query.filter(ExportLog.created_at < cutoff_date, ExportLog.file_path.isnot(None)).all() # get logs with files older than 30 days
+
+    for log in old_logs:
+        if log.file_path and os.path.exists(log.file_path):
+            try:
+                os.remove(log.file_path) # if os remove fails continue with other files
+            except OSError:
+                # Log error but continue with other files
+                log_error(f"Failed to delete export file: {log.file_path}")
+                continue
+        
+        # Update log record
+        log.file_path = None
+        log.status = "expired"
+        if not log.completed_at:
+            log.completed_at = datetime.utcnow()
+    try:
+        db.session.commit()
+    except Exception as e:
+        log_error(f"DB commit failed during export cleanup: {str(e)}")
+        raise
+
+    logger.info(f"Cleanup complete. Processed {len(old_logs)} old export files.")
+    return f"Processed {len(old_logs)} old export files"
+
+#TODO: refactor cleanup_old_export_files task and config etc after dedcinding where to store the files 

@@ -8,6 +8,7 @@ from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseE
 from app.utils.logger import get_logger, log_database_operation
 from app.utils.export_response import generate_export_response
 from datetime import datetime
+from app.utils.export_logging import create_export_log_simple, finalize_export_log
 
 logger = get_logger(__name__)
 
@@ -47,6 +48,19 @@ def export_channels():
     Reuses the same filtering logic as list_channels but without pagination.
     """
     try:
+        # Get admin email from request args
+        admin_email = request.args.get("admin_email")
+        if not admin_email:
+            raise ValidationError("admin_email is required")
+
+        # Create export log
+        log = create_export_log_simple(
+            export_type="channels",
+            format=request.args.get("format", "csv"),
+            filters=request.args.to_dict(),
+            admin_email=admin_email
+        )
+
         # Get query parameters (reuse same logic as list view)
         sort_by, sort_order = get_sorting_params(request, ['id', 'title'], default_field='id')
         search = get_search_query(request)
@@ -61,16 +75,22 @@ def export_channels():
 
         # Get channels for export
         channels = get_channels_for_export(search, sort_by, sort_order, max_rows)
-
+        
         # Serialize channels
         export_data = channel_exports_schema.dump(channels)
 
         # Generate filename with timestamp
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f"channels_export_{timestamp}.csv"
-
+        
+        # Create response
+        response = generate_export_response(export_data, filename, "channel")
+        
+        # finalize export log
+        finalize_export_log(log, status="success" , file_path=f"/exports/{filename}", counts={"channels": len(export_data)}) # file name is set in generate_export_response
+        
         logger.info(f"Generated export file: {filename} with {len(export_data)} records")
-        return generate_export_response(export_data, filename, "channel")
+        return response
 
     except ValidationError as e:
         logger.warning(f"Validation error in export_channels: {str(e)}")

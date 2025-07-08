@@ -2,7 +2,8 @@
 
 from seed_utils import get_db_session, fake
 from app.models.account import StatsTrackAccountGuid
-from app.models.channel import Channel, StatsTrackEventChannel
+from app.models.channel import Channel
+from app.models.stats import StatsTrackEventChannel
 from sqlalchemy.exc import IntegrityError
 import random
 from datetime import timedelta

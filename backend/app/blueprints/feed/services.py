@@ -346,10 +346,10 @@ def get_feeds_for_export(search=None, sort_by='id', sort_order='asc', max_rows=1
         List of Feed objects
     """
     try:
-        # Add left join to Channel for title search
-        query = db.session.query(Feed).join(FeedFlagStatus).outerjoin(Channel)
+        # Create base query with left join to Channel for title search
+        query = db.session.query(Feed).join(FeedFlagStatus).outerjoin(Channel).order_by(Feed.id.desc())
         log_database_operation(logger, "READ", "feeds", f"export_max_{max_rows}")
-        
+             
         if search:
             # Enhanced search: ID (exact), URL (partial), or Channel title (partial)
             search_conditions = []
@@ -367,24 +367,24 @@ def get_feeds_for_export(search=None, sort_by='id', sort_order='asc', max_rows=1
             
             # Combine with OR
             query = query.filter(or_(*search_conditions))
-            logger.info(f"Applying enhanced search filter for export (ID/URL/title): {search}")
-        
+            logger.info(f"Export query with search: {search}")
+            
+        # Safe dynamic sorting
         query = apply_sorting(query, Feed, sort_by, sort_order)
         logger.info(f"Export query with sort: {sort_by} {sort_order}")
         
-        # Limit to max_rows for performance
-        query = query.limit(max_rows)
-        
-        feeds = query.all()
-        
+        # Limit rows max_rows for performance
+        feeds = query.limit(max_rows).all()
         logger.info(f"Retrieved {len(feeds)} feeds for export with search: {search or 'none'}")
-        if len(feeds) == max_rows:
-            logger.warning(f"Export hit max_rows limit of {max_rows} - results may be truncated")
         
-        return feeds
+        # Serialize feeds for export
+        from app.blueprints.feed.schemas import feeds_export_schema
+        serialized_feeds = feeds_export_schema.dump(feeds)
+        
+        return serialized_feeds
         
     except Exception as e:
-        logger.error(f"Error retrieving feeds for export: {str(e)}")
+        log_error("get_feeds_for_export", e)
         raise DatabaseError(f"Failed to retrieve feeds for export: {str(e)}")
 
 

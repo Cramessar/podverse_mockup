@@ -1,13 +1,11 @@
 # backend/app/models/channel.py
 
-from sqlalchemy import String, DateTime, Integer, Boolean, UUID
+from sqlalchemy import String, Integer, Boolean, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import Optional
 
 from app.extensions import db
 from app.models.base import Base
-from app.models.account import StatsTrackAccountGuid
-from app.models.stats import StatsAggregatedChannel, StatsTrackEventChannel
 
 
 class Channel(Base):

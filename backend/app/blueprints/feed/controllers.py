@@ -20,7 +20,7 @@ from app.utils.logger import get_logger, log_database_operation
 from app.utils.export_response import generate_export_response
 from datetime import datetime
 from app.tasks.feed_task import reparse_feed_task
-
+from app.utils.export_logging import create_export_log_simple, finalize_export_log   
 
 logger = get_logger(__name__)
 
@@ -80,7 +80,7 @@ def create_feed_controller():
 def reparse_feed_controller(feed_id: int, async_mode: bool = False):
     """
     Controller to handle feed reparsing
-    Coordinates the reparse operation and returns result
+    Coordinion and returns result
     """
     logger.info(f"Starting reparse for feed ID: {feed_id}")
     log_database_operation(logger, "UPDATE", "feeds", feed_id)
@@ -239,32 +239,50 @@ def bulk_export_feeds_controller():
         # Get query parameters
         sort_by, sort_order = get_sorting_params(request, ['id', 'url', 'updated_at'], default_field='id')
         search = get_search_query(request)
-        
-        # Get max_rows parameter (optional, defaults to 10000)
-        max_rows = request.args.get('max_rows', 10000, type=int)
-        if max_rows <= 0 or max_rows > 50000:  
-            max_rows = 10000
+        format = request.args.get("format", "csv")
+        admin_email = request.args.get("admin_email")
 
-        logger.info(f"Exporting feeds - sort: {sort_by} {sort_order}, search: {search or 'none'}, max_rows: {max_rows}")
-        log_database_operation(logger, "READ", "feeds", f"export_max_{max_rows}")
+        if not admin_email:
+            raise ValidationError("admin_email is required")
+
+        # create export log
+        export_log = create_export_log_simple(
+            export_type="feeds",
+            filters={"format": format, "admin_email": admin_email},
+            status="pending",
+            file_path=None,
+            admin_email=admin_email
+        )
 
         # Get feeds for export
-        feeds = get_feeds_for_export(search, sort_by, sort_order, max_rows)
-
-        export_data = feeds_export_schema.dump(feeds)
-
-        # Generate filename with timestamp
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        feeds = get_feeds_for_export(search=search, sort_by=sort_by, sort_order=sort_order)
+        
+        # Generate filename
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         filename = f"feeds_export_{timestamp}"
-
-        logger.info(f"Generated bulk export file: {filename} with {len(export_data)} records")
-        return generate_export_response(export_data, filename, "feed")
-
-    except ValidationError as e:
-        logger.warning(f"Validation error in bulk_export_feeds: {str(e)}")
-        raise
+        
+        # Generate response
+        response = generate_export_response(feeds, filename, export_type="feed")
+        
+        # Update export log with success
+        finalize_export_log(
+            export_log.id,
+            status="success",
+            file_path=f"/exports/{filename}.{format}",
+            format=format,
+            feeds_count=len(feeds)
+        )
+        
+        return response
+        
     except Exception as e:
-        logger.error(f"Unexpected error in bulk_export_feeds: {str(e)}")
+        logger.error(f"Error in bulk_export_feeds: {str(e)}")
+        if export_log:
+            finalize_export_log(
+                export_log.id,
+                status="error",
+                error_message=str(e)
+            )
         raise DatabaseError("Failed to export feeds")
 
 
