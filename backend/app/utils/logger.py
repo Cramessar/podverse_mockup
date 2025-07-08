@@ -1,7 +1,9 @@
+# app/utils/logger.py
+
 import logging
-import os
 import json
-from flask import request
+import time
+from flask import request, g
 
 def get_logger(name):
     """
@@ -27,11 +29,67 @@ def get_logger(name):
         )
         console_handler.setFormatter(formatter)
         
-        # Add handler to logger
         logger.addHandler(console_handler)
         logger.setLevel(logging.INFO)
     
     return logger
+
+def log_request_start(logger):
+    """
+    Log incoming request details and start timer
+    
+    Args:
+        logger: Logger instance
+    """
+    g.start_time = time.time()
+    
+    # Log the incoming request
+    logger.info(f"REQUEST START: {request.method} {request.path}")
+    
+    # Log security-relevant headers
+    user_agent = request.headers.get('User-Agent', 'Unknown')
+    ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
+    logger.info(f"REQUEST INFO: IP={ip}, User-Agent={user_agent[:100]}")
+    
+    # Check for potential security issues
+    if len(request.path) > 1000:
+        log_security_event(logger, 'SUSPICIOUS_REQUEST', details=f'Very long path: {len(request.path)} chars')
+    
+    # Log authentication header presence (without revealing token details)
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        logger.info(f"REQUEST AUTH: Authorization header present")
+    else:
+        logger.info(f"REQUEST AUTH: No authorization header")
+
+def log_request_end(logger, response):
+    """
+    Log response details and completion time
+    
+    Args:
+        logger: Logger instance
+        response: Flask response object
+    
+    Returns:
+        The response object (for chaining)
+    """
+    total_time = time.time() - g.start_time if hasattr(g, 'start_time') else 0
+    
+    logger.info(f"RESPONSE: {request.method} {request.path} - {response.status_code} - {total_time:.3f}s")
+    
+    # Log error responses
+    if response.status_code >= 400:
+        logger.warning(f"ERROR RESPONSE: {request.method} {request.path} - {response.status_code}")
+        
+    # Log security events for suspicious status codes
+    if response.status_code in [401, 403]:
+        log_security_event(logger, 'ACCESS_DENIED', 
+                         details=f'{request.method} {request.path} returned {response.status_code}')
+    elif response.status_code == 429:
+        log_security_event(logger, 'RATE_LIMIT_HIT', 
+                         details=f'{request.method} {request.path}')
+    
+    return response
 
 def log_request(logger, method, endpoint, status_code=None, include_payload=False):
     """
@@ -124,4 +182,38 @@ def log_security_event(logger, event_type, details=None):
         if ip:
             log_msg += f" - IP: {ip}"
     
-    logger.warning(log_msg) 
+    logger.warning(log_msg)
+
+def log_network_event(logger, event_type, details=None):
+    """
+    Helper function to log network related issues (timeouts, disconnects, etc)
+
+    Args:
+        logger: Logger instance
+        event_type: Type of network issue (TIMEOUT, CONNECTION_ERROR, BROKENPIPE, etc)
+        details: Description or traceback
+    """
+
+    log_msg = f"NETWORK {event_type}"
+
+    if details:
+        log_msg += f" - {details}"
+    
+    # Add client IP if available
+    if request:
+        ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
+        if ip:
+            log_msg += f" - IP: {ip}"
+    
+    logger.warning(log_msg)
+    
+def log_error(context: str, error: Exception):
+    """
+    Helper function to log errors in consistent format with context and exception details across the codebase
+    
+    Args:
+        context: Context of the error
+        error: Exception object
+    """
+    logger = get_logger(context)
+    logger.error(f"[ERROR] {context}: {str(error)}", exc_info=True)

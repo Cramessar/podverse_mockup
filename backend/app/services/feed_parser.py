@@ -1,88 +1,85 @@
-#pure parser logic using feedparser - low level logic for parsing rss using feedparser
-# Raw XML parsing functions
-# (e.g., parse_rss(xml_string) → dict)
+#app/services/feed_parser.py
 
 import feedparser
+import requests
+from typing import List, Dict, Any
+from uuid import uuid4
+from urllib.parse import urlparse, urlunparse
+from flask import current_app
+import time
 
+def normalize_url(url: str) -> str:
+    parsed = urlparse(url)
+    normalized_path = parsed.path.replace('//', '/')
+    return urlunparse(parsed._replace(path=normalized_path))
 
-def parse_rss_feed(url):
+def parse_feed(feed_url: str) -> dict[str, Any]:
     """
-    Parses an RSS feed URL and extracts metadata and items into dictionaries.
-
-    :param url: The URL of the RSS feed to parse.
-    :return: A tuple containing a dictionary of feed metadata and a list of item dictionaries.
+    Parse a feed URL and return a dictionary of metadata.
+    Normalizes the URL, attempts to fetch and parse the feed with timeout/retry,
+    and logs key diagnostic data for error handling.
     """
-    # Parse the feed
-    feed = feedparser.parse(url)
-
-    # Extract feed metadata
-    feed_info = {
-        'title': feed.feed.get('title', ''),
-        'link': feed.feed.get('link', ''),
-        'description': feed.feed.get('description', ''),
-        'language': feed.feed.get('language', ''),
-        'published': feed.feed.get('published', '')
+    normalized_url = normalize_url(feed_url)
+    
+    # Get config values with defaults
+    timeout = current_app.config.get('FEED_REQUEST_TIMEOUT', 10)
+    retries = current_app.config.get('FEED_REQUEST_RETRIES', 2)
+    
+    parsed = None
+    last_error = None
+    
+    # Retry logic with timeout
+    for attempt in range(retries + 1):
+        try:
+            # Use requests with timeout, then pass content to feedparser
+            response = requests.get(normalized_url, timeout=timeout, headers={
+                'User-Agent': 'Podverse RSS Parser 1.0'
+            })
+            response.raise_for_status()
+            
+            # Parse the content with feedparser
+            parsed = feedparser.parse(response.content)
+            break  # Success, exit retry loop
+            
+        except requests.exceptions.RequestException as e:
+            last_error = e
+            if attempt < retries:
+                wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                time.sleep(wait_time)
+                continue
+            else:
+                # Final attempt failed, fallback to feedparser's built-in fetch
+                parsed = feedparser.parse(normalized_url)
+    
+    feed_data = {
+        "bozo": parsed.bozo, # boolean result based on if feed had parsing problems
+        "bozo_exception":str(parsed.bozo_exception) if parsed.bozo else None, # if bozo is true then stores the error as string
+        "url": feed_url,
+        "http_status": getattr(parsed, "status", None),
+        "content_type": parsed.headers.get("content-type") if hasattr(parsed, "headers") else None
     }
-
-    # Extract items
-    items = []
-    for entry in feed.entries:
+    
+    channel_data = {
+        "title": parsed.feed.get("title")
+    }
+    
+    items_data: List[Dict[str, Any]] = []
+    for entry in parsed.entries: # each entry is a obj represents one item. parsed.entries is a list of these objects
         item = {
-            'title': entry.get('title', ''),
-            'link': entry.get('link', ''),
-            'description': entry.get('description', ''),
-            'published': entry.get('published', ''),
-            'author': entry.get('author', '')
+            "guid": entry.get("id") or entry.get("guid") or str(uuid4()), # maps to item.guid
+            "title": entry.get("title"),
+            "pub_date": entry.get("published"),
+            "guid_enclosure_url": None
         }
-        items.append(item)
-
-    return feed_info, items
-
-
-
-
-# --------- LAter when the models ready ---------
-# import feedparser
-# from app.models.feed import Feed
-# from app.models.item import Item
-# from app.extensions import db
-
-
-# def parse_rss_feed(url):
-#     """
-#     Parses an RSS feed URL and creates Feed and Item model instances.
-
-#     :param url: The URL of the RSS feed to parse.
-#     :return: A tuple containing a Feed instance and a list of Item instances.
-#     """
-#     # Parse the feed
-#     feed = feedparser.parse(url)
-
-#     # Create a Feed instance
-#     feed_instance = Feed(
-#         url=url,
-#         feed_flag_status_id=1,  # Example value
-#         is_parsing=None,
-#         parsing_priority=0,
-#         last_parsed_file_hash=None,
-#         container_id=None
-#     )
-
-#     # Extract items and create Item instances
-#     item_instances = []
-#     for entry in feed.entries:
-#         item_instance = Item(
-#             title=entry.get('title', ''),
-#             slug=entry.get('link', ''),  # fexample value
-#             guid=entry.get('id', ''),
-#             guid_enclosure_url=entry.get('link', ''),
-#             published_at=entry.get('published', None)
-#         )
-#         item_instances.append(item_instance)
-
-#     # Add to the session and commit
-#     db.session.add(feed_instance)
-#     db.session.add_all(item_instances)
-#     db.session.commit()
-
-    return feed_instance, item_instances
+        
+        # If the entry has media attachments then extract the url of the first enclosure and map to guid_enclosure_url
+        if "enclosures" in entry and entry.enclosures:
+            item["guid_enclosure_url"] = entry.enclosures[0].get("href")
+            
+        items_data.append(item)
+        
+    return {
+        "feed": feed_data,
+        "channel": channel_data,
+        "items": items_data
+    }

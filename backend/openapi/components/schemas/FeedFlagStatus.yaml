@@ -1,4 +1,3 @@
-
 type: object
 properties:
   id:
@@ -8,7 +7,7 @@ properties:
 
   status:
     type: string
-    enum: [active, always-parse, spam, pending-archive, archived, takedown]
+    enum: [active, always-parse, spam, pending-archive, archived, takedown, parse_error]
     description: Status assigned to the feed
     example: "active"
 

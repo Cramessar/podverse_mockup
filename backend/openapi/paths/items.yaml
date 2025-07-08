@@ -128,3 +128,107 @@
               $ref: "../components/schemas/Error.yaml"
       '401':
         $ref: "../components/responses/Unauthorized.yaml"
+
+/items/export:
+  get:
+    summary: Export episode-level data
+    description: |
+      Exports detailed episode (item) data including:
+      - Basic info: id, title, pub_date, duration, guid
+      - Relations: channel_id, feed_id
+      - Content: description, language
+      - Status: parsed_status and related metadata
+      
+      This endpoint is useful for:
+      - Auditing episode data quality
+      - QA checks on parsing completeness
+      - Bulk episode management and analysis
+    tags:
+      - Items
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: format
+        in: query
+        required: true
+        schema:
+          type: string
+          enum: [csv, json]
+          default: csv
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum: [active, archived, error, all]
+          default: active
+        description: Filter items by their status
+      - name: channel_id
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Filter items by channel ID
+      - name: feed_id
+        in: query
+        required: false
+        schema:
+          type: integer
+        description: Filter items by feed ID
+      - name: start_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Filter items by publication date (start)
+      - name: end_date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Filter items by publication date (end)
+    responses:
+      '200':
+        description: Items export file
+        content:
+          text/csv:
+            schema:
+              type: string
+              description: CSV format (when format=csv)
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: "../components/schemas/Item.yaml"
+                meta:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    filters:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                        channel_id:
+                          type: integer
+                        feed_id:
+                          type: integer
+                        date_range:
+                          type: object
+                          properties:
+                            start:
+                              type: string
+                              format: date
+                            end:
+                              type: string
+                              format: date
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '500':
+        $ref: "../components/responses/InternalServerError.yaml"

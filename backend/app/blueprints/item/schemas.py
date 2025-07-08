@@ -8,6 +8,8 @@ class ItemSchema(ma.SQLAlchemyAutoSchema):
         include_relationships = False
         include_fk = True
     
+    flag_status = ma.Nested("ItemFlagStatusSchema")
+    
 item_schema = ItemSchema()
 items_schema = ItemSchema(many=True)
 
@@ -21,16 +23,6 @@ class ItemFlagStatusSchema(ma.SQLAlchemyAutoSchema):
 item_flag_status_schema = ItemFlagStatusSchema()
 item_flag_statuses_schema = ItemFlagStatusSchema(many=True)
 
-class StatsAggregatedItemSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = StatsAggregatedItem
-        load_instance = True
-        include_relationships = False
-        include_fk = True
-        
-stats_aggregated_item_schema = StatsAggregatedItemSchema()
-stats_aggregated_items_schema = StatsAggregatedItemSchema(many=True)
-
 class StatsTrackEventItemSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = StatsTrackEventItem
@@ -40,4 +32,3 @@ class StatsTrackEventItemSchema(ma.SQLAlchemyAutoSchema):
         
 stats_track_event_item_schema = StatsTrackEventItemSchema()
 stats_track_event_items_schema = StatsTrackEventItemSchema(many=True)
-

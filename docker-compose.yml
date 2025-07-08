@@ -7,10 +7,12 @@ services:
       dockerfile: Dockerfile.database
     image: podverse-database:latest
     container_name: podverse_database
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: podverse_admin
-      POSTGRES_PASSWORD: testest
-      POSTGRES_DB: podverse_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
@@ -26,17 +28,16 @@ services:
     container_name: podverse_backend
     ports:
       - "8000:8000"
+    env_file:
+      - .env
+      - ./backend/.env
     environment:
       FLASK_APP: main.py
-      FLASK_ENV: development
-      DATABASE_URL: postgresql://podverse_admin:testest@database:5432/podverse_db
-      DATABASE_HOST: database
-      DATABASE_PORT: 5432
-      DATABASE_USER: podverse_admin
-      DATABASE_PASSWORD: testest
-      DATABASE_NAME: podverse_db
+      FLASK_ENV: ${FLASK_ENV}
+      DATABASE_URL: ${DATABASE_URL}
     volumes:
-      - ./backend:/app
+      - ./backend/scripts:/app/scripts
+      - ./backend/app:/app/app
     depends_on:
       - database
     networks:
@@ -54,9 +55,61 @@ services:
     networks:
       - podverse-network
 
+  ai:
+    build:
+      context: .
+      dockerfile: Dockerfile.ai
+    image: podverse-ai:latest
+    container_name: podverse_ai
+    ports:
+      - "5050:5050"
+    env_file:
+      - .env
+    volumes:
+      - ./:/app
+    depends_on:
+      - backend
+      - ai_db
+    environment:
+      FLASK_ENV: ${FLASK_ENV}
+      BACKEND_URL: ${BACKEND_URL}
+      DATABASE_URL: ${AI_DATABASE_URL}
+      PYTHONPATH: ${PYTHONPATH}
+      PODVERSE_BACKEND_PATH: ${PODVERSE_BACKEND_PATH}
+    networks:
+      - podverse-network
+
+  ai_db:
+    image: postgres:15
+    container_name: podverse_ai_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${AI_DB_USER}
+      POSTGRES_PASSWORD: ${AI_DB_PASSWORD}
+      POSTGRES_DB: ${AI_DB_NAME}
+    volumes:
+      - ai_pgdata:/var/lib/postgresql/data
+      - ./ai/db/db_init.sql:/docker-entrypoint-initdb.d/db_init.sql
+    ports:
+      - "5433:5432"
+    networks:
+      - podverse-network
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    volumes:
+      - ${OLLAMA_MODEL_PATH:-./.ollama}:/root/.ollama
+    ports:
+      - "11435:11434"
+    restart: always
+    networks:
+      - podverse-network
 
 volumes:
   pgdata:
+  ai_pgdata:
 
 networks:
   podverse-network:

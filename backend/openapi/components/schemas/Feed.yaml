@@ -1,5 +1,9 @@
 # use for responses 
 type: object
+required:
+  - id
+  - url
+  - feed_flag_status_id
 properties:
   id:
     type: integer
@@ -18,33 +22,27 @@ properties:
     description: RSS feed URL
     example: https://example.com/rss.xml
 
-  # it's in feed table but not in sql schema
-  last_parsed:
-    type: string
-    format: date-time
-    nullable: true
-    description: Timestamp of the last parsing attempt
-    example: 2025-06-18T13:45:00Z
-
   is_parsing:
-    type: string
-    format: date-time
+    type: boolean
     nullable: true
-    description: Set to timestamp when parsing starts; null when idle
-    example: 2025-06-18T13:47:12Z
+    description: Whether the feed is currently being parsed
+    default: false
+    example: false
 
   parsing_priority:
     type: integer
+    nullable: true
     minimum: 0
     maximum: 5
     description: Frequency tier for parsing; 0 = rarely, 5 = frequently
+    default: 0
     example: 2
 
   last_parsed_file_hash:
     type: string
-    pattern: '^[a-f0-9]{32}$'
+    maxLength: 64
     nullable: true
-    description: MD5 hash of last parsed feed XML used for change detection
+    description: Hash of last parsed feed XML used for change detection
     example: "c4ca4238a0b923820dcc509a6f75849b"
 
   container_id:
@@ -57,11 +55,22 @@ properties:
   created_at:
     type: string
     format: date-time
+    nullable: true
     description: Timestamp when the feed was added
     example: 2025-06-17T22:00:00Z
 
   updated_at:
     type: string
     format: date-time
+    nullable: true
     description: Timestamp when the feed was last updated
     example: 2025-06-18T14:05:00Z
+
+  flag_status:
+    $ref: "./FeedFlagStatus.yaml"
+
+  logs:
+    type: array
+    items:
+      $ref: "./FeedLog.yaml"
+    description: Feed parsing logs

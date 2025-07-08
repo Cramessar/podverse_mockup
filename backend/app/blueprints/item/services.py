@@ -1,49 +1,58 @@
-from app.models.item import Item
+# app/blueprints/item/services.py
+
+from app.models import Item
+from app.models.item import ItemFlagStatus
 from app.extensions import db
-from typing import List, Optional
-from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+from app.utils.query_helpers import apply_sorting, paginate_query
+from app.utils.error_exceptions import NotFoundError, DatabaseError
+from app.utils.logger import get_logger, log_database_operation
 
-class ItemService:
-    """Service layer for Item operations - minimal factory pattern implementation"""
+logger = get_logger(__name__)
 
-    @staticmethod
-    def get_all_items() -> List[Item]:
-        return db.session.execute(select(Item)).scalars().all()
+def item_eagerload_options():
+    return (
+        joinedload(Item.channel),
+        joinedload(Item.stats),
+        joinedload(Item.flag_status),
+    )
 
-    @staticmethod
-    def get_item_by_id(item_id: int) -> Optional[Item]:
-        return db.session.get(Item, item_id)
+def get_items_list(search, sort_by, sort_order, page, limit):
+    try:
+        query = db.session.query(Item).options(*item_eagerload_options())
+        log_database_operation(logger, "READ", "items", f"page_{page}_limit_{limit}")
 
-    @staticmethod
-    def get_items_by_channel_id(channel_id: int) -> List[Item]:
-        return db.session.execute(select(Item).where(Item.channel_id == channel_id)).scalars().all()
-    
-    @staticmethod
-    def create_item(data: dict) -> Item:
-        item = Item(**data)
-        db.session.add(item)
-        db.session.commit()
-        return item
-    
-    @staticmethod
-    def update_item(item_id: int, data: dict) -> Optional[Item]:
-        item = db.session.get(Item, item_id)
+        if search:
+            query = query.filter(Item.title.ilike(f"%{search}%"))
+            logger.info(f"Applying search filter for items: {search}")
+
+        query = apply_sorting(query, Item, sort_by, sort_order)
+        logger.info(f"Applying sort: {sort_by} {sort_order}")
+
+        items, meta = paginate_query(query, page, limit)
+
+        logger.info(f"Retrieved {len(items)} items for page {page} with search: {search or 'none'}")
+        return items, meta
+
+    except Exception as e:
+        logger.error(f"Error retrieving items list: {str(e)}")
+        raise DatabaseError(f"Failed to retrieve items: {str(e)}")
+
+def get_item_detail(item_id):
+    try:
+        log_database_operation(logger, "READ", "items", item_id)
+
+        item = db.session.query(Item).options(*item_eagerload_options()).filter_by(id=item_id).first()
+
         if not item:
-            return None
-        for key, value in data.items():
-            setattr(item, key, value)
-        db.session.commit()
+            logger.warning(f"Item with ID {item_id} not found")
+            raise NotFoundError(f"Item with ID {item_id} not found")
+
+        logger.info(f"Retrieved item details for ID: {item_id}")
         return item
-    
-    @staticmethod
-    def delete_item(item_id: int) -> bool:
-        item = db.session.get(Item, item_id)
-        if not item:
-            return False
-        db.session.delete(item)
-        db.session.commit()
-        return True
-    
-def create_item_service() -> ItemService:
-    """Factory function to create item service instance"""
-    return ItemService()
+
+    except NotFoundError:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving item detail for ID {item_id}: {str(e)}")
+        raise DatabaseError(f"Failed to retrieve item detail: {str(e)}")

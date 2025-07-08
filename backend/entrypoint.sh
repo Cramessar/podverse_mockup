@@ -14,21 +14,21 @@ MAX_RETRIES=5
 RETRY_DELAY=5
 COUNT=0
 
-echo "$(date '+%Y-%m-%d %H:%M:%S') - Running dummy data generation script with retries..."
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Running full seed_all.py script with retries..."
 
 while [ $COUNT -lt $MAX_RETRIES ]; do
-  if python /app/scripts/generate_dummy_users.py; then
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Dummy data generation completed successfully."
+  if python /app/scripts/seed_all.py; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Seeding completed successfully."
     break
   else
     COUNT=$((COUNT + 1))
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Dummy data script failed (attempt $COUNT/$MAX_RETRIES). Retrying in $RETRY_DELAY seconds..."
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Seeding script failed (attempt $COUNT/$MAX_RETRIES). Retrying in $RETRY_DELAY seconds..."
     sleep $RETRY_DELAY
   fi
 done
 
 if [ $COUNT -eq $MAX_RETRIES ]; then
-  echo "$(date '+%Y-%m-%d %H:%M:%S') - Dummy data generation failed after $MAX_RETRIES attempts. Continuing without seeding."
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - Seeding failed after $MAX_RETRIES attempts. Continuing without seed data."
 fi
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting Flask app..."

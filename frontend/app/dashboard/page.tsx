@@ -1,188 +1,224 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
 import { useRouter } from "next/navigation";
-
+import { BellIcon } from "@heroicons/react/24/outline";
+import { Feed, RecentLog } from "@/types/feed";
+import FeedStatsChart from "../../components/FeedStatsChart";
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<"feeds" | "metrics">("metrics");
-    const router = useRouter();
+  const router = useRouter();
+  const [feeds, setFeeds] = useState<Feed[]>([]);
+  const [error, setError] = useState<string>("");
+  const [selectedFeedId, setSelectedFeedId] = useState<number | null>(null);
+  const [selectedFeedLogs, setSelectedFeedLogs] = useState<RecentLog[]>([]);
+  const [logLoading, setLogLoading] = useState(false);
+  const [logError, setLogError] = useState<string | null>(null);
 
-    const handleContinue = () => {
+  // Fetch feeds on mount
+  useEffect(() => {
+    const fetchFeeds = async () => {
+      try {
+        const response = await fetch("/api/feeds?limit=2000");
+        if (!response.ok) throw new Error("Failed to load feeds");
+        const data = await response.json();
+        setFeeds(data);
+      } catch (error) {
+        setError("Failed to load feeds");
+      }
+    };
+    fetchFeeds();
+  }, []);
+
+  // Show only most recent flagged or error feeds
+  const handleRecentFlagged = (feeds: Feed[]) => {
+    return feeds
+      .filter(feed => feed.feed_flag_status_id === 2 || feed.feed_flag_status_id === 3)
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      .slice(0, 6);
+  };
+
+  // Fetch logs for selected feed
+  useEffect(() => {
+    if (selectedFeedId == null) return;
+    setLogLoading(true);
+    setLogError(null);
+    fetch(`/api/feeds/${selectedFeedId}`)
+      .then(res => res.json())
+      .then(data => setSelectedFeedLogs(data.recent_logs || []))
+      .catch(() => setLogError("Failed to load logs"))
+      .finally(() => setLogLoading(false));
+  }, [selectedFeedId]);
+
+  // Set default selected feed to first flagged/error feed
+  useEffect(() => {
+    if (selectedFeedId == null && feeds.length > 0) {
+      const flagged = handleRecentFlagged(feeds);
+      if (flagged.length > 0) {
+        setSelectedFeedId(flagged[0].id);
+      }
+    }
+  }, [feeds, selectedFeedId]);
+
+  // Logout handler
+  const handleLogout = () => {
     router.push("/auth/logout");
   };
 
-  return (
+  // --- Stats calculations ---
+  const totalFeeds = feeds.length;
+  const flaggedFeeds = feeds.filter(f => f.feed_flag_status_id === 2 || f.feed_flag_status_id === 3).length;
+  const healthyFeeds = feeds.filter(f => f.feed_flag_status_id !== 2 && f.feed_flag_status_id !== 3).length;
+  const flaggedPercent = totalFeeds > 0 ? Math.round((flaggedFeeds / totalFeeds) * 100) : 0;
 
-    <div className="flex min-h-screen bg-podverse-background text-black">
+  return (
+    <div className="flex min-h-screen bg-gray-100 text-black">
       <Sidebar />
 
-      {/* Main content */}
-      <main className="flex-1 p-8 space-y-8">
+      <main className="flex-1  space-y-8">
         {/* Top bar */}
-        <header className="flex justify-between items-center">
-          <input
-            type="search"
-            placeholder="Search"
-            className="rounded-full px-5 py-2 w-1/3 bg-[#2a2a35] text-black placeholder-[#7a7a8c] focus:outline-none"
-          />
-          <div className="flex space-x-4">
+        <header className="flex justify-between p-2 pr-4 bg-podverse-surface items-center mb-8">
+          <div className="flex-1 flex justify-center">
+            <input
+              type="search"
+              placeholder="Search"
+              className="rounded-full px-5 py-2 w-1/2 bg-white text-black placeholder-gray-400 focus:outline-none border border-gray-300"
+            />
+          </div>
+          <div className="flex items-center space-x-4 ml-4">
             <button
               aria-label="Notifications"
-              className="p-2 rounded hover:bg-[#2a2a35] transition"
+              className="p-2 rounded hover:bg-gray-200 transition"
             >
-              🔔
+              <BellIcon className="w-6 h-6 text-black" />
             </button>
             <button
-              onClick={handleContinue}
-              aria-label="Profile"
-              className="p-2 rounded hover:bg-[#2a2a35] transition"
+              onClick={handleLogout}
+              className="py-2 px-6 bg-podverse-accent hover:bg-podverse-accent text-white rounded-md transition"
             >
               Logout
             </button>
           </div>
         </header>
 
-        {/* Title and tabs */}
-        <section>
-          <h1 className="text-3xl text-black font-bold mb-1">Welcome to the Admin Panel</h1>
-          <p className="text-black mb-6">Manage your application effortlessly.</p>
-          <div className="inline-flex rounded border border-[#2a2a35] overflow-hidden">
-            <button
-              onClick={() => setActiveTab("feeds")}
-              className={`px-6 py-3 font-semibold transition ${activeTab === "feeds"
-                  ? "bg-[#3772ff] text-black"
-                  : "bg-[#23232e] text-[#7a7a8c] hover:bg-[#2a2a35]"
-                }`}
-            >
-              Manage RSS Feeds
-            </button>
-            <button
-              onClick={() => setActiveTab("metrics")}
-              className={`px-6 py-3 font-semibold transition ${activeTab === "metrics"
-                  ? "bg-[#3772ff] text-white"
-                  : "bg-[#23232e] text-[#7a7a8c] hover:bg-[#2a2a35]"
-                }`}
-            >
-              Detailed Metrics
-            </button>
+        {/* Show feed fetch error if any */}
+        {error && (
+          <div className="text-red-500 font-semibold mb-4">{error}</div>
+        )}
+
+        {/* RSS Feed and Audit Log */}
+        <section className="grid grid-cols-2 gap-8">
+          {/* Flagged Podcasts */}
+          <div className="bg-white rounded-lg p-6 shadow-md flex flex-col h-[600px]">
+            <h2 className="text-xl font-semibold mb-4 text-black">Recent Flagged Feeds</h2>
+            <div className="flex-1 overflow-y-auto">
+              {handleRecentFlagged(feeds).map((feed) => (
+                <div
+                  key={feed.id}
+                  tabIndex={0}
+                  role="button"
+                  onClick={() => setSelectedFeedId(feed.id)}
+                  className={`flex justify-between items-center p-3 rounded mb-3 cursor-pointer ${
+                    feed.id === selectedFeedId
+                      ? "bg-blue-100 border border-blue-400"
+                      : feed.feed_flag_status_id === 2
+                      ? "bg-yellow-100"
+                      : "bg-red-100"
+                  }`}
+                >
+                  <div>
+                    <p className="font-semibold text-black">{feed.url}</p>
+                    <p className="text-sm text-gray-500">Feed ID: {feed.id}</p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-auto">
+                    {/* Flag status oval, fixed width */}
+                    <span
+                      className={`flex items-center justify-center w-24 px-0 py-1 rounded-full shadow-md text-sm font-semibold select-none
+                        ${
+                          feed.feed_flag_status_id === 2
+                            ? "bg-yellow-400 text-yellow-900"
+                            : "bg-red-500 text-white"
+                        }
+                      `}
+                    >
+                      {feed.feed_flag_status_id === 2 ? "Flagged" : "Error"}
+                    </span>
+                    {/* Reparse button with Heroicon */}
+                    <button
+                      aria-label="Reparse"
+                      className="ml-2 p-1 rounded-full bg-gradient-to-r from-podverse-accent to-blue-500 text-white shadow-md hover:from-blue-500 hover:to-podverse-accent transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center"
+                    >
+                      {/* Heroicons ArrowPath (refresh) icon */}
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12a7.5 7.5 0 0113.5-4.5M19.5 12a7.5 7.5 0 01-13.5 4.5m0 0V15m0 1.5H6m12-1.5v-1.5m0 0H18" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {handleRecentFlagged(feeds).length === 0 && (
+                <div className="text-center text-gray-400 py-8">No flagged feeds found.</div>
+              )}
+            </div>
           </div>
 
-          {activeTab === "feeds" && (
-            <section className="grid grid-cols-2 gap-8 mt-8">
-              {/* Flagged Podcasts */}
-              <div className="bg-[#23232e] rounded-lg p-6 max-h-[420px] overflow-y-auto shadow-md">
-                <h2 className="text-xl font-semibold mb-4">Flagged Podcasts</h2>
-                {[...Array(6)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`flex justify-between items-center p-3 rounded mb-3 ${i % 2 === 0 ? "bg-[#2a2a35]" : "bg-[#1f1f27]"
-                      }`}
-                  >
-                    <div>
-                      <p className="font-semibold">Flagged Podcast {i + 1}</p>
-                      <p className="text-sm text-[#7a7a8c]">Podcast description</p>
-                    </div>
-                    <button
-                      className={`px-3 py-1 rounded text-sm ${i % 2 === 0 ? "bg-yellow-500" : "bg-red-600"
-                        }`}
-                    >
-                      Flag
-                    </button>
-                    <button
-                      aria-label="Refresh"
-                      className="ml-2 p-1 rounded hover:bg-[#2a2a35] transition"
-                    >
-                      🔄
-                    </button>
+          {/* Audit Log Table */}
+          <div className="bg-white rounded-lg p-6 shadow-md flex flex-col h-[600px]">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-black">Audit Log</h2>
+            </div>
+            <div className="flex-1 space-y-3 overflow-auto min-w-0">
+              {logLoading ? (
+                <div className="text-podverse-muted">Loading logs...</div>
+              ) : logError ? (
+                <div className="text-red-500">{logError}</div>
+              ) : selectedFeedLogs.length === 0 ? (
+                <div className="text-podverse-muted">No logs available</div>
+              ) : (
+                selectedFeedLogs.map((log, i) => (
+                  <div key={i} className="p-3 rounded bg-white border border-gray-200">
+                    <p className="font-semibold text-black break-words">{log.message}</p>
+                    <p className="text-xs text-gray-400">{new Date(
+                      log.last_finished_parse_time ||
+                      log.last_good_http_status_time ||
+                      ""
+                    ).toLocaleString()}</p>
+                    <span className={log.parse_errors === 0 ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
+                      {log.parse_errors === 0 ? "Live" : "Error"}
+                    </span>
                   </div>
-                ))}
-              </div>
+                ))
+                )
+              }
+            </div>
+          </div>
+        </section>
 
-              {/* Audit Log */}
-              <div className="bg-[#23232e] rounded-lg p-6 max-h-[420px] overflow-y-auto flex flex-col shadow-md">
-                <h2 className="text-xl font-semibold mb-4">Audit Log</h2>
-                <div className="flex-1 overflow-y-auto space-y-3">
-                  {[...Array(6)].map((_, i) => (
-                    <div
-                      key={i}
-                      className={`p-3 rounded ${i % 2 === 0 ? "bg-[#2a2a35]" : "bg-[#1f1f27]"
-                        }`}
-                    >
-                      <p className="font-semibold">Logged Change</p>
-                      <p className="text-sm text-[#7a7a8c]">Support Team Member</p>
-                      <p className="text-xs text-[#52525b]">5/31/2025 24:00</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 flex space-x-4">
-                  <button className="flex-1 border border-[#2a2a35] rounded py-3 hover:bg-[#2a2a35] transition">
-                    Reparse Feed
-                  </button>
-                  <button className="flex-1 bg-[#3772ff] text-white rounded py-3">
-                    Full Audit Log
-                  </button>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {activeTab === "metrics" && (
-            <section className="mt-8">
-              {/* Metrics header */}
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h2 className="text-xl font-semibold mb-1">Podverse</h2>
-                  <p className="text-sm text-[#7a7a8c] mb-4">
-                    Overview of critical performance indicators.
-                  </p>
-                </div>
-                <select
-                  className="bg-[#23232e] rounded border border-[#2a2a35] text-white px-4 py-2 focus:outline-none"
-                  defaultValue="Monthly"
-                >
-                  <option>Monthly</option>
-                  <option>Weekly</option>
-                  <option>Yearly</option>
-                </select>
-              </div>
-
-              <div className="flex space-x-6 mb-8">
-                <button className="border border-[#2a2a35] rounded px-6 py-3 hover:bg-[#2a2a35] transition">
-                  View Details
-                </button>
-                <button className="bg-[#3772ff] text-white rounded px-6 py-3">
-                  Download Report
-                </button>
-              </div>
-
-              <div className="grid grid-cols-4 gap-6 mb-8">
-                {[
-                  { title: "Podcasts", value: "1,250", change: "+5%" },
-                  { title: "New podcasts", value: "320", change: "+10%" },
-                  { title: "Views", value: "$12,500", change: "+15%" },
-                  { title: "Feedback Score", value: "4.8", change: "No Change" },
-                ].map(({ title, value, change }) => (
-                  <div
-                    key={title}
-                    className="bg-[#23232e] rounded p-6 flex flex-col justify-between"
-                  >
-                    <p className="text-[#7a7a8c]">{title}</p>
-                    <h3 className="text-3xl font-semibold">{value}</h3>
-                    <p className="text-[#52525b]">{change}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Chart placeholder */}
-              <div className="bg-[#23232e] rounded p-6 shadow-md">
-                <h3 className="text-xl font-semibold mb-4">Monthly Sales</h3>
-                <div className="h-48 bg-[#1f1f27] flex items-center justify-center text-[#7a7a8c]">
-                  Chart goes here
-                </div>
-              </div>
-            </section>
-          )}
+        {/* Stats at the bottom */}
+        <section className="mt-8">
+          <div className="grid grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded p-6 flex flex-col justify-between">
+              <p className="text-gray-500">Total RSS Feeds</p>
+              <h3 className="text-3xl font-semibold text-black">{totalFeeds.toLocaleString()}</h3>
+            </div>
+            <div className="bg-white rounded p-6 flex flex-col justify-between">
+              <p className="text-gray-500">Healthy Feeds</p>
+              <h3 className="text-3xl font-semibold text-black">{healthyFeeds.toLocaleString()}</h3>
+            </div>
+            <div className="bg-white rounded p-6 flex flex-col justify-between">
+              <p className="text-gray-500">Flagged Feeds</p>
+              <h3 className="text-3xl font-semibold text-black">{flaggedFeeds.toLocaleString()}</h3>
+            </div>
+            <div className="bg-white rounded p-6 flex flex-col justify-between">
+              <p className="text-gray-500">Flagged %</p>
+              <h3 className="text-3xl font-semibold text-black">{flaggedPercent}%</h3>
+            </div>
+          </div>
+          {/* Pie Chart for Healthy vs Flagged Feeds */}
+          <div className="bg-white rounded p-6 shadow-md">
+            <h3 className="text-xl font-semibold mb-4 text-black">Feed Health Distribution</h3>
+            <FeedStatsChart healthy={healthyFeeds} flagged={flaggedFeeds} />
+          </div>
         </section>
       </main>
     </div>

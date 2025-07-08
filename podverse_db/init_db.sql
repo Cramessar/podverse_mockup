@@ -299,10 +299,12 @@ CREATE TABLE feed_log (
     last_http_status INTEGER,
     last_good_http_status_time server_time,
     last_finished_parse_time server_time,
-    parse_errors INTEGER DEFAULT 0
+    parse_errors INTEGER DEFAULT 0,
+    message varchar_normal
 );
 
 CREATE INDEX idx_feed_log_feed_id ON feed_log(feed_id);
+
 
 --** CHANNEL
 

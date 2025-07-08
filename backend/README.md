@@ -102,3 +102,11 @@ pytest tests/
 ## Logging
 
 Centralized logging system with request/response tracking and security event logging.
+
+
+| Layer          | Purpose                                |
+| -------------- | -------------------------------------- |
+| **Route**      | Maps URL + method → controller         |
+| **Controller** | Handles input/output, talks to service |
+| **Service**    | Business logic, DB actions             |
+| **Schema**     | Validation + serialization             |

@@ -1,54 +1,40 @@
+/* File: frontend/styles/globals.css */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* =====================
-   🌐 Podverse Global Styles
-   ===================== */
+@layer base {
+  :root {
+    --pv-bg: #0f172a;         /* podverse.background */
+    --pv-surface: #1e293b;    /* podverse.surface */
+    --pv-border: #334155;     /* podverse.border */
+    --pv-text: #f1f5f9;       /* podverse.text */
+    --pv-muted: #94a3b8;      /* podverse.muted */
 
-body {
-  @apply bg-podverse-background text-podverse-text font-sans;
-  font-size: 16px;
-  line-height: 1.5;
-}
+    --pv-primary: #3b82f6;
+    --pv-secondary: #0ea5e9;
+    --pv-accent: #6366f1;
+    --pv-highlight: #c084fc;
+    --pv-cream: #fef3c7;
 
-h1, h2, h3, h4, h5, h6 {
-  @apply font-bold text-white;
-}
+    --pv-success: #22c55e;
+    --pv-warning: #facc15;
+    --pv-error: #ef4444;
+    --pv-info: #38bdf8;
+  }
 
-a {
-  @apply text-podverse-primary hover:underline transition;
-}
+  body {
+    background-color: var(--pv-bg);
+    color: var(--pv-text);
+    font-family: 'Inter', sans-serif;
+  }
 
-button {
-  @apply rounded-md font-medium focus:outline-none transition;
-}
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--pv-text);
+  }
 
-/* =====================
-   🎨 Custom Utility Classes
-   ===================== */
-
-/* Consistent section spacing */
-.section {
-  @apply px-6 py-12 md:px-12 md:py-16;
-}
-
-/* Podverse-style gradient background */
-.gradient-bg {
-  @apply bg-gradient-to-br from-podverse-primary via-podverse-accent to-podverse-highlight text-white;
-}
-
-/* Button styles */
-.btn {
-  @apply px-4 py-2 bg-podverse-primary text-black hover:bg-podverse-accent rounded-md font-semibold transition;
-}
-
-/* Card base */
-.card {
-  @apply bg-podverse-surface p-4 rounded-lg;
-}
-
-/* Divider border */
-.divider {
-  @apply border-t border-podverse-border my-8;
+  a {
+    color: var(--pv-primary);
+  }
 }

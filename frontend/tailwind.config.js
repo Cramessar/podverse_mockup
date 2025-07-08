@@ -10,9 +10,9 @@ module.exports = {
       colors: {
         podverse: {
           // Original base colors
-          background: "#FFFFFF",
+          background: "#FFFFFF",//White
           surface: "#E5EAF2",
-          text: "#FFFFFF",
+          text: "#000000", //Black
           muted: "#A0A0A0",
           border: "#2a2a2a",
 

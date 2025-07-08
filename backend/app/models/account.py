@@ -1,6 +1,9 @@
+# backend/app/models/account.py
 from sqlalchemy import String, Integer, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 from typing import Optional
+import uuid
 from app.extensions import db
 from app.models.base import Base
 
@@ -32,7 +35,7 @@ class StatsTrackAccountGuid(Base):
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     account_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("account.id"), nullable=False)
-    account_guid: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    account_guid: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=db.func.now(), onupdate=db.func.now())
     
     account = relationship("Account", back_populates="guid_tracking")

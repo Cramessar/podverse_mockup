@@ -20,9 +20,9 @@
         in: query
         schema:
           type: string
-          enum: [id, title]
         description: |
-          Field to sort results by. Supported fields: `id`, `title`.
+          Field to sort results by. Supported fields: `id`, `title`. 
+          Invalid values will gracefully fall back to `id` (default behavior).
       - name: sort_order
         in: query
         schema:
@@ -100,5 +100,127 @@
         $ref: "../components/responses/Unauthorized.yaml"
       '404':
         $ref: "../components/responses/NotFound.yaml"
+      '500':
+        $ref: "../components/responses/InternalServerError.yaml"
+
+/channels/export:
+  get:
+    summary: Export channel data in CSV or JSON format
+    description: |
+      Exports channel data in CSV or JSON format. The export includes:
+      
+      - Basic channel info (id, title, slug, sortable_title, id_text)
+      - Feed information (URL, status)
+      - Medium type and name
+      - Podcast metadata (podcast_index_id, podcast_guid, value flags)
+      - Statistics (aggregated counts)
+      - Timestamps (created_at, updated_at)
+      
+      This endpoint is useful for:
+      - Analytics and reporting
+      - Channel auditing and management
+      - Data backup and migration
+      - Integration with external systems
+      
+      The endpoint supports the same filtering and sorting options as the 
+      main channels list endpoint for consistency.
+      
+      **Note**: OPML format is not supported for channel exports (only available for feeds).
+    tags:
+      - Channels
+    security:
+      - Auth0Bearer: []
+    parameters:
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          enum: [csv, json]
+          default: csv
+        description: Export format - CSV for spreadsheet compatibility or JSON for API integration
+      - $ref: "../components/parameters/query/search.yaml"
+      - name: sort_by
+        in: query
+        schema:
+          type: string
+        description: |
+          Field to sort results by. Supported fields: `id`, `title`. 
+          Invalid values will gracefully fall back to `id` (default behavior).
+      - name: sort_order
+        in: query
+        schema:
+          type: string
+          enum: [asc, desc]
+          default: asc
+        description: Sort order (ascending or descending)
+      - name: max_rows
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50000
+          default: 10000
+        description: |
+          Maximum number of rows to export (for performance). 
+          Valid range: 1-50000. Values outside this range will fall back to 10000 (default).
+    responses:
+      '200':
+        description: Channel data exported successfully
+        content:
+          text/csv:
+            schema:
+              type: string
+              format: binary
+              description: CSV file containing channel data with timestamped filename
+            example: |
+              "id","title","slug","feed_url","medium_name","stats_all_time_count"
+              "1","Tech Podcast","tech-podcast","https://example.com/feed.xml","podcast","1500"
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  slug:
+                    type: string
+                  feed_url:
+                    type: string
+                  medium_name:
+                    type: string
+                  stats_all_time_count:
+                    type: integer
+                description: JSON array of channel objects with complete metadata
+        headers:
+          Content-Disposition:
+            schema:
+              type: string
+              example: "attachment; filename=channels_export_20240101_120000.csv"
+            description: Specifies the filename for download (when format=csv)
+      '400':
+        description: Invalid request parameters or unsupported format
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/Error.yaml"
+            examples:
+              unsupported_format:
+                summary: Unsupported format requested
+                value:
+                  error:
+                    message: "OPML format is only supported for feeds. Use 'csv' or 'json' for other data types."
+                    status_code: 400
+      '401':
+        $ref: "../components/responses/Unauthorized.yaml"
+      '429':
+        description: Rate limit exceeded
+        content:
+          application/json:
+            schema:
+              $ref: "../components/schemas/Error.yaml"
       '500':
         $ref: "../components/responses/InternalServerError.yaml"

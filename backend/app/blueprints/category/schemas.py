@@ -1,4 +1,5 @@
-from marshmallow import Schema, fields
+# app/blueprints/category/schemas.py
+
 from app.extensions import ma
 from app.models.category import Category
 
