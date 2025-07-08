@@ -26,7 +26,7 @@ def extract_blueprint_routes():
 
     matches = pattern.findall(content)
 
-    # Debugging output to see raw matches
+    # Debugging output for sanity check
     print(f"[🔍 DEBUG] Raw matches: {matches}")
 
 
