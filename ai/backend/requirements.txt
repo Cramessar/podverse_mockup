@@ -1,28 +1,14 @@
 # Core web and database libraries
-Flask==2.3.3                      # Web framework for the AI container
-psycopg2-binary==2.9.9           # PostgreSQL driver
-SQLAlchemy==2.0.30               # ORM for AI-side DB
+Flask==2.3.3                      
+psycopg2-binary==2.9.9           
+SQLAlchemy==2.0.30               
 
 # Utilities and environment management
-requests==2.32.3                 # HTTP requests for syncing with Podverse backend
-python-dotenv==1.0.1             # Load .env variables into Flask app
-apscheduler==3.10.1              # Scheduled tasks for syncing and processing
+requests==2.32.3                
+python-dotenv==1.0.1             
+apscheduler==3.10.1             
 
 # Data handling and ML foundations
-pandas==2.2.2                    # DataFrame manipulation, CSV export, feature extraction
-scikit-learn==1.5.0              # ML models, clustering, preprocessing, etc.
+pandas==2.2.2                   
+scikit-learn==1.5.0             
 
-# LLM/AI enhancement (optional — if planning GPT/OpenAI usage)
-openai==1.30.1                   # GPT-based tasks or embeddings
-
-# --- Optional Add-ons (Uncomment if needed) ---
-
-# For validating JSON structures from Podverse API
-# jsonschema==4.22.0
-
-# For local embeddings / vector search (e.g., podcast similarity)
-# sentence-transformers==2.7.0
-# faiss-cpu==1.7.4
-
-# For handling CORS if exposing the Flask AI API to a frontend
-# Flask-Cors==4.0.0

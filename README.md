@@ -124,21 +124,41 @@ Copy and paste it in command prompt. You dont have to navigate to any folder. Ju
 
 ---
 
-## 📂 Environment Variables (.env)
+### 📂 Environment Variables (`.env`)
 
-Create a `.env` file in the project root with the following variables:
+This project uses environment variables to keep configuration clean and secure across services. Create a `.env` file at the root of the project using the `.env.example` as a guide.
+
+Here are a few key variables you’ll need:
 
 ```env
-# Database
-POSTGRES_USER=podverse_admin
-POSTGRES_PASSWORD=testest
-POSTGRES_DB=podverse_db
-DATABASE_URL=postgresql://podverse_admin:testest@database:5432/podverse_db
+# 🐘 Main Database
+POSTGRES_USER=your_postgres_user
+POSTGRES_PASSWORD=your_postgres_password
+POSTGRES_DB=your_postgres_db
+DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
 
-# Ollama Model Path. This is where ollama stores all your models by default. 
-OLLAMA_MODEL_PATH=C:/Users/chris/.ollama
+# 🤖 AI Database
+AI_DB_USER=your_ai_user
+AI_DB_PASSWORD=your_ai_password
+AI_DB_NAME=your_ai_db_name
+AI_DATABASE_URL=postgresql://${AI_DB_USER}:${AI_DB_PASSWORD}@ai_db:5432/${AI_DB_NAME}
+
+# 🧠 AI Service
+BACKEND_URL=http://backend:8000
+PYTHONPATH=/app
+PODVERSE_BACKEND_PATH=/app/backend/app
+
+# 🎧 API Keys
+LISTENNOTES_API_KEY=your_listennotes_api_key_here
+
+# 🦙 Ollama (Local Model Path)
+OLLAMA_MODEL_PATH=C:/Users/your_user/.ollama  # Or wherever Ollama stores your models
 ```
-Please look at the .env.example. It will make sense eventually I promise.
+
+> ⚠️ **Important:**  
+> This `.env` file is used by **multiple services** in the Docker Compose setup — such as the backend, AI container, and both databases. Docker Compose will automatically inject these values via `env_file`.
+
+🔍 You don’t need to memorize these — just peek at `.env.example` and fill in the blanks. It’ll make sense, eventually. Promise. ✨
 
 ---
 
