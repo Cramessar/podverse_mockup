@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy import func, desc
 from app.blueprints.stats import stats_bp
 from app.extensions import db
-from app.utils.logger import get_logger, log_request
+from backend.app.utils.request_logger import get_logger, log_request
 from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseError
 from app.blueprints.stats.controller import list_channel_stats, get_channel_stat_details_by_id, list_item_stats, get_item_stat_details_by_id
 

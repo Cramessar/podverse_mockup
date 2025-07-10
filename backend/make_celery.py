@@ -3,6 +3,7 @@
 from celery import Celery
 from celery.schedules import crontab
 from app import create_app
+import os
 
 def celery_init_app(app=None):
     if app is None:
@@ -18,10 +19,10 @@ def celery_init_app(app=None):
     celery.conf.update(
         broker_connection_retry_on_startup=True,
         task_track_started=True,
-        task_time_limit=600,
-        task_soft_time_limit=300,
+        task_time_limit=int(os.getenv('CELERY_TASK_TIME_LIMIT', 600)),
+        task_soft_time_limit=int(os.getenv('CELERY_TASK_SOFT_TIME_LIMIT', 300)),
         worker_prefetch_multiplier=1,
-        worker_max_tasks_per_child=50,
+        worker_max_tasks_per_child=int(os.getenv('CELERY_WORKER_MAX_TASKS_PER_CHILD', 50)),
         task_ignore_result=app.config.get("CELERY_TASK_IGNORE_RESULT", True),
         beat_schedule={
             "auto-reparse-feeds-every-hour": {

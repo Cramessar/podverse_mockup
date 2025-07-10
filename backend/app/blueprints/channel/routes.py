@@ -4,7 +4,7 @@ from flask import jsonify, g
 from . import channel_bp
 from app.blueprints.channel.controller import list_channels, get_channel_by_id, export_channels
 from app.utils.auth import requires_auth
-from app.utils.logger import get_logger, log_request, log_request_start, log_request_end
+from backend.app.utils.request_logger import get_logger, log_request, log_request_start, log_request_end
 from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseError
 from app.extensions import limiter
 

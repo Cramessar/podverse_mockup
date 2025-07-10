@@ -8,7 +8,7 @@ from urllib.parse import urlparse, urlunparse
 from flask import current_app
 import time
 from app.utils.error_exceptions import ParseError
-from app.utils.logger import get_logger
+from backend.app.utils.request_logger import get_logger
 
 logger = get_logger(__name__)
 

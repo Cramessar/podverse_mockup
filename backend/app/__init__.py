@@ -4,10 +4,13 @@ from flask import Flask
 from app.extensions import ma, db, limiter, migrate
 from app.blueprints import register_blueprints
 from flask_cors import CORS
-from config import config_by_name
-from app.utils.logger import register_logging
+from backend.config import config_by_name
+from backend.app.utils.request_logger import register_logging
 from app.utils.error_handlers import register_error_handlers
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def create_app(config_name="development"):
     app = Flask(__name__)
@@ -23,7 +26,7 @@ def create_app(config_name="development"):
     
     # secure CORS configuration for frontend-backend communication
     CORS(app, 
-         origins=["http://localhost:3000", "http://frontend:3000"],  # Allow both local and Docker network access
+         origins=os.getenv("CORS_ORIGINS", "").split(","), # Allow both local and Docker network access
          supports_credentials=True,
          allow_headers=["Content-Type", "Authorization"],
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]

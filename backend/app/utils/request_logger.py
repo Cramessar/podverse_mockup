@@ -1,4 +1,4 @@
-# app/utils/logger.py
+# app/utils/request_logger.py
 
 import logging
 import json
@@ -6,6 +6,7 @@ import time
 from typing import Optional, Any, Dict, Union
 from flask import request, g, Flask, Response
 from logging import Logger
+from app.utils.security_logger import log_security_event
 
 def get_logger(name: str) -> Logger:
     """
@@ -25,13 +26,13 @@ def get_logger(name: str) -> Logger:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
         
-        # Create formatter
+        # JSON structured formatter
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            '{"timestamp": "%(asctime)s", "level": "%(levelname)s", "module": "%(name)s", "message": "%(message)s"}'
         )
         console_handler.setFormatter(formatter)
-        
         logger.addHandler(console_handler)
+        
         logger.setLevel(logging.INFO)
     
     return logger
@@ -80,6 +81,7 @@ def log_request_start(logger: Logger) -> None:
         logger.info(f"REQUEST AUTH: Authorization header present")
     else:
         logger.info(f"REQUEST AUTH: No authorization header")
+
 
 def log_request_end(logger: Logger, response: Response) -> Response:
     """
@@ -159,92 +161,3 @@ def log_database_operation(logger: Logger, operation: str, table: str,
         
         
 
-def log_auth_event(logger: Logger, event_type: str, user_id: Optional[str] = None, 
-                  email: Optional[str] = None, details: Optional[str] = None) -> None:
-    """
-    Helper function to log authentication events
-    
-    Args:
-        logger: Logger instance
-        event_type: Type of auth event (LOGIN_SUCCESS, LOGIN_FAILED, LOGOUT, TOKEN_REFRESH, etc.)
-        user_id: User ID (optional)
-        email: User email (optional)
-        details: Additional event details (optional)
-    """
-    log_msg = f"AUTH {event_type}"
-    
-    if user_id:
-        log_msg += f" - User ID: {user_id}"
-    if email:
-        log_msg += f" - Email: {email}"
-    if details:
-        log_msg += f" - {details}"
-    
-    # Add IP address if available
-    if request:
-        ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
-        if ip:
-            log_msg += f" - IP: {ip}"
-    
-    logger.info(log_msg)
-    
-    
-
-def log_security_event(logger: Logger, event_type: str, details: Optional[str] = None) -> None:
-    """
-    Helper function to log security-related events
-    
-    Args:
-        logger: Logger instance
-        event_type: Type of security event (UNAUTHORIZED_ACCESS, RATE_LIMIT, etc.)
-        details: Additional event details
-    """
-    log_msg = f"SECURITY {event_type}"
-    
-    if details:
-        log_msg += f" - {details}"
-    
-    # Add IP address if available
-    if request:
-        ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
-        if ip:
-            log_msg += f" - IP: {ip}"
-    
-    logger.warning(log_msg)
-    
-    
-
-def log_network_event(logger: Logger, event_type: str, details: Optional[str] = None) -> None:
-    """
-    Helper function to log network related issues (timeouts, disconnects, etc)
-
-    Args:
-        logger: Logger instance
-        event_type: Type of network issue (TIMEOUT, CONNECTION_ERROR, BROKENPIPE, etc)
-        details: Description or traceback
-    """
-    log_msg = f"NETWORK {event_type}"
-
-    if details:
-        log_msg += f" - {details}"
-    
-    # Add client IP if available
-    if request:
-        ip = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
-        if ip:
-            log_msg += f" - IP: {ip}"
-    
-    logger.warning(log_msg)
-    
-    
-    
-def log_error(context: str, error: Exception) -> None:
-    """
-    Helper function to log errors in consistent format with context and exception details across the codebase
-    
-    Args:
-        context: Context of the error
-        error: Exception object
-    """
-    logger = get_logger(context)
-    logger.error(f"[ERROR] {context}: {str(error)}", exc_info=True)

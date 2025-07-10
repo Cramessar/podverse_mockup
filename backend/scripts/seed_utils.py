@@ -8,13 +8,16 @@ from sqlalchemy.orm import sessionmaker, Session
 from faker import Faker
 import uuid
 from app.extensions import db
-from app.utils.logger import get_logger
+from backend.app.utils.request_logger import get_logger
 
 # Initialize Faker
 fake = Faker()
 
 # Setup database connection
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://podverse_admin:testest@database:5432/podverse_db")
+if not os.getenv("DATABASE_URL"):
+    raise ValueError("DATABASE_URL environment variable is required")
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

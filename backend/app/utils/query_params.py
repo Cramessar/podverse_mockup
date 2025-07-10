@@ -2,9 +2,11 @@
 #Request-parsing utils - Parse request.args safely
 
 from flask import request
-import logging
+from app.utils.error_exceptions import ValidationError
+from backend.app.utils.request_logger import get_logger
 
-logger = logging.getLogger(__name__)
+
+logger = get_logger(__name__)
 
 
 def get_pagination_params(request, default_page=1, default_limit=10, max_limit=50):
@@ -106,19 +108,31 @@ def get_multi_filter_param(request, key, default=None, type_func=str): # mesela 
         logger.warning(f"Invalid multi-filter param for key: {key}")
         return default if default is not None else []
     
-def get_search_query(request, default_search='', type_func=str):
+def get_search_query(request, default_search='', type_func=str, max_length=100):
     """
-        Extract and validate search parameter from request arguments.
+    Extract and validate search parameter from request arguments.
         
     Parameters:
         request: The incoming HTTP request object.
         default_search (str, optional): The fallback value if 'search' param is not provided. Defaults to ''.
         type_func (callable, optional): A function to cast the value. Defaults to str.
+        max_length (int, optional): Maximum allowed length for search term. Defaults to 100.
         
-        Returns:
-            str: The cleaned and type-converted search term to apply in filtering logic.
+    Returns:
+        str: The cleaned and type-converted search term to apply in filtering logic.
+        
+    Raises:
+        ValidationError: If search term exceeds max length or contains invalid characters
     """
 
     # Get the search term from the query string (?search=term)
-    search = request.args.get('search', default_search, type=type_func) 
+    search = request.args.get('search', default_search, type=type_func)
+    
+    # Validate length
+    if len(search) > max_length:
+        raise ValidationError(f"Search query exceeds maximum length of {max_length} characters")
+    
+    # Escape special SQL LIKE characters to prevent SQL injection via LIKE
+    search = search.replace('%', r'\%').replace('_', r'\_')
+    
     return search

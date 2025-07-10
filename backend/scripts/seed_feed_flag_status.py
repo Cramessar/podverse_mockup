@@ -1,7 +1,7 @@
 from seed_utils import get_db_session
 from app.models.feed import FeedFlagStatus
 from sqlalchemy.exc import IntegrityError
-from app.utils.logger import get_logger
+from backend.app.utils.request_logger import get_logger
 
 logger = get_logger(__name__)
 

@@ -3,7 +3,7 @@ from app.blueprints.item.services import get_items_list, get_item_detail
 from app.blueprints.item.schemas import items_schema, item_schema
 from app.utils.query_params import get_pagination_params, get_sorting_params, get_search_query
 from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseError
-from app.utils.logger import get_logger, log_database_operation
+from backend.app.utils.request_logger import get_logger, log_database_operation
 
 logger = get_logger(__name__)
 

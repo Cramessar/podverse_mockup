@@ -6,7 +6,7 @@ from app.extensions import db
 from sqlalchemy.orm import joinedload
 from app.utils.query_helpers import apply_sorting, paginate_query
 from app.utils.error_exceptions import NotFoundError, DatabaseError
-from app.utils.logger import get_logger, log_database_operation
+from backend.app.utils.request_logger import get_logger, log_database_operation
 
 logger = get_logger(__name__)
 

@@ -6,7 +6,7 @@ from app.extensions import db
 from sqlalchemy.orm import joinedload
 from app.utils.query_helpers import apply_sorting, paginate_query
 from app.utils.error_exceptions import NotFoundError, DatabaseError
-from app.utils.logger import get_logger, log_database_operation
+from backend.app.utils.request_logger import get_logger, log_database_operation
 
 logger = get_logger(__name__)
 
@@ -20,6 +20,7 @@ def channel_eagerload_options():
         joinedload(Channel.stats),
         joinedload(Channel.categories).joinedload(ChannelCategory.category)
     )
+    
 
 def get_channels_list(search, sort_by, sort_order, page, limit):
     """
@@ -58,6 +59,7 @@ def get_channels_list(search, sort_by, sort_order, page, limit):
     except Exception as e:
         logger.error(f"Error retrieving channels list: {str(e)}")
         raise DatabaseError(f"Failed to retrieve channels: {str(e)}")
+
 
 def get_channels_for_export(search=None, sort_by='id', sort_order='asc', max_rows=10000):
     """

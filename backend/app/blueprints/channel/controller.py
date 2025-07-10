@@ -5,7 +5,7 @@ from app.blueprints.channel.services import get_channels_list, get_channel_detai
 from app.blueprints.channel.schemas import channels_schema, channel_exports_schema, channel_detail_schema
 from app.utils.query_params import get_pagination_params, get_sorting_params, get_search_query
 from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseError
-from app.utils.logger import get_logger, log_database_operation
+from backend.app.utils.request_logger import get_logger, log_database_operation
 from app.utils.export_response import generate_export_response
 from datetime import datetime
 from app.utils.export_logging import create_export_log_simple, finalize_export_log
@@ -56,7 +56,6 @@ def export_channels():
         # Create export log
         log = create_export_log_simple(
             export_type="channels",
-            format=request.args.get("format", "csv"),
             filters=request.args.to_dict(),
             admin_email=admin_email
         )

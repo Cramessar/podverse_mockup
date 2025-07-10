@@ -6,7 +6,7 @@ from datetime import datetime
 from app.extensions import db
 from app.models.channel import Channel
 from app.models.item import Item
-from app.utils.logger import get_logger
+from backend.app.utils.request_logger import get_logger
 from app.blueprints.channel.services import get_channels_for_export
 from app.blueprints.feed.services import get_feeds_for_export
 from app.blueprints.channel.schemas import channel_exports_schema

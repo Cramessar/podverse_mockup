@@ -2,7 +2,7 @@ from flask import request
 from datetime import datetime
 from app.blueprints.stats.services import get_channel_stats, get_channel_stats_detail, get_item_stats, get_item_stats_detail
 from app.blueprints.stats.schemas import channel_stats_filter_schema, item_stats_filter_schema
-from app.utils.logger import get_logger
+from backend.app.utils.request_logger import get_logger
 
 logger = get_logger(__name__)
 

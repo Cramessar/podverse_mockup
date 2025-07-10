@@ -23,17 +23,17 @@ def get_limiter_key() -> str:
         return str(get_remote_address())
 
 # Configure Flask-Limiter with Redis for production or in-memory for development/testing
-def get_limiter_storage() -> Optional[str]:
+def get_limiter_storage() -> str:
     """
-    Return appropriate storage backend based on environment.
+    Return Redis URL for rate limiter storage. Falls back to memory storage only if Redis is not configured.
     
     Returns:
-        Optional[str]: Redis URL for production, None for development/testing
+        str: Redis URL if available, "memory://" if Redis is not configured
     """
     redis_url = os.getenv('REDIS_URL')
     if redis_url:
-        # Production: use Redis
+        # use Rrredis when available (recommended for all environments)
         return redis_url
     else:
-        # Development/Testing: use in-memory storage
-        return None
+        # Fallback to memory storage only if redis is not configured
+        return "memory://"
