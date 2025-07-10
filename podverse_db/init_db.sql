@@ -510,3 +510,31 @@ CREATE INDEX stats_aggregated_item_day_current_count_idx ON stats_aggregated_ite
 CREATE INDEX stats_aggregated_item_week_current_count_idx ON stats_aggregated_item(week_current_count);
 CREATE INDEX stats_aggregated_item_month_current_count_idx ON stats_aggregated_item(month_current_count);
 CREATE INDEX stats_aggregated_item_all_time_count_idx ON stats_aggregated_item(all_time_count);
+
+-- 0002 migration - Add new_feed_log and account_location
+
+-- Replace old feed_log with new_feed_log
+DROP TABLE IF EXISTS feed_log CASCADE;
+
+CREATE TABLE new_feed_log (
+    id SERIAL PRIMARY KEY,
+    feed_id INTEGER NOT NULL REFERENCES feed(id) ON DELETE CASCADE,
+    http_status INTEGER,
+    is_success BOOLEAN,
+    parse_errors INTEGER,
+    parse_error_message varchar_normal,
+    started_at server_time,
+    finished_at server_time,
+    parsed_by varchar_normal -- This should be an Auth0 ID
+);
+
+CREATE INDEX idx_new_feed_log_feed_id ON new_feed_log(feed_id);
+
+-- Location data for accounts
+-- Location data is saved a ISO 3166-1 Alpha-2 format
+-- Meaning it is saved as 2 capital letters
+CREATE TABLE account_location (
+    id SERIAL PRIMARY KEY,
+    account_id INTEGER UNIQUE REFERENCES account(id) ON DELETE CASCADE,
+    region CHAR(2) CHECK (region ~ '^[A-Z]{2}$')
+);
