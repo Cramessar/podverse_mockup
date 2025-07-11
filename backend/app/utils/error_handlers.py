@@ -6,7 +6,7 @@ from marshmallow import ValidationError as MarshmallowValidationError
 from werkzeug.exceptions import HTTPException
 from app.utils.error_exceptions import APIException, ValidationError, NotFoundError, DatabaseError
 from app.utils.auth import AuthError
-from backend.app.utils.request_logger import log_network_event
+from app.utils.security_logger import log_network_event
 import traceback
 import socket
 

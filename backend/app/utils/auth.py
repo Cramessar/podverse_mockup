@@ -6,6 +6,7 @@ from flask import request, _request_ctx_stack, current_app
 from jose import jwt
 import requests
 from app.utils.error_exceptions import AuthError
+from app.utils.security_logger import log_auth_event
 
 def get_auth0_config() -> Dict[str, Any]:
     """Get Auth0 configuration from current app config.
@@ -86,7 +87,9 @@ def requires_auth(f: F) -> F:
                 audience=current_app.config["API_AUDIENCE"],
                 issuer=f"https://{current_app.config['AUTH0_DOMAIN']}/"
             )
+            log_auth_event(logger, "TOKEN_VALID", payload["sub"], "Token validated successfully")
         except jwt.ExpiredSignatureError:
+            log_auth_event(logger, "TOKEN_EXPIRED", "unknown", "Token expired")
             raise AuthError({"code": "token_expired"}, 401)
         except jwt.JWTClaimsError:
             raise AuthError({"code": "invalid_claims"}, 401)

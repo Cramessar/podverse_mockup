@@ -1,11 +1,13 @@
 # app/blueprints/channel/controller.py
 
-from flask import request, jsonify
+from typing import List, Optional, Dict, Any
+from flask import jsonify, request
+from sqlalchemy.orm import joinedload
 from app.blueprints.channel.services import get_channels_list, get_channel_detail, get_channels_for_export
 from app.blueprints.channel.schemas import channels_schema, channel_exports_schema, channel_detail_schema
 from app.utils.query_params import get_pagination_params, get_sorting_params, get_search_query
 from app.utils.error_exceptions import ValidationError, NotFoundError, DatabaseError
-from backend.app.utils.request_logger import get_logger, log_database_operation
+from app.utils.request_logger import get_logger, log_database_operation
 from app.utils.export_response import generate_export_response
 from datetime import datetime
 from app.utils.export_logging import create_export_log_simple, finalize_export_log

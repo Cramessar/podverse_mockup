@@ -3,7 +3,7 @@
 from functools import wraps
 from flask import request
 from app.utils.security_logger import log_admin_action
-from app.utils.request_logger import get_logger
+from app.utils.log_config import get_audit_logger
 
 def audit_admin_access(action: str, resource: str):
     """
@@ -18,15 +18,14 @@ def audit_admin_access(action: str, resource: str):
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            logger = get_logger("admin_audit")
+            logger = get_audit_logger()
 
-            user = getattr(request, "user", None)  # Replace with real Auth0 user context if needed
-            user_id = getattr(user, "sub", "unknown") if user else "unknown"
+            admin_id = getattr(getattr(request, "admin", None), "sub", "unknown") 
 
             resource_id = kwargs.get("id") or kwargs.get(f"{resource}_id") or "unknown"
             log_admin_action(
                 logger=logger,
-                user_id=user_id,
+                admin_id=admin_id,
                 action=action,
                 resource=resource,
                 resource_id=resource_id,

@@ -9,7 +9,7 @@ from app.blueprints.feed.services import parse_and_update_feed_object
 from app.utils.error_exceptions import NotFoundError
 from app.utils.helpers import get_flag_status_id
 from app.utils.redis_lock import redis_lock
-from backend.app.utils.request_logger import get_logger
+from app.utils.request_logger import get_logger
 from datetime import datetime, timedelta
 from sqlalchemy import and_
 

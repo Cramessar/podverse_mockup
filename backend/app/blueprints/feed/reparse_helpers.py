@@ -1,7 +1,8 @@
 #app/blueprints/feed/reparse_helpers.py
 
 from app.services.feed_parser import parse_feed
-from backend.app.utils.request_logger import get_logger, log_network_event, log_database_operation
+from app.utils.request_logger import get_logger, log_database_operation
+from app.utils.security_logger import log_network_event, log_error
 from app.models.feed import Feed
 from app.models.feed import FeedLog
 from datetime import datetime

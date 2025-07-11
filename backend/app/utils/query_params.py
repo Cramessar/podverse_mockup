@@ -2,8 +2,12 @@
 #Request-parsing utils - Parse request.args safely
 
 from flask import request
+from typing import Optional, Dict, Any, Tuple
+from sqlalchemy.orm import Query
+from sqlalchemy import desc
+
 from app.utils.error_exceptions import ValidationError
-from backend.app.utils.request_logger import get_logger
+from app.utils.request_logger import get_logger
 
 
 logger = get_logger(__name__)

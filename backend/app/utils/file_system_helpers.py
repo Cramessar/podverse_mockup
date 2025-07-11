@@ -1,9 +1,15 @@
+# backend/app/utils/file_system_helpers.py
+
+
+"""
+This module provides helper functions for safe file export operations. Goal is check if a directory is writable, pick a valid export location then write file with atomic file replasment.
+"""
 import os
 import tempfile
 import shutil
 from pathlib import Path
 from typing import Optional, Tuple
-from backend.app.utils.request_logger import get_logger
+from app.utils.request_logger import get_logger
 
 logger = get_logger(__name__)
 

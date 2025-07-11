@@ -46,17 +46,12 @@ services:
       REDIS_URL: ${REDIS_URL}
       REDIS_RESULT_BACKEND: ${REDIS_RESULT_BACKEND}
     volumes:
-      - ./backend/scripts:/app/scripts
-      - ./backend/app:/app/app
-    depends_on:
-      - database
-      - redis
-      - backend
-      - celery
-    volumes:
       - ./backend/app:/app/app
       - ./backend/scripts:/app/scripts
       - ./backend/exports:/app/exports
+    depends_on:
+      - database
+      - redis
     networks:
       - podverse-network
 

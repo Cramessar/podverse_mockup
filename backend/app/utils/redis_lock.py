@@ -4,7 +4,7 @@ import redis
 import time
 import os
 from contextlib import contextmanager
-from backend.app.utils.request_logger import get_logger
+from app.utils.request_logger import get_logger
 from typing import Optional, Tuple, Generator
 from redis import Redis
 from app.utils.error_exceptions import RedisLockError

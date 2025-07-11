@@ -1,12 +1,18 @@
 # app/blueprints/channel/services.py
 
-from app.models import Channel
-from app.models.channel import ChannelCategory
-from app.extensions import db
+from typing import List, Optional, Dict, Any
+from sqlalchemy import func, desc, and_
 from sqlalchemy.orm import joinedload
+from sqlalchemy.sql import text
+from datetime import datetime, timedelta
+
+from app.extensions import db
+from app.models.channel import Channel
+from app.models.channel import ChannelCategory
+from app.utils.request_logger import get_logger, log_database_operation
 from app.utils.query_helpers import apply_sorting, paginate_query
 from app.utils.error_exceptions import NotFoundError, DatabaseError
-from backend.app.utils.request_logger import get_logger, log_database_operation
+from app.utils.export_response import generate_export_response
 
 logger = get_logger(__name__)
 

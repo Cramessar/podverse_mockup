@@ -7,7 +7,7 @@ from app.extensions import limiter, db
 from app.models.export_logs import ExportLog
 from app.utils.error_exceptions import NotFoundError, ValidationError
 from app.utils.auth import requires_auth
-from backend.app.utils.request_logger import get_logger
+from app.utils.request_logger import get_logger
 from app.utils.query_params import get_pagination_params, get_sorting_params
 from app.utils.query_helpers import paginate_query, apply_sorting
 from app.blueprints.export_logs.schemas import export_log_schema

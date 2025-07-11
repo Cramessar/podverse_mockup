@@ -7,7 +7,8 @@ from typing import Dict, Any
 from app.services.data_export import export_data_to_csv
 from app.utils.file_system_helpers import get_export_directory, FSError
 from app.utils.redis_lock import redis_lock, RedisLockError
-from backend.app.utils.request_logger import get_logger, log_error
+from app.utils.request_logger import get_logger
+from app.utils.security_logger import log_error
 from datetime import datetime, timedelta
 from app.extensions import db
 from app.models.export_logs import ExportLog
